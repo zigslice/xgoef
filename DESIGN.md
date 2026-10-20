@@ -34,7 +34,7 @@
 | `runtime/` | 进程入口、初始化、消息循环、窗口/浏览器 |
 | `ipc/` | Command 注册与调用、Event 总线 |
 | `plugin/` | 插件契约（命令 + permission） |
-| `plugins/fs` `plugins/os` | 内置插件：带范围的文件命令、平台信息 |
+| `plugins/fs` `plugins/os` `plugins/shell` `plugins/clipboard` `plugins/dialog` | 内置插件 |
 | `asset/` | `xgoef://app/` → `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `api/js/` | 注入或随资源分发的前端桥 |

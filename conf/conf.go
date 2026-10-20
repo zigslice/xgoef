@@ -21,16 +21,38 @@ type File struct {
 	Capabilities []acl.Capability `json:"capabilities"`
 }
 
-// PluginSection holds per-plugin settings. FS allow/deny roots use $APP,
-// $RESOURCE, and $HOME (see plugins/fs).
+// PluginSection holds per-plugin settings. Scope roots use $APP, $RESOURCE,
+// and $HOME (see plugins/fs).
 type PluginSection struct {
-	FS FSConfig `json:"fs"`
+	FS        FSConfig        `json:"fs"`
+	Shell     ShellConfig     `json:"shell"`
+	Dialog    DialogConfig    `json:"dialog"`
+	Clipboard ClipboardConfig `json:"clipboard"`
 }
 
 // FSConfig is the scope for the fs builtin.
 type FSConfig struct {
 	Allow []string `json:"allow"`
 	Deny  []string `json:"deny"`
+}
+
+// ShellConfig limits shell:open. Empty schemes means http and https.
+// Empty allow rejects local paths.
+type ShellConfig struct {
+	Schemes []string `json:"schemes"`
+	Allow   []string `json:"allow"`
+	Deny    []string `json:"deny"`
+}
+
+// DialogConfig is the scope applied to the path a picker returns.
+type DialogConfig struct {
+	Allow []string `json:"allow"`
+	Deny  []string `json:"deny"`
+}
+
+// ClipboardConfig selects the text store. Mode is "memory" (default) or "system".
+type ClipboardConfig struct {
+	Mode string `json:"mode"`
 }
 
 // Build holds frontend paths.

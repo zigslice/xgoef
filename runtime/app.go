@@ -102,10 +102,16 @@ func (a *App) OpenPlugins() error {
 		resource = filepath.Join(base, resource)
 	}
 	opt := plugins.Options{
-		Base:     base,
-		Resource: resource,
-		Allow:    a.Config.Plugin.FS.Allow,
-		Deny:     a.Config.Plugin.FS.Deny,
+		Base:          base,
+		Resource:      resource,
+		Allow:         a.Config.Plugin.FS.Allow,
+		Deny:          a.Config.Plugin.FS.Deny,
+		ShellSchemes:  a.Config.Plugin.Shell.Schemes,
+		ShellAllow:    a.Config.Plugin.Shell.Allow,
+		ShellDeny:     a.Config.Plugin.Shell.Deny,
+		DialogAllow:   a.Config.Plugin.Dialog.Allow,
+		DialogDeny:    a.Config.Plugin.Dialog.Deny,
+		ClipboardMode: a.Config.Plugin.Clipboard.Mode,
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {
