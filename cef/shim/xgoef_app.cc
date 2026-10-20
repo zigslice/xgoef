@@ -31,6 +31,7 @@ class WindowDelegate : public CefWindowDelegate {
 
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
     window->AddChildView(WrapWithAppMenu(window, browser_view_));
+    ApplySavedPlace(window, WindowCreatingLabel(browser_view_));
     if (initial_show_state_ != CEF_SHOW_STATE_HIDDEN) {
       window->Show();
     }
@@ -41,8 +42,16 @@ class WindowDelegate : public CefWindowDelegate {
     browser_view_ = nullptr;
   }
 
+  void OnWindowBoundsChanged(CefRefPtr<CefWindow> window, const CefRect& new_bounds) override {
+    (void)new_bounds;
+    NoteWindowGeometry(window, browser_view_);
+  }
+
   bool CanClose(CefRefPtr<CefWindow> window) override {
-    (void)window;
+    NoteWindowGeometry(window, browser_view_);
+    if (!browser_view_) {
+      return true;
+    }
     CefRefPtr<CefBrowser> browser = browser_view_->GetBrowser();
     if (browser) {
       return browser->GetHost()->TryCloseBrowser();
@@ -52,11 +61,23 @@ class WindowDelegate : public CefWindowDelegate {
 
   CefSize GetPreferredSize(CefRefPtr<CefView> view) override {
     (void)view;
-    return CefSize(960, 640);
+    int width = 0;
+    int height = 0;
+    DefaultWindowSize(&width, &height);
+    int saved_w = 0;
+    int saved_h = 0;
+    if (SavedSize(WindowCreatingLabel(browser_view_), &saved_w, &saved_h)) {
+      width = saved_w;
+      height = saved_h;
+    }
+    return CefSize(width, height);
   }
 
   cef_show_state_t GetInitialShowState(CefRefPtr<CefWindow> window) override {
     (void)window;
+    if (SavedMaximized(WindowCreatingLabel(browser_view_))) {
+      return CEF_SHOW_STATE_MAXIMIZED;
+    }
     return initial_show_state_;
   }
 

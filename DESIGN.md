@@ -86,6 +86,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `app.menu` 与 `app.tray` 写在配置里。点菜单项执行该项的 `command`，仍经过 capabilities。窗口栏是 CEF menu button；托盘在 `libgtk-3.so.0` 能加载时是 GTK status icon，否则用 `tray:popup` 弹出 CEF 菜单。详见 [docs/menu.md](docs/menu.md)。
 
+窗口的坐标、宽高和最大化写在应用目录 `.xgoef/window-state.json`，下次按 label 恢复。详见 [docs/window.md](docs/window.md)。
+
 ### Plugins
 
 ```xgo

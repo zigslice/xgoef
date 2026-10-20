@@ -38,7 +38,7 @@
 | --- | --- | --- |
 | 应用用 XGo 书写 | ✅ | `examples/hello/main.xgo`，`xgo build` → LLGo |
 | 窗口 + 本地页 | ✅（薄） | CEF Views/`cefsimple_capi` 路径；URL 经 `--url=` |
-| 配置文件 | 🟡 | `xgoef.conf.json` + schema；窗口状态字段仍少 |
+| 配置文件 | 🟡 | `xgoef.conf.json` + schema；窗口位置写在 `.xgoef/window-state.json` |
 | Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
 | Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
@@ -49,7 +49,7 @@
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels，以及菜单和托盘，都已经接上。还缺 window-state 持久化。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘，以及 window-state，都已经接上。还缺打包更新器。
 
 ---
 
@@ -63,7 +63,7 @@
 | --- | --- | --- |
 | App / Builder 生命周期 | 🟡 | 有 `runtime.App.Run`；缺精细 hook（ready / exit / page-load） |
 | Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；托盘见 `docs/menu.md` |
-| Window 状态（位置/尺寸/最大化） | ⬜ | conf 仅 title/width/height/url；关闭前不写回 |
+| Window 状态（位置/尺寸/最大化） | 🟡 | 位置、尺寸、最大化写入 `.xgoef/window-state.json`（见 `docs/window.md`）；最小化不恢复 |
 | 菜单 / 托盘 / 任务栏 | 🟡 | 窗口菜单栏和托盘菜单已封装（`docs/menu.md`）；任务栏未做。常驻图标在 `libgtk-3.so.0` 能加载时出现 |
 | 主题 / 装饰 / 透明 | ⬜ | — |
 | 多显示器 / DPI | ⬜ | 依赖 CEF 默认 |
@@ -116,7 +116,7 @@
 | 官方插件矩阵（fs/dialog/shell/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 | 移动端插件（Swift/Kotlin） | ✕ | 非目标 |
 
-**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`window-state`。其余（sql/updater/websocket…）后置。
+**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`。`window-state` 已做在 runtime 里。其余（sql/updater/websocket…）后置。
 
 ### 3.6 工具链与 DX
 
@@ -166,7 +166,7 @@
 
 10. Channels、异步 command、超时/取消。 ✅ Channels（见 `docs/channels.md`）；异步与取消仍后置
 11. 首批系统插件：fs（scoped）、dialog、clipboard、os、shell。 ✅（见 `docs/plugins.md`）
-12. 菜单 / 托盘 ✅（见 `docs/menu.md`）；window-state 持久化仍后置。
+12. 菜单 / 托盘 ✅（见 `docs/menu.md`）；window-state ✅（见 `docs/window.md`）。
 13. TS 类型与 `invoke` 声明生成。
 
 ### P3 — 发行与生态
@@ -302,7 +302,8 @@ App
 **里程碑 C：**
 
 - Channels 落地。 ✅（见 `docs/channels.md`）
-- 菜单和托盘落地。 ✅（见 `docs/menu.md`）；window-state 与打包/更新器仍后置。
+- 菜单和托盘落地。 ✅（见 `docs/menu.md`）
+- window-state 落地。 ✅（见 `docs/window.md`）；打包/更新器仍后置。
 
 ---
 
@@ -329,8 +330,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels，以及菜单和托盘**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘，以及 window-state**。接下来的产品差距集中在：
 
-1. **window-state 持久化**
+1. **打包更新器**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

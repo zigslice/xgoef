@@ -13,6 +13,9 @@
 
 #include "xgoef_handler.h"
 #include "xgoef_menu_views.h"
+#include "xgoef_window_state.h"
+
+#include <cstdio>
 
 namespace xgoef {
 namespace {
@@ -40,6 +43,7 @@ class SizedWindowDelegate : public CefWindowDelegate {
     if (!title_.empty()) {
       window->SetTitle(title_);
     }
+    ApplySavedPlace(window, WindowCreatingLabel(browser_view_));
     window->Show();
   }
 
@@ -48,8 +52,16 @@ class SizedWindowDelegate : public CefWindowDelegate {
     browser_view_ = nullptr;
   }
 
+  void OnWindowBoundsChanged(CefRefPtr<CefWindow> window, const CefRect& new_bounds) override {
+    (void)new_bounds;
+    NoteWindowGeometry(window, browser_view_);
+  }
+
   bool CanClose(CefRefPtr<CefWindow> window) override {
-    (void)window;
+    NoteWindowGeometry(window, browser_view_);
+    if (!browser_view_) {
+      return true;
+    }
     CefRefPtr<CefBrowser> browser = browser_view_->GetBrowser();
     if (browser) {
       return browser->GetHost()->TryCloseBrowser();
@@ -59,7 +71,23 @@ class SizedWindowDelegate : public CefWindowDelegate {
 
   CefSize GetPreferredSize(CefRefPtr<CefView> view) override {
     (void)view;
-    return CefSize(width_, height_);
+    int width = width_;
+    int height = height_;
+    int saved_w = 0;
+    int saved_h = 0;
+    if (SavedSize(WindowCreatingLabel(browser_view_), &saved_w, &saved_h)) {
+      width = saved_w;
+      height = saved_h;
+    }
+    return CefSize(width, height);
+  }
+
+  cef_show_state_t GetInitialShowState(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    if (SavedMaximized(WindowCreatingLabel(browser_view_))) {
+      return CEF_SHOW_STATE_MAXIMIZED;
+    }
+    return CEF_SHOW_STATE_NORMAL;
   }
 
   cef_runtime_style_t GetWindowRuntimeStyle() override {
@@ -132,8 +160,13 @@ void WindowSetPendingLabel(const std::string& label) {
 std::string WindowTakePendingLabel() {
   std::lock_guard<std::mutex> lock(g_mu);
   std::string out = g_pending_label.empty() ? "main" : g_pending_label;
-  g_pending_label = "main";
+  g_pending_label.clear();
   return out;
+}
+
+std::string WindowPeekPendingLabel() {
+  std::lock_guard<std::mutex> lock(g_mu);
+  return g_pending_label;
 }
 
 void WindowBind(const std::string& label, CefRefPtr<CefBrowser> browser) {
@@ -169,15 +202,112 @@ void WindowUnbind(CefRefPtr<CefBrowser> browser) {
 }
 
 std::string WindowLabelFor(CefRefPtr<CefBrowser> browser) {
-  if (!browser) {
+  std::string label;
+  if (!WindowBoundLabel(browser, &label)) {
     return "main";
+  }
+  return label;
+}
+
+bool WindowBoundLabel(CefRefPtr<CefBrowser> browser, std::string* out) {
+  if (!browser) {
+    return false;
   }
   std::lock_guard<std::mutex> lock(g_mu);
   auto it = g_label_by_id.find(browser->GetIdentifier());
   if (it == g_label_by_id.end()) {
-    return "main";
+    return false;
   }
-  return it->second;
+  if (out) {
+    *out = it->second;
+  }
+  return true;
+}
+
+std::string WindowCreatingLabel(CefRefPtr<CefBrowserView> view) {
+  if (view) {
+    std::string bound;
+    if (WindowBoundLabel(view->GetBrowser(), &bound)) {
+      return bound;
+    }
+  }
+  return WindowPeekPendingLabel();
+}
+
+void DefaultWindowSize(int* width, int* height) {
+  int w = 960;
+  int h = 640;
+  CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
+  if (command_line) {
+    const std::string spec = command_line->GetSwitchValue("xgoef-size").ToString();
+    int a = 0;
+    int b = 0;
+    if (std::sscanf(spec.c_str(), "%d,%d", &a, &b) == 2 && a > 0 && b > 0 && a <= 16384 &&
+        b <= 16384) {
+      w = a;
+      h = b;
+    }
+  }
+  if (width) {
+    *width = w;
+  }
+  if (height) {
+    *height = h;
+  }
+}
+
+bool SavedSize(const std::string& label, int* width, int* height) {
+  WindowPlace place;
+  if (label.empty() || !WindowStateFind(label, &place) || !place.positioned) {
+    return false;
+  }
+  if (width) {
+    *width = place.width;
+  }
+  if (height) {
+    *height = place.height;
+  }
+  return true;
+}
+
+bool SavedMaximized(const std::string& label) {
+  WindowPlace place;
+  return !label.empty() && WindowStateFind(label, &place) && place.maximized;
+}
+
+void ApplySavedPlace(CefRefPtr<CefWindow> window, const std::string& label) {
+  if (!window || label.empty()) {
+    return;
+  }
+  WindowPlace place;
+  if (!WindowStateFind(label, &place)) {
+    return;
+  }
+  if (place.positioned) {
+    window->SetBounds(CefRect(place.x, place.y, place.width, place.height));
+  }
+  if (place.maximized) {
+    window->Maximize();
+  }
+}
+
+void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> view) {
+  if (!window || !view) {
+    return;
+  }
+  std::string label;
+  if (!WindowBoundLabel(view->GetBrowser(), &label)) {
+    return;
+  }
+  if (window->IsMinimized()) {
+    return;
+  }
+  if (window->IsMaximized()) {
+    WindowStateNote(label, 0, 0, 0, 0, 1);
+    return;
+  }
+  const CefRect bounds = window->GetBoundsInScreen();
+  WindowStateNote(label, bounds.x, bounds.y, bounds.width, bounds.height, 0);
 }
 
 void DoWindowCreate(std::string lab,

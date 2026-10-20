@@ -28,6 +28,7 @@ set(XGOEF_CEF_SRCS
   xgoef_renderer.cc
   xgoef_ipc.cc
   xgoef_window.cc
+  xgoef_window_state.cc
   xgoef_menu_model.cc
   xgoef_menu.cc
   xgoef_tray_gtk.cc

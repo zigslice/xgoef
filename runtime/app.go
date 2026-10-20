@@ -15,6 +15,7 @@ import (
 	"github.com/zigslice/xgoef/menu"
 	"github.com/zigslice/xgoef/plugin"
 	"github.com/zigslice/xgoef/plugins"
+	"github.com/zigslice/xgoef/windowstate"
 )
 
 // App is the Tauri-like application handle.
@@ -37,6 +38,7 @@ type App struct {
 	trayMenu *menu.Menu
 	trayTip  string
 	trayIcon string
+	winState *windowstate.Store
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -168,6 +170,7 @@ func (a *App) CreateWindow(spec cef.WindowSpec) error {
 		}
 		spec.URL = url
 	}
+	a.applySavedSize(&spec)
 	return a.Bridge.CreateWindow(spec)
 }
 
@@ -194,6 +197,9 @@ func (a *App) FocusWindow(label string) error {
 func (a *App) Run() error {
 	navURL, err := a.NavigationURL(a.Config.FirstWindow().URL)
 	if err != nil {
+		return err
+	}
+	if err := a.OpenWindowState(); err != nil {
 		return err
 	}
 	if nh, ok := a.Host.(interface{ SetArgs([]string) }); ok {
@@ -354,6 +360,9 @@ func (a *App) buildArgs(url string) []string {
 	}
 	args := append([]string{}, os.Args...)
 	args = append(args, "--url="+url, "--xgoef-label="+label)
+	if w, h := a.launchSize(label, win.Width, win.Height); w > 0 && h > 0 {
+		args = append(args, fmt.Sprintf("--xgoef-size=%d,%d", w, h))
+	}
 	if a.assets != nil && a.assets.Dir() != "" {
 		args = append(args, "--xgoef-asset-root="+a.assets.Dir())
 	}
