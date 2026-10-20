@@ -36,4 +36,9 @@ type Bridge interface {
 	PopupMenu(windowLabel string) error
 	PopupTray(windowLabel string) error
 	SetMenuClick(fn func(windowLabel, kind, id string))
+
+	// Window state (P2). Encoded text is windowstate.Store.Encode.
+	// Note runs on the UI thread when a labeled window moves or closes.
+	SetWindowState(encoded string)
+	SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool))
 }

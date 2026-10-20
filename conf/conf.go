@@ -65,10 +65,17 @@ type Build struct {
 }
 
 // AppSection holds window definitions plus the app menu and tray menu.
+// WindowState nil means remembered geometry is on.
 type AppSection struct {
-	Windows []Window    `json:"windows"`
-	Menu    []MenuItem  `json:"menu,omitempty"`
-	Tray    *TrayConfig `json:"tray,omitempty"`
+	Windows     []Window    `json:"windows"`
+	Menu        []MenuItem  `json:"menu,omitempty"`
+	Tray        *TrayConfig `json:"tray,omitempty"`
+	WindowState *bool       `json:"windowState,omitempty"`
+}
+
+// RememberWindows reports whether places are saved under .xgoef/window-state.json.
+func (a AppSection) RememberWindows() bool {
+	return a.WindowState == nil || *a.WindowState
 }
 
 // MenuItem is one menu or tray row. ID is required except on separators.

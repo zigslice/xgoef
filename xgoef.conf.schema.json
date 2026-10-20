@@ -52,6 +52,11 @@
               "items": { "$ref": "#/$defs/menuItem" }
             }
           }
+        },
+        "windowState": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remember each window's position, size, and maximized flag in .xgoef/window-state.json."
         }
       }
     },
