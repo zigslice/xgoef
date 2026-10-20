@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/zigslice/xgoef/acl"
 )
@@ -73,10 +74,28 @@ type Build struct {
 // AppSection holds window definitions plus the app menu and tray menu.
 // WindowState nil means remembered geometry is on.
 type AppSection struct {
-	Windows     []Window    `json:"windows"`
-	Menu        []MenuItem  `json:"menu,omitempty"`
-	Tray        *TrayConfig `json:"tray,omitempty"`
-	WindowState *bool       `json:"windowState,omitempty"`
+	Windows        []Window    `json:"windows"`
+	Menu           []MenuItem  `json:"menu,omitempty"`
+	Tray           *TrayConfig `json:"tray,omitempty"`
+	WindowState    *bool       `json:"windowState,omitempty"`
+	SingleInstance *bool       `json:"singleInstance,omitempty"`
+}
+
+// WantSingleInstance reports whether a second launch should hand off to the
+// first. An omitted flag is on when identifier is set. An explicit true with
+// an empty identifier is an error.
+func (f File) WantSingleInstance() (bool, error) {
+	if f.App.SingleInstance != nil && !*f.App.SingleInstance {
+		return false, nil
+	}
+	explicit := f.App.SingleInstance != nil && *f.App.SingleInstance
+	if strings.TrimSpace(f.Identifier) == "" {
+		if explicit {
+			return false, fmt.Errorf("conf: singleInstance requires identifier")
+		}
+		return false, nil
+	}
+	return true, nil
 }
 
 // RememberWindows reports whether places are saved under .xgoef/window-state.json.

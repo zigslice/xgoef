@@ -90,6 +90,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `xgoef build` 在有 `version` 时写出 `update.json`。`updater:check` / `updater:install` 用同一把 Ed25519 公钥校验后替换前端封包。详见 [docs/updater.md](docs/updater.md)。
 
+同一个 `identifier` 只保留一个进程。后来的启动把参数交给前者并退出。详见 [docs/instance.md](docs/instance.md)。
+
 ### Plugins
 
 ```xgo

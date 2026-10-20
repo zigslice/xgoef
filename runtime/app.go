@@ -11,6 +11,7 @@ import (
 	"github.com/zigslice/xgoef/asset"
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/conf"
+	"github.com/zigslice/xgoef/instance"
 	"github.com/zigslice/xgoef/ipc"
 	"github.com/zigslice/xgoef/menu"
 	"github.com/zigslice/xgoef/plugin"
@@ -39,6 +40,8 @@ type App struct {
 	trayTip  string
 	trayIcon string
 	winState *windowstate.Store
+	instDir  string
+	inst     *instance.Listener
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -81,6 +84,13 @@ func (a *App) Use(p plugin.Plugin) *App {
 func (a *App) SetBase(dir string) *App {
 	a.base = dir
 	a.assets = nil
+	return a
+}
+
+// SetInstanceDir overrides the directory of the single-instance socket.
+// Tests use it. Production uses XDG_RUNTIME_DIR, or the temp directory.
+func (a *App) SetInstanceDir(dir string) *App {
+	a.instDir = dir
 	return a
 }
 
@@ -199,6 +209,11 @@ func (a *App) FocusWindow(label string) error {
 // (before Run); when Run is entered, this is already the browser process.
 // Browser URL is passed as `--url=` for OnContextInitialized.
 func (a *App) Run() error {
+	if err := a.acquireInstance(); err != nil {
+		return err
+	}
+	defer a.closeInstance()
+
 	navURL, err := a.NavigationURL(a.Config.FirstWindow().URL)
 	if err != nil {
 		return err
@@ -530,7 +545,9 @@ func (a *App) baseDir() string {
 	return wd
 }
 
-// ExitError means a CEF helper process finished with an exit code.
+// ExitError means this process should exit with Code.
+// CEF helpers use their helper code. A second instance uses 0 after the
+// first process has accepted the handoff.
 type ExitError struct {
 	Code int
 }
