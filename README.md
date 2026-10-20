@@ -60,7 +60,7 @@ cd build/hello && ./xgoef-hello
 ## 下一步
 
 1. `llcppg` 扩大到更多 `include/capi` 头，收窄 shim（MessageRouter 仍可留在 shim）
-2. **P1**：把前端资源嵌入发行物并签名（一次构建见 [docs/run.md](docs/run.md)，资源协议见 [docs/asset.md](docs/asset.md)）
+2. **P2**：菜单、托盘、Channels（前端封包见 [docs/asset.md](docs/asset.md)）
 3. 将 `runtime` / `ipc` 等框架 API 逐步迁到 `.xgo`
 
 无 CEF 时 `go test ./...`（gc）仍可通过（`!llgo` stub）。

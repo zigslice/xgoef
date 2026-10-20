@@ -46,10 +46,10 @@
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；热重载与安装包仍后置 |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
-| 资源协议 / 资产嵌入 | 🟡 | `xgoef://app/` 映射 `frontendDist`；还没把资源打进二进制 |
+| 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件，以及 `xgoef build` 一次完成分期和链接，都已经接上。还缺把前端资源嵌入发行物并签名。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接，以及签进宿主的前端，都已经接上。还缺菜单、托盘和 Channels。
 
 ---
 
@@ -92,7 +92,7 @@
 | Permission 标识（`plugin:perm`） | 🟡 | 用命令名（`fs:read_text`），没有独立 permission 对象 |
 | 路径/命令 scope（allow/deny） | 🟡 | `fs` 有目录 allow/deny；通用 scope 引擎没有 |
 | remote URL 能力边界 | 🟡 | 本地导航限制在前端根；`http(s)` 仍放行（devUrl） |
-| CSP / 资产完整性 | ⬜ | Tauri codegen 侧有；我们未做 |
+| CSP / 资产完整性 | 🟡 | 嵌入前端有 Ed25519 校验；没有 CSP |
 | 隔离：未匹配 capability → 无 IPC | ✅ | 默认拒绝 |
 
 **P0 设计落点（ACL）：** 见 §5.2。
@@ -105,7 +105,7 @@
 | `withGlobalTauri` / 自动注入 | ⬜ | 需在 `OnContextCreated` 注入桥 |
 | `frontendDist` / `devUrl` 热更新 | 🟡 | conf 有字段；无 `xgoef dev` |
 | 自定义协议（`asset://` / `tauri://`） | ✅ | `xgoef://app/`，见 `docs/asset.md` |
-| 图标 / 资源嵌入打包 | ⬜ | 手工拷贝 `web/` + CEF Resources |
+| 图标 / 资源嵌入打包 | 🟡 | 前端已签进宿主；图标和 CEF Resources 仍随目录拷贝 |
 
 ### 3.5 插件系统
 
@@ -242,8 +242,8 @@ App
 已落地，见 [asset.md](asset.md)。
 
 - 开发：`http(s)` `devUrl` 原样打开。
-- 生产：`frontendDist` 映射为 `xgoef://app/...`。
-- 前端根以外的本地路径拒绝导航。`fs` 插件仍用自己的 allow 列表。
+- 生产：`frontendDist` 映射为 `xgoef://app/...`。`xgoef build` 把这份目录签进宿主，启动时校验后解包再映射。
+- 前端根以外的本地路径拒绝导航。`fs` 插件仍用自己的 allow 列表。公钥配置后，`$RESOURCE` 指向解出来的那份。
 
 ### 5.5 Plugin 契约（P1，已落地 fs / os）
 
@@ -297,7 +297,7 @@ App
 
 - 至少两个 window label；从宿主 `emit` 到指定窗。
 - 一个 scoped `fs` 插件可演示（hello 的 *read note*）。 ✅
-- `xgoef build` 打出可拷贝的资源目录和宿主二进制。 ✅（安装包与签名仍后置）
+- `xgoef build` 打出可拷贝的资源目录、宿主二进制，以及签进二进制的前端。 ✅（系统安装包签名仍后置）
 
 **里程碑 C：**
 
@@ -328,9 +328,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`，以及 `xgoef build` 一次完成资源分期和 CEF/LLGo 链接**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接，以及 Ed25519 签进宿主的前端**。接下来的产品差距集中在：
 
-1. **把前端资源打进发行目录之外的嵌入/签名**
-2. **菜单、托盘、Channels**
+1. **菜单、托盘、Channels**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

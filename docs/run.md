@@ -38,6 +38,8 @@ cd build/hello
 
 `scripts/build-xgoef-hello.sh` 只设置 `PATH`、`LLGO_ROOT`、`CGO_ENABLED=0` 和 `XGO_GOCMD`，然后执行同一条 `xgoef build`。cmake、拷贝 CEF 运行时和 `xgo build` 都在 CLI 里。`--assets-only` 只复制前端，不链接。
 
+`xgoef build` 还会把 `web/` 签进宿主尾部，并把公钥写进发行目录的 `xgoef.conf.json`。私钥在 `.xgoef/asset.key`。细节见 [asset.md](asset.md)。
+
 产物目录含：`xgoef-hello`（由 `main.xgo` 经 xgo+llgo 生成）、`xgoef-helper`（本仓库 shim 编的原生子进程，含渲染侧 MessageRouter）、`libcef.so`、Resources、`web/`、`api/js/xgoef.js`。
 
 点击 **invoke greet** 应显示 `hello, xgo (from xgoef)`，并更新 `event: tick …`（宿主 `EmitTo`）。

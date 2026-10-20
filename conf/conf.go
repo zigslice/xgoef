@@ -56,9 +56,12 @@ type ClipboardConfig struct {
 }
 
 // Build holds frontend paths.
+// AssetPublicKey is the Ed25519 public key that must verify the sealed
+// frontend. Empty means the loose frontendDist directory is used.
 type Build struct {
-	FrontendDist string `json:"frontendDist"`
-	DevURL       string `json:"devUrl"`
+	FrontendDist   string `json:"frontendDist"`
+	DevURL         string `json:"devUrl"`
+	AssetPublicKey string `json:"assetPublicKey,omitempty"`
 }
 
 // AppSection holds window definitions.
