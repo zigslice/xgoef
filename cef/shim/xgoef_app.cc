@@ -10,6 +10,7 @@
 #include "include/wrapper/cef_helpers.h"
 
 #include "xgoef_handler.h"
+#include "xgoef_menu_views.h"
 #include "xgoef_window.h"
 
 namespace xgoef {
@@ -29,7 +30,7 @@ class WindowDelegate : public CefWindowDelegate {
         initial_show_state_(initial_show_state) {}
 
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
-    window->AddChildView(browser_view_);
+    window->AddChildView(WrapWithAppMenu(window, browser_view_));
     if (initial_show_state_ != CEF_SHOW_STATE_HIDDEN) {
       window->Show();
     }

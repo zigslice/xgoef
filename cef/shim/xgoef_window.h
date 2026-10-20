@@ -16,6 +16,7 @@ std::string WindowTakePendingLabel();
 
 // Bind / unbind browsers for EmitTo / Close / Focus.
 void WindowBind(const std::string& label, CefRefPtr<CefBrowser> browser);
+CefRefPtr<CefBrowser> WindowBrowser(const std::string& label);
 void WindowUnbind(CefRefPtr<CefBrowser> browser);
 std::string WindowLabelFor(CefRefPtr<CefBrowser> browser);
 

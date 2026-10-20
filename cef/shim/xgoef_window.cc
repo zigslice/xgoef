@@ -12,6 +12,7 @@
 #include "include/wrapper/cef_helpers.h"
 
 #include "xgoef_handler.h"
+#include "xgoef_menu_views.h"
 
 namespace xgoef {
 namespace {
@@ -35,7 +36,7 @@ class SizedWindowDelegate : public CefWindowDelegate {
         title_(title) {}
 
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
-    window->AddChildView(browser_view_);
+    window->AddChildView(WrapWithAppMenu(window, browser_view_));
     if (!title_.empty()) {
       window->SetTitle(title_);
     }
@@ -147,6 +148,11 @@ void WindowBind(const std::string& label, CefRefPtr<CefBrowser> browser) {
   }
   g_by_label[use] = browser;
   g_label_by_id[browser->GetIdentifier()] = use;
+}
+
+CefRefPtr<CefBrowser> WindowBrowser(const std::string& label) {
+  std::lock_guard<std::mutex> lock(g_mu);
+  return FindLocked(label.empty() ? "main" : label);
 }
 
 void WindowUnbind(CefRefPtr<CefBrowser> browser) {

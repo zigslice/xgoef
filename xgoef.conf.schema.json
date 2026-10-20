@@ -35,6 +35,23 @@
             },
             "required": ["title", "width", "height"]
           }
+        },
+        "menu": {
+          "type": "array",
+          "description": "Window menu bar. Item clicks run command through capabilities.",
+          "items": { "$ref": "#/$defs/menuItem" }
+        },
+        "tray": {
+          "type": "object",
+          "description": "Status icon and its menu. Left click emits tray; the menu runs commands.",
+          "properties": {
+            "tooltip": { "type": "string" },
+            "icon": { "type": "string" },
+            "menu": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/menuItem" }
+            }
+          }
         }
       }
     },
@@ -131,6 +148,22 @@
           }
         }
       ]
+    }
+  },
+  "$defs": {
+    "menuItem": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "command": { "type": "string" },
+        "enabled": { "type": "boolean", "default": true },
+        "separator": { "type": "boolean" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/menuItem" }
+        }
+      }
     }
   },
   "required": ["productName", "app"]

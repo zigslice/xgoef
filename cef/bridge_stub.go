@@ -5,6 +5,10 @@ package cef
 // NativeBridge is a no-op stub for gc builds / unit tests.
 type NativeBridge struct {
 	handler QueryHandler
+	menu    string
+	trayTip string
+	tray    string
+	onMenu  func(windowLabel, kind, id string)
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -27,3 +31,29 @@ func (b *NativeBridge) CreateWindow(spec WindowSpec) error { return nil }
 func (b *NativeBridge) CloseWindow(label string) error { return nil }
 
 func (b *NativeBridge) FocusWindow(label string) error { return nil }
+
+func (b *NativeBridge) SetMenu(encoded string) { b.menu = encoded }
+
+func (b *NativeBridge) SetTray(tooltip, icon, encoded string) {
+	_ = icon
+	b.trayTip = tooltip
+	b.tray = encoded
+}
+
+func (b *NativeBridge) PopupMenu(windowLabel string) error {
+	_ = windowLabel
+	if b.menu == "" {
+		return errBindings("cef: menu is empty")
+	}
+	return nil
+}
+
+func (b *NativeBridge) PopupTray(windowLabel string) error {
+	_ = windowLabel
+	if b.tray == "" && b.trayTip == "" {
+		return errBindings("cef: tray is empty")
+	}
+	return nil
+}
+
+func (b *NativeBridge) SetMenuClick(fn func(windowLabel, kind, id string)) { b.onMenu = fn }

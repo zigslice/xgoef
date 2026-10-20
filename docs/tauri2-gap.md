@@ -45,11 +45,11 @@
 | Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；热重载与安装包仍后置 |
-| 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
+| 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow`；菜单栏与托盘菜单已接（见 `docs/menu.md`）。常驻图标要能加载 `libgtk-3.so.0` |
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端，以及 Channels，都已经接上。还缺菜单和托盘。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels，以及菜单和托盘，都已经接上。还缺 window-state 持久化。
 
 ---
 
@@ -62,9 +62,9 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | App / Builder 生命周期 | 🟡 | 有 `runtime.App.Run`；缺精细 hook（ready / exit / page-load） |
-| Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；无托盘 |
-| Window 状态（位置/尺寸/最大化） | ⬜ | conf 仅 title/width/height/url |
-| 菜单 / 托盘 / 任务栏 | ⬜ | CEF/Views 可做，未封装 |
+| Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；托盘见 `docs/menu.md` |
+| Window 状态（位置/尺寸/最大化） | ⬜ | conf 仅 title/width/height/url；关闭前不写回 |
+| 菜单 / 托盘 / 任务栏 | 🟡 | 窗口菜单栏和托盘菜单已封装（`docs/menu.md`）；任务栏未做。常驻图标在 `libgtk-3.so.0` 能加载时出现 |
 | 主题 / 装饰 / 透明 | ⬜ | — |
 | 多显示器 / DPI | ⬜ | 依赖 CEF 默认 |
 | 打印 / 开发者工具 API | ⬜ | CEF 支持，未暴露 XGo API |
@@ -166,7 +166,7 @@
 
 10. Channels、异步 command、超时/取消。 ✅ Channels（见 `docs/channels.md`）；异步与取消仍后置
 11. 首批系统插件：fs（scoped）、dialog、clipboard、os、shell。 ✅（见 `docs/plugins.md`）
-12. 菜单 / 托盘、window-state 持久化。
+12. 菜单 / 托盘 ✅（见 `docs/menu.md`）；window-state 持久化仍后置。
 13. TS 类型与 `invoke` 声明生成。
 
 ### P3 — 发行与生态
@@ -301,7 +301,8 @@ App
 
 **里程碑 C：**
 
-- Channels 落地。 ✅（见 `docs/channels.md`）；打包/更新器仍后置。
+- Channels 落地。 ✅（见 `docs/channels.md`）
+- 菜单和托盘落地。 ✅（见 `docs/menu.md`）；window-state 与打包/更新器仍后置。
 
 ---
 
@@ -328,8 +329,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端，以及 Channels**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels，以及菜单和托盘**。接下来的产品差距集中在：
 
-1. **菜单、托盘**
+1. **window-state 持久化**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

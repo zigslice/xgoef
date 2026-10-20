@@ -123,6 +123,55 @@ func (b *NativeBridge) FocusWindow(label string) error {
 	return nil
 }
 
+func (b *NativeBridge) SetMenu(encoded string) {
+	xgoefMenuSet(c.AllocaCStr(encoded))
+}
+
+func (b *NativeBridge) SetTray(tooltip, icon, encoded string) {
+	xgoefTraySet(c.AllocaCStr(tooltip), c.AllocaCStr(icon), c.AllocaCStr(encoded))
+}
+
+func (b *NativeBridge) PopupMenu(windowLabel string) error {
+	if rc := xgoefMenuPopup(c.AllocaCStr(windowLabel)); rc != 0 {
+		return fmt.Errorf("cef: menu popup failed (%d)", int(rc))
+	}
+	return nil
+}
+
+func (b *NativeBridge) PopupTray(windowLabel string) error {
+	if rc := xgoefTrayPopup(c.AllocaCStr(windowLabel)); rc != 0 {
+		return fmt.Errorf("cef: tray popup failed (%d)", int(rc))
+	}
+	return nil
+}
+
+func (b *NativeBridge) SetMenuClick(fn func(windowLabel, kind, id string)) {
+	menuClick = fn
+	if fn == nil {
+		xgoefMenuSetClick(nil)
+		return
+	}
+	xgoefMenuSetClick(nativeMenuClick)
+}
+
+var menuClick func(windowLabel, kind, id string)
+
+//llgo:cdecl
+func nativeMenuClick(window, kind, id *c.Char) {
+	fn := menuClick
+	if fn == nil {
+		return
+	}
+	fn(goStr(window), goStr(kind), goStr(id))
+}
+
+func goStr(p *c.Char) string {
+	if p == nil {
+		return ""
+	}
+	return c.GoString(p)
+}
+
 //go:linkname xgoefIPCSetHandler C.xgoef_ipc_set_handler
 func xgoefIPCSetHandler(fn ipcQueryFn)
 
@@ -146,3 +195,21 @@ func xgoefWindowClose(label *c.Char) c.Int
 
 //go:linkname xgoefWindowFocus C.xgoef_window_focus
 func xgoefWindowFocus(label *c.Char) c.Int
+
+//llgo:cdecl
+type menuClickFn func(window, kind, id *c.Char)
+
+//go:linkname xgoefMenuSet C.xgoef_menu_set
+func xgoefMenuSet(encoded *c.Char)
+
+//go:linkname xgoefTraySet C.xgoef_tray_set
+func xgoefTraySet(tooltip, icon, encoded *c.Char)
+
+//go:linkname xgoefMenuPopup C.xgoef_menu_popup
+func xgoefMenuPopup(windowLabel *c.Char) c.Int
+
+//go:linkname xgoefTrayPopup C.xgoef_tray_popup
+func xgoefTrayPopup(windowLabel *c.Char) c.Int
+
+//go:linkname xgoefMenuSetClick C.xgoef_menu_set_click
+func xgoefMenuSetClick(fn menuClickFn)

@@ -82,6 +82,10 @@ ch.onmessage((n) => console.log(n))
 await window.__XGOEF__.invoke("progress", { channel: ch })
 ```
 
+### 菜单 / 托盘
+
+`app.menu` 与 `app.tray` 写在配置里。点菜单项执行该项的 `command`，仍经过 capabilities。窗口栏是 CEF menu button；托盘在 `libgtk-3.so.0` 能加载时是 GTK status icon，否则用 `tray:popup` 弹出 CEF 菜单。详见 [docs/menu.md](docs/menu.md)。
+
 ### Plugins
 
 ```xgo
