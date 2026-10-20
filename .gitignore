@@ -25,6 +25,7 @@
 
 # Fortran module files
 *.mod
+!go.mod
 *.smod
 
 # Compiled Static libraries
@@ -66,3 +67,22 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Downloaded CEF binaries
+/third_party/
+dist/
+
+# CEF runtime data written beside a binary
+debug.log
+chrome_debug.log
+root_cache/
+
+# llcppg output (regenerate with CEF_ROOT set)
+/cef/capi/
+
+# XGo → Go codegen (source of truth is *.xgo)
+**/xgo_autogen*.go
+
+# CEF distribution tarballs
+/cef_binary_*.tar.bz2
+/cef_binary_*.tar.bz2.sha1
