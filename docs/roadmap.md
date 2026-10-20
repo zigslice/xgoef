@@ -25,6 +25,7 @@
 | 7d | **P3** 打包更新器（签过名的前端封包） | 完成 |
 | 7e | **P3** 单实例 | 完成 |
 | 7f | **P3** deep link | 完成 |
-| 7g | **P3** 平台安装包（msi / dmg / deb） | 待做 |
+| 7g | **P3** 平台安装包（msi / dmg / deb） | 完成 |
+| 7h | **P3** AppImage | 待做 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

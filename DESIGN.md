@@ -38,6 +38,7 @@
 | `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `deeplink/` | 自定义 URL scheme 的参数接收入口和当前用户 XDG 关联 |
+| `bundle/` | deb、msi、dmg；不做系统安装包签名 |
 | `api/js/` | 注入或随资源分发的前端桥 |
 | `cmd/xgoef/` | `create` / `dev` / `build`（分期目录并链接 CEF 宿主） |
 | `examples/hello/` | 最小可运行目标 |
@@ -94,6 +95,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 同一个 `identifier` 只保留一个进程。后来的启动把参数交给前者并退出。详见 [docs/instance.md](docs/instance.md)。
 
 `app.deepLink.schemes` 把自定义 URL 交给这个进程，并写成当前用户的 XDG scheme 关联。详见 [docs/deeplink.md](docs/deeplink.md)。
+
+`xgoef build` 在有 `version` 时把分期目录打成 deb、msi 和 dmg。详见 [docs/bundle.md](docs/bundle.md)。
 
 ### Plugins
 

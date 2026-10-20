@@ -144,4 +144,25 @@ func TestStageWritesDesktopFile(t *testing.T) {
 	if !strings.Contains(text, "x-scheme-handler/demo;") || !strings.Contains(text, "%u") || !strings.Contains(text, filepath.Join(out, "demo")) {
 		t.Fatalf("%s", text)
 	}
+	raw = []byte(strings.Replace(string(raw), `"identifier"`, `"version": "0.0.1",
+  "identifier"`, 1))
+	if err := os.WriteFile(filepath.Join(app, "xgoef.conf.json"), raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bundled := filepath.Join(t.TempDir(), "dist")
+	if code := Run([]string{"build", "--assets-only", "--app", app, "--out", bundled}); code != 0 {
+		t.Fatalf("bundle build exit %d", code)
+	}
+	deb, err := filepath.Glob(filepath.Join(bundled, "bundle", "*.deb"))
+	if err != nil || len(deb) != 1 {
+		t.Fatalf("%v %v", deb, err)
+	}
+	msi, err := filepath.Glob(filepath.Join(bundled, "bundle", "*.msi"))
+	if err != nil || len(msi) != 1 {
+		t.Fatalf("%v %v", msi, err)
+	}
+	dmg, err := filepath.Glob(filepath.Join(bundled, "bundle", "*.dmg"))
+	if err != nil || len(dmg) != 1 {
+		t.Fatalf("%v %v", dmg, err)
+	}
 }

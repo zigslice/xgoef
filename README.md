@@ -60,7 +60,7 @@ cd build/hello && ./xgoef-hello
 ## 下一步
 
 1. `llcppg` 扩大到更多 `include/capi` 头，收窄 shim（MessageRouter 仍可留在 shim）
-2. **P3**：平台安装包（msi / dmg / deb）（deep link 见 [docs/deeplink.md](docs/deeplink.md)）
+2. **P3**：AppImage（deb / msi / dmg 见 [docs/bundle.md](docs/bundle.md)）
 3. 将 `runtime` / `ipc` 等框架 API 逐步迁到 `.xgo`
 
 无 CEF 时 `go test ./...`（gc）仍可通过（`!llgo` stub）。
