@@ -28,4 +28,12 @@ type Bridge interface {
 	CreateWindow(spec WindowSpec) error
 	CloseWindow(label string) error
 	FocusWindow(label string) error
+
+	// Menu and tray (P2). Encoded text is menu.Menu.Encode.
+	// Click is invoked on the UI thread for a native selection.
+	SetMenu(encoded string)
+	SetTray(tooltip, icon, encoded string)
+	PopupMenu(windowLabel string) error
+	PopupTray(windowLabel string) error
+	SetMenuClick(fn func(windowLabel, kind, id string))
 }

@@ -2,7 +2,7 @@
 
 最小 **XGo** xgoef 应用：`main.xgo` + 配置 + `greet` 命令。页面地址是 `xgoef://app/index.html`（只读 `web/`）。
 
-页上还可以 *read note*（`fs:read_text`）、*os platform*、*clipboard*（进程内剪贴板）和 *channel*（有序的 `progress` 消息）。未授权命令会被 ACL 拒绝。说明见 [docs/plugins.md](../../docs/plugins.md) 和 [docs/channels.md](../../docs/channels.md)。
+页上还可以 *read note*、*os platform*、*clipboard*、*channel*，以及 *menu* / *tray*。菜单项里的命令仍走 capabilities。说明见 [docs/plugins.md](../../docs/plugins.md)、[docs/channels.md](../../docs/channels.md) 和 [docs/menu.md](../../docs/menu.md)。
 
 ```bash
 # 工具链（一次）

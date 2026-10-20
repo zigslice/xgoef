@@ -64,9 +64,29 @@ type Build struct {
 	AssetPublicKey string `json:"assetPublicKey,omitempty"`
 }
 
-// AppSection holds window definitions.
+// AppSection holds window definitions plus the app menu and tray menu.
 type AppSection struct {
-	Windows []Window `json:"windows"`
+	Windows []Window    `json:"windows"`
+	Menu    []MenuItem  `json:"menu,omitempty"`
+	Tray    *TrayConfig `json:"tray,omitempty"`
+}
+
+// MenuItem is one menu or tray row. ID is required except on separators.
+// Enabled defaults to true when omitted.
+type MenuItem struct {
+	ID        string     `json:"id,omitempty"`
+	Text      string     `json:"text,omitempty"`
+	Command   string     `json:"command,omitempty"`
+	Enabled   *bool      `json:"enabled,omitempty"`
+	Separator bool       `json:"separator,omitempty"`
+	Items     []MenuItem `json:"items,omitempty"`
+}
+
+// TrayConfig is the status item. Menu is shown from the icon.
+type TrayConfig struct {
+	Tooltip string     `json:"tooltip,omitempty"`
+	Icon    string     `json:"icon,omitempty"`
+	Menu    []MenuItem `json:"menu,omitempty"`
 }
 
 // Window is one browser window.

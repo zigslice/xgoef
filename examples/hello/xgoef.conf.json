@@ -14,7 +14,22 @@
         "height": 640,
         "url": "xgoef://app/index.html"
       }
-    ]
+    ],
+    "menu": [
+      {
+        "id": "file",
+        "text": "File",
+        "items": [
+          {"id": "greet", "text": "Greet", "command": "greet"}
+        ]
+      }
+    ],
+    "tray": {
+      "tooltip": "xgoef hello",
+      "menu": [
+        {"id": "greet", "text": "Greet", "command": "greet"}
+      ]
+    }
   },
   "cef": {
     "rootEnv": "CEF_ROOT",
@@ -31,7 +46,7 @@
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "progress", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "core:default"]
     },
     {
       "identifier": "aux",

@@ -12,6 +12,7 @@ import (
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/conf"
 	"github.com/zigslice/xgoef/ipc"
+	"github.com/zigslice/xgoef/menu"
 	"github.com/zigslice/xgoef/plugin"
 	"github.com/zigslice/xgoef/plugins"
 )
@@ -31,6 +32,11 @@ type App struct {
 	exe       string
 	assets    *asset.Root
 	pluginErr error
+
+	appMenu  *menu.Menu
+	trayMenu *menu.Menu
+	trayTip  string
+	trayIcon string
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -214,6 +220,10 @@ func (a *App) Run() error {
 	}
 
 	a.wireIPC()
+
+	if err := a.OpenChrome(); err != nil {
+		return err
+	}
 
 	if err := a.Host.Initialize(settings); err != nil {
 		return err
