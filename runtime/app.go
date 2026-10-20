@@ -18,13 +18,14 @@ import (
 
 // App is the Tauri-like application handle.
 type App struct {
-	Config  conf.File
-	Host    cef.Host
-	Bridge  cef.Bridge
-	Router  *ipc.Router
-	Events  *ipc.Bus
-	ACL     *acl.Guard
-	Plugins *plugin.Registry
+	Config   conf.File
+	Host     cef.Host
+	Bridge   cef.Bridge
+	Router   *ipc.Router
+	Events   *ipc.Bus
+	Channels *ipc.Hub
+	ACL      *acl.Guard
+	Plugins  *plugin.Registry
 
 	base      string
 	exe       string
@@ -41,14 +42,19 @@ func New(cfg conf.File, host cef.Host) *App {
 	bridge := cef.NewNativeBridge()
 	bus := ipc.NewBus()
 	bus.SetEmitter(bridge)
+	hub := ipc.NewHub()
+	hub.SetEmitter(bridge)
+	router := ipc.NewRouter()
+	router.SetChannels(hub)
 	return &App{
-		Config:  cfg,
-		Host:    host,
-		Bridge:  bridge,
-		Router:  ipc.NewRouter(),
-		Events:  bus,
-		ACL:     acl.NewGuard(cfg.Capabilities),
-		Plugins: plugin.NewRegistry(),
+		Config:   cfg,
+		Host:     host,
+		Bridge:   bridge,
+		Router:   router,
+		Events:   bus,
+		Channels: hub,
+		ACL:      acl.NewGuard(cfg.Capabilities),
+		Plugins:  plugin.NewRegistry(),
 	}
 }
 
@@ -261,6 +267,7 @@ func handleMessage(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, window
 		Args    json.RawMessage `json:"args"`
 		Event   string          `json:"event"`
 		Payload json.RawMessage `json:"payload"`
+		Channel int64           `json:"channel"`
 	}
 	if err := json.Unmarshal([]byte(requestJSON), &req); err != nil {
 		return mustResponse(0, false, nil, "invalid invoke JSON: "+err.Error())
@@ -277,6 +284,12 @@ func handleMessage(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, window
 			// JS → host: local listeners only (avoid echo loop to all webviews).
 			events.NotifyLocal(req.Event, payload)
 		}
+		return mustResponse(req.ID, true, map[string]any{"ok": true}, "")
+	case "channel-close":
+		if req.Channel < 1 || router == nil || router.Channels() == nil {
+			return mustResponse(req.ID, false, nil, "ipc: missing channel")
+		}
+		router.Channels().Close(windowLabel, req.Channel)
 		return mustResponse(req.ID, true, map[string]any{"ok": true}, "")
 	default:
 		return mustResponse(req.ID, false, nil, "unsupported message type "+req.Type)

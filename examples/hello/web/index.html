@@ -74,6 +74,7 @@
         <button id="btn-fs" class="secondary" type="button">read note</button>
         <button id="btn-os" class="secondary" type="button">os platform</button>
         <button id="btn-clip" class="secondary" type="button">clipboard</button>
+        <button id="btn-ch" class="secondary" type="button">channel</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -121,6 +122,19 @@
         try {
           await window.__XGOEF__.plugins.clipboard.writeText("from xgoef");
           out.textContent = await window.__XGOEF__.plugins.clipboard.readText();
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-ch").onclick = async () => {
+        const ch = window.__XGOEF__.channel();
+        const parts = [];
+        ch.onmessage(function (payload) {
+          parts.push(payload);
+          evt.textContent = "channel: " + parts.join(" ");
+        });
+        try {
+          out.textContent = String(await window.__XGOEF__.invoke("progress", { channel: ch }));
         } catch (e) {
           out.textContent = e.message || String(e);
         }

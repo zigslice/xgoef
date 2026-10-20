@@ -24,3 +24,5 @@ Frontend: `__XGOEF__.listen(event, handler)` / `__XGOEF__.emit(event, payload)`.
 Each browser is bound to a label (`--xgoef-label=` for the first window;
 `CreateWindow` / pending label for later ones). Invoke ACL and `EmitTo` use that
 label.
+
+有序的一对一流是 Channel，见 [channels.md](channels.md)。事件仍然是按名字广播。

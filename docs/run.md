@@ -94,6 +94,10 @@ xgoef dev --app examples/hello --out /tmp/xgoef-dev
 
 `build` / `dev` 默认链接 CEF shim 与 XGo 宿主，并复制配置、前端和 `xgoef.js`。需要 `xgo`、`llgo`、`cmake`、`pkg-config`，以及 `CEF_ROOT`（未设置时按仓库根 `CEF_VERSION` 找 `third_party/cef`）。`--assets-only` 只复制资源。
 
+## Channels
+
+`__XGOEF__.channel()` 打开一条有序的宿主 → 页面流。hello 的 *channel* 按钮走 `progress`。细节见 [channels.md](channels.md)。
+
 ## 与 llcppg 的关系
 
 - 宿主已用 LLGo `go:linkname` 调 shim（无 cgo）。

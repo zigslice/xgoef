@@ -49,7 +49,7 @@
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接，以及签进宿主的前端，都已经接上。还缺菜单、托盘和 Channels。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端，以及 Channels，都已经接上。还缺菜单和托盘。
 
 ---
 
@@ -78,7 +78,7 @@
 | 异步 command | ⬜ | Handler 同步；无取消、无超时 |
 | Events 双向 | ✅ | `emit` / `listen` 与 `Emit` / `EmitTo` |
 | 按 webview/window 定向 emit | ✅ | `App.EmitTo(label, …)` |
-| Channels（有序大数据流） | ⬜ | 下载进度、子进程 stdout 等场景需要 |
+| Channels（有序大数据流） | ✅ | `ctx.Channel` / `__XGOEF__.channel()`，见 `docs/channels.md` |
 | `eval` / 注入脚本 | ⬜ | CEF 可做；未封装 |
 | IPC 权限门禁 | ⬜ | 见 ACL |
 
@@ -164,7 +164,7 @@
 
 ### P2 — 体验对齐
 
-10. Channels、异步 command、超时/取消。
+10. Channels、异步 command、超时/取消。 ✅ Channels（见 `docs/channels.md`）；异步与取消仍后置
 11. 首批系统插件：fs（scoped）、dialog、clipboard、os、shell。 ✅（见 `docs/plugins.md`）
 12. 菜单 / 托盘、window-state 持久化。
 13. TS 类型与 `invoke` 声明生成。
@@ -301,7 +301,7 @@ App
 
 **里程碑 C：**
 
-- Channels 或异步 command 之一落地；打包/更新器设计评审通过。
+- Channels 落地。 ✅（见 `docs/channels.md`）；打包/更新器仍后置。
 
 ---
 
@@ -328,8 +328,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接，以及 Ed25519 签进宿主的前端**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端，以及 Channels**。接下来的产品差距集中在：
 
-1. **菜单、托盘、Channels**
+1. **菜单、托盘**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。
