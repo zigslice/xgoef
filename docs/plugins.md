@@ -26,8 +26,11 @@ type Plugin interface {
 | --- | --- | --- |
 | `fs` | `fs:read_text` `fs:write_text` `fs:exists` `fs:list` | 与命令名相同 |
 | `os` | `os:platform` `os:arch` | 与命令名相同 |
+| `shell` | `shell:open` | 与命令名相同 |
+| `clipboard` | `clipboard:read_text` `clipboard:write_text` | 与命令名相同 |
+| `dialog` | `dialog:open` `dialog:save` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`。
 
 文本读写上限 1 MiB。
 
@@ -53,6 +56,22 @@ type Plugin interface {
 | 其他 | 绝对路径，或相对 `$APP` |
 
 `..` 和指向范围外的符号链接都会拒绝。hello 用 `web/note.txt` 演示 `fs:read_text`。
+
+## shell
+
+`shell:open` 接受 `url` 或 `path`，不会经过 shell。
+
+- URL 默认只允许 `http` 和 `https`，拒绝用户名密码、`file:` 和 `javascript:`。
+- 本地路径要单独放进 `plugin.shell.allow`。没配 allow 就拒绝所有路径。
+- 实际启动用 `xdg-open`，参数是一个 argv，不是命令字符串。
+
+## clipboard
+
+默认是进程内文本剪贴板（`plugin.clipboard.mode` 为 `memory`）。`system` 改用 `wl-copy`/`wl-paste` 或 `xclip`。文本上限 1 MiB。hello 的 *clipboard* 按钮走 memory。
+
+## dialog
+
+`dialog:open` / `dialog:save` 先弹出选择器，再把返回的路径放进 `plugin.dialog.allow`。取消返回 `null`。默认选择器是 `zenity`；没装就报错，不会退回任意路径。
 
 ## 应用侧还要做的
 

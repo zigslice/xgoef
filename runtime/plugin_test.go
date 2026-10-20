@@ -49,8 +49,40 @@ func TestBuiltinPluginsFromConfig(t *testing.T) {
 }
 
 func TestUnknownBuiltin(t *testing.T) {
-	app := New(conf.File{Plugins: []string{"dialog"}}, nil)
-	if err := app.OpenPlugins(); err == nil || !strings.Contains(err.Error(), "dialog") {
+	app := New(conf.File{Plugins: []string{"tray"}}, nil)
+	if err := app.OpenPlugins(); err == nil || !strings.Contains(err.Error(), "tray") {
 		t.Fatalf("got %v", err)
+	}
+}
+
+func TestClipboardFromConfig(t *testing.T) {
+	app := New(conf.File{
+		Plugins: []string{"clipboard", "shell"},
+		Capabilities: []acl.Capability{{
+			Identifier:  "main",
+			Windows:     []string{"main"},
+			Permissions: []string{"clipboard:write_text", "clipboard:read_text"},
+		}},
+	}, nil)
+	if err := app.OpenPlugins(); err != nil {
+		t.Fatal(err)
+	}
+	if err := app.Plugins.Setup(app); err != nil {
+		t.Fatal(err)
+	}
+	wrote := handleMessage(app.ACL, app.Router, nil, "main",
+		`{"type":"invoke","id":1,"cmd":"clipboard:write_text","args":{"text":"from xgoef"}}`)
+	if !strings.Contains(wrote, `"ok":true`) {
+		t.Fatalf("%s", wrote)
+	}
+	read := handleMessage(app.ACL, app.Router, nil, "main",
+		`{"type":"invoke","id":2,"cmd":"clipboard:read_text","args":{}}`)
+	if !strings.Contains(read, "from xgoef") {
+		t.Fatalf("%s", read)
+	}
+	denied := handleMessage(app.ACL, app.Router, nil, "main",
+		`{"type":"invoke","id":3,"cmd":"shell:open","args":{"url":"https://example.com"}}`)
+	if !strings.Contains(denied, "not permitted") {
+		t.Fatalf("%s", denied)
 	}
 }

@@ -122,6 +122,31 @@
           return global.__XGOEF__.invoke("os:arch", {});
         },
       },
+      shell: {
+        open: function (target) {
+          const value = String(target || "");
+          if (value.indexOf("://") >= 0) {
+            return global.__XGOEF__.invoke("shell:open", { url: value });
+          }
+          return global.__XGOEF__.invoke("shell:open", { path: value });
+        },
+      },
+      clipboard: {
+        readText: function () {
+          return global.__XGOEF__.invoke("clipboard:read_text", {});
+        },
+        writeText: function (text) {
+          return global.__XGOEF__.invoke("clipboard:write_text", { text: text });
+        },
+      },
+      dialog: {
+        open: function (opts) {
+          return global.__XGOEF__.invoke("dialog:open", opts || {});
+        },
+        save: function (opts) {
+          return global.__XGOEF__.invoke("dialog:save", opts || {});
+        },
+      },
     },
   };
 })(typeof window !== "undefined" ? window : globalThis);

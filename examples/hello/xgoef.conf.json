@@ -21,7 +21,7 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": ["fs", "os"],
+  "plugins": ["fs", "os", "clipboard"],
   "plugin": {
     "fs": {
       "allow": ["$APP", "$RESOURCE"]
@@ -31,7 +31,7 @@
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "fs:read_text", "os:platform", "core:default"]
+      "permissions": ["greet", "open_aux", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "core:default"]
     },
     {
       "identifier": "aux",

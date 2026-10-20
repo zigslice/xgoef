@@ -113,7 +113,7 @@
 | --- | --- | --- |
 | Plugin = 原生逻辑 + 可选 JS API | 🟡 | `Setup` 注册命令；JS 在 `xgoef.js` 的 `plugins.fs` / `plugins.os` |
 | 插件注册 command / 权限声明 | ✅ | `Permissions()` + capabilities 精确匹配 |
-| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | `fs`（scoped）、`os`；dialog/clipboard 等待做 |
+| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 | 移动端插件（Swift/Kotlin） | ✕ | 非目标 |
 
 **建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`window-state`。其余（sql/updater/websocket…）后置。
@@ -165,7 +165,7 @@
 ### P2 — 体验对齐
 
 10. Channels、异步 command、超时/取消。
-11. 首批系统插件：fs（scoped）、dialog、clipboard、os。
+11. 首批系统插件：fs（scoped）、dialog、clipboard、os、shell。 ✅（见 `docs/plugins.md`）
 12. 菜单 / 托盘、window-state 持久化。
 13. TS 类型与 `invoke` 声明生成。
 
@@ -328,10 +328,10 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os` 插件、`xgoef://app/` 资源协议，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
 
-1. **其余系统插件**（dialog、clipboard、shell…）
-2. **CLI 与 CEF/LLGo 链接合成一次构建**
-3. **把前端资源打进发行目录之外的嵌入/签名**
+1. **CLI 与 CEF/LLGo 链接合成一次构建**
+2. **把前端资源打进发行目录之外的嵌入/签名**
+3. **菜单、托盘、Channels**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

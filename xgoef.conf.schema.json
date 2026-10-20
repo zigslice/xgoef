@@ -44,7 +44,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -64,6 +64,30 @@
               "type": "array",
               "items": { "type": "string" }
             }
+          }
+        },
+        "shell": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "schemes": { "type": "array", "items": { "type": "string" } },
+            "allow": { "type": "array", "items": { "type": "string" } },
+            "deny": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "dialog": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" } },
+            "deny": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "clipboard": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": { "type": "string", "enum": ["memory", "system"] }
           }
         }
       }
