@@ -46,7 +46,7 @@
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架并分期目录；链 CEF 宿主仍走 `scripts/build-xgoef-hello.sh` |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
-| 资源协议 / 资产嵌入 | ⬜ | 现用 `file://`；`xgoef build` 只复制资源 |
+| 资源协议 / 资产嵌入 | 🟡 | `xgoef://app/` 映射 `frontendDist`；还没把资源打进二进制 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`（范围）与 `os`；dialog 等未做 |
 
 结论：前端 invoke、ACL、多窗口事件和 `fs`/`os` 插件已经接上。还缺自定义资源协议、其余系统插件，以及把 CLI 分期目录和 CEF 链接收成一条命令。
@@ -91,7 +91,7 @@
 | Capability 绑定窗口/webview | ✅ | `acl.Guard.Allows(label, cmd)` |
 | Permission 标识（`plugin:perm`） | 🟡 | 用命令名（`fs:read_text`），没有独立 permission 对象 |
 | 路径/命令 scope（allow/deny） | 🟡 | `fs` 有目录 allow/deny；通用 scope 引擎没有 |
-| remote URL 能力边界 | ⬜ | 当前可加载任意 `file://`/`http(s)` |
+| remote URL 能力边界 | 🟡 | 本地导航限制在前端根；`http(s)` 仍放行（devUrl） |
 | CSP / 资产完整性 | ⬜ | Tauri codegen 侧有；我们未做 |
 | 隔离：未匹配 capability → 无 IPC | ✅ | 默认拒绝 |
 
@@ -104,7 +104,7 @@
 | `@tauri-apps/api` 风格包 | 🟡 | 单文件 `xgoef.js`；无 npm 包、无 TS |
 | `withGlobalTauri` / 自动注入 | ⬜ | 需在 `OnContextCreated` 注入桥 |
 | `frontendDist` / `devUrl` 热更新 | 🟡 | conf 有字段；无 `xgoef dev` |
-| 自定义协议（`asset://` / `tauri://`） | ⬜ | 现 `file://`；缺沙箱与范围限制 |
+| 自定义协议（`asset://` / `tauri://`） | ✅ | `xgoef://app/`，见 `docs/asset.md` |
 | 图标 / 资源嵌入打包 | ⬜ | 手工拷贝 `web/` + CEF Resources |
 
 ### 3.5 插件系统
@@ -157,7 +157,7 @@
 ### P1 — 可做正经桌面壳
 
 5. Window API：label、多窗、关闭/聚焦、基础状态。 ✅（见 `docs/window.md`）
-6. 自定义资源协议（或严格 `asset` 根目录）替代裸 `file://`。
+6. 自定义资源协议（或严格 `asset` 根目录）替代裸 `file://`。 ✅（见 `docs/asset.md`）
 7. Event 跨进程（含 `emit_to(label)`）。 ✅（见 `docs/events.md`）
 8. Plugin 契约：注册 commands + `fs` / `os`。 ✅（见 `docs/plugins.md`）
 9. `xgoef dev` / `xgoef build` 分期目录。 🟡（CEF 拷贝与 llgo 链接仍在 `scripts/build-xgoef-hello.sh`）
@@ -239,9 +239,11 @@ App
 
 ### 5.4 资源与协议（P1）
 
-- 开发：`devUrl`（Vite）+ 可选 CORS/unsafe 仅 dev。
-- 生产：`frontendDist` 映射为 `xgoef://app/...`（CEF 自定义 scheme）或受限目录的 `file://`。
-- 禁止默认放开任意本地路径读取（与 capabilities / fs scope 联动）。
+已落地，见 [asset.md](asset.md)。
+
+- 开发：`http(s)` `devUrl` 原样打开。
+- 生产：`frontendDist` 映射为 `xgoef://app/...`。
+- 前端根以外的本地路径拒绝导航。`fs` 插件仍用自己的 allow 列表。
 
 ### 5.5 Plugin 契约（P1，已落地 fs / os）
 
@@ -326,10 +328,10 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os` 插件，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os` 插件、`xgoef://app/` 资源协议，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
 
-1. **资源协议**（替代裸 `file://`）
-2. **其余系统插件**（dialog、clipboard、shell…）
-3. **CLI 与 CEF/LLGo 链接合成一次构建**
+1. **其余系统插件**（dialog、clipboard、shell…）
+2. **CLI 与 CEF/LLGo 链接合成一次构建**
+3. **把前端资源打进发行目录之外的嵌入/签名**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

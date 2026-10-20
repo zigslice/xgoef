@@ -96,10 +96,13 @@ func TestBuildRewritesHelloScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(html), `src="../api/js/xgoef.js"`) {
+	if !strings.Contains(string(html), `src="xgoef.js"`) {
 		t.Fatalf("script src not rewritten:\n%s", html)
 	}
 	if strings.Contains(string(html), "../../../api/js/xgoef.js") {
 		t.Fatal("old script src remains")
+	}
+	if _, err := os.Stat(filepath.Join(out, "web", "xgoef.js")); err != nil {
+		t.Fatal(err)
 	}
 }

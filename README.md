@@ -60,7 +60,7 @@ cd build/hello && ./xgoef-hello
 ## 下一步
 
 1. `llcppg` 扩大到更多 `include/capi` 头，收窄 shim（MessageRouter 仍可留在 shim）
-2. **P1**：资源协议 `xgoef://`（CLI 的 create/dev/build 已能分期目录；插件见 [docs/plugins.md](docs/plugins.md)）
+2. **P1**：把 `xgoef build` 和 CEF/LLGo 链接收成一次构建（资源协议见 [docs/asset.md](docs/asset.md)，插件见 [docs/plugins.md](docs/plugins.md)）
 3. 将 `runtime` / `ipc` 等框架 API 逐步迁到 `.xgo`
 
 无 CEF 时 `go test ./...`（gc）仍可通过（`!llgo` stub）。

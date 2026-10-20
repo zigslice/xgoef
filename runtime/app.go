@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/zigslice/xgoef/acl"
+	"github.com/zigslice/xgoef/asset"
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/conf"
 	"github.com/zigslice/xgoef/ipc"
@@ -26,6 +27,7 @@ type App struct {
 	Plugins *plugin.Registry
 
 	base      string
+	assets    *asset.Root
 	pluginErr error
 }
 
@@ -59,9 +61,11 @@ func (a *App) Use(p plugin.Plugin) *App {
 	return a
 }
 
-// SetBase sets the app directory used to expand $APP and relative fs paths.
+// SetBase sets the app directory used to expand $APP, relative fs paths, and
+// the frontend root (build.frontendDist) for xgoef://app/.
 func (a *App) SetBase(dir string) *App {
 	a.base = dir
+	a.assets = nil
 	return a
 }
 
@@ -134,7 +138,11 @@ func (a *App) CreateWindow(spec cef.WindowSpec) error {
 		return fmt.Errorf("runtime: no bridge")
 	}
 	if spec.URL != "" {
-		spec.URL = ResolveURL(spec.URL)
+		url, err := a.NavigationURL(spec.URL)
+		if err != nil {
+			return err
+		}
+		spec.URL = url
 	}
 	return a.Bridge.CreateWindow(spec)
 }
@@ -160,8 +168,12 @@ func (a *App) FocusWindow(label string) error {
 // (before Run); when Run is entered, this is already the browser process.
 // Browser URL is passed as `--url=` for OnContextInitialized.
 func (a *App) Run() error {
+	navURL, err := a.NavigationURL(a.Config.FirstWindow().URL)
+	if err != nil {
+		return err
+	}
 	if nh, ok := a.Host.(interface{ SetArgs([]string) }); ok {
-		nh.SetArgs(buildArgs(a))
+		nh.SetArgs(a.buildArgs(navURL))
 	}
 
 	settings := cef.Settings{
@@ -190,7 +202,7 @@ func (a *App) Run() error {
 	}
 
 	win := a.Config.FirstWindow()
-	url := ResolveURL(win.URL)
+	url := navURL
 	bounds := cef.WindowBounds{Width: win.Width, Height: win.Height}
 	if err := a.Host.CreateBrowser(url, bounds); err != nil {
 		a.Host.Shutdown()
@@ -299,15 +311,17 @@ func mustResponse(id int, ok bool, payload any, errMsg string) string {
 	return string(b)
 }
 
-func buildArgs(a *App) []string {
+func (a *App) buildArgs(url string) []string {
 	win := a.Config.FirstWindow()
-	url := ResolveURL(win.URL)
 	label := win.Label
 	if label == "" {
 		label = "main"
 	}
 	args := append([]string{}, os.Args...)
 	args = append(args, "--url="+url, "--xgoef-label="+label)
+	if a.assets != nil && a.assets.Dir() != "" {
+		args = append(args, "--xgoef-asset-root="+a.assets.Dir())
+	}
 	// LLGo (and Go) hosts are poor CEF GPU/renderer subprocesses.
 	// Prefer a native helper via SubprocessPath; these flags keep the
 	// browser process alive when the helper still cannot use GPU.
@@ -335,28 +349,66 @@ func resolveSubprocess() string {
 	return ""
 }
 
-// ResolveURL turns relative file paths into absolute file:// URLs.
-func ResolveURL(u string) string {
+// NavigationURL is the URL passed to CEF.
+// http(s) and about:blank are kept for dev servers. xgoef://app/ is checked
+// against the frontend root. file:// and relative paths inside that root are
+// rewritten to xgoef://app/. Anything else on disk is refused.
+func (a *App) NavigationURL(u string) (string, error) {
 	if u == "" {
-		return "about:blank"
+		u = asset.Scheme + "://" + asset.Host + "/index.html"
 	}
-	switch {
-	case u == "about:blank", strings.HasPrefix(u, "http://"), strings.HasPrefix(u, "https://"):
-		return u
-	case strings.HasPrefix(u, "file://"):
-		path := strings.TrimPrefix(u, "file://")
-		abs, err := filepath.Abs(path)
-		if err != nil {
-			return u
-		}
-		return "file://" + abs
-	default:
-		abs, err := filepath.Abs(u)
-		if err != nil {
-			return u
-		}
-		return "file://" + abs
+	if u == "about:blank" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+		_, _ = a.frontend()
+		return u, nil
 	}
+	root, err := a.frontend()
+	if err != nil {
+		return "", err
+	}
+	if strings.HasPrefix(strings.ToLower(u), asset.Scheme+"://") {
+		if _, _, err := root.Resolve(u); err != nil {
+			return "", err
+		}
+		return u, nil
+	}
+	path := u
+	if strings.HasPrefix(path, "file://") {
+		path = strings.TrimPrefix(path, "file://")
+	}
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(a.baseDir(), path)
+	}
+	return root.FileURL(path)
+}
+
+func (a *App) frontend() (*asset.Root, error) {
+	if a.assets != nil {
+		return a.assets, nil
+	}
+	dist := a.Config.Build.FrontendDist
+	if dist == "" {
+		dist = "web"
+	}
+	if !filepath.IsAbs(dist) {
+		dist = filepath.Join(a.baseDir(), dist)
+	}
+	root, err := asset.Open(dist)
+	if err != nil {
+		return nil, err
+	}
+	a.assets = root
+	return root, nil
+}
+
+func (a *App) baseDir() string {
+	if a.base != "" {
+		return a.base
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return "."
+	}
+	return wd
 }
 
 // ExitError means a CEF helper process finished with an exit code.
