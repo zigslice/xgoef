@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/zigslice/xgoef/acl"
 	"github.com/zigslice/xgoef/asset"
@@ -35,13 +36,19 @@ type App struct {
 	assets    *asset.Root
 	pluginErr error
 
-	appMenu  *menu.Menu
-	trayMenu *menu.Menu
-	trayTip  string
-	trayIcon string
-	winState *windowstate.Store
-	instDir  string
-	inst     *instance.Listener
+	appMenu    *menu.Menu
+	trayMenu   *menu.Menu
+	trayTip    string
+	trayIcon   string
+	winState   *windowstate.Store
+	instDir    string
+	inst       *instance.Listener
+	argsSet    bool
+	args       []string
+	deepApps   string
+	deepConfig string
+	deepMu     sync.Mutex
+	deepURLs   []string
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -213,6 +220,9 @@ func (a *App) Run() error {
 		return err
 	}
 	defer a.closeInstance()
+	if err := a.openDeepLink(a.programArgs()); err != nil {
+		return err
+	}
 
 	navURL, err := a.NavigationURL(a.Config.FirstWindow().URL)
 	if err != nil {

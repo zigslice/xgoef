@@ -106,3 +106,42 @@ func TestBuildRewritesHelloScript(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestStageWritesDesktopFile(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("XGOEF_JS", filepath.Join(wd, "..", "api", "js", "xgoef.js"))
+	app := filepath.Join(t.TempDir(), "demo")
+	if err := os.MkdirAll(filepath.Join(app, "web"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(app, "web", "index.html"), []byte("ok"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	raw := []byte(`{
+  "productName": "demo",
+  "identifier": "com.example.demo",
+  "app": {
+    "windows": [{"title": "demo", "width": 800, "height": 600}],
+    "deepLink": {"schemes": ["demo"]}
+  }
+}
+`)
+	if err := os.WriteFile(filepath.Join(app, "xgoef.conf.json"), raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(t.TempDir(), "dist")
+	if code := Run([]string{"build", "--assets-only", "--app", app, "--out", out}); code != 0 {
+		t.Fatalf("build exit %d", code)
+	}
+	body, err := os.ReadFile(filepath.Join(out, "xgoef-com.example.demo.desktop"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	if !strings.Contains(text, "x-scheme-handler/demo;") || !strings.Contains(text, "%u") || !strings.Contains(text, filepath.Join(out, "demo")) {
+		t.Fatalf("%s", text)
+	}
+}

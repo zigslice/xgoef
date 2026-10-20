@@ -49,7 +49,7 @@
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新，以及单实例，都已经接上。还缺 deep link。平台安装包（msi / dmg / deb）仍后置。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例，以及 deep link，都已经接上。平台安装包（msi / dmg / deb）仍后置。
 
 ---
 
@@ -134,7 +134,8 @@
 | --- | --- | --- |
 | Updater 插件 | 🟡 | `updater:check` / `updater:install` 替换签过名的前端封包（见 `docs/updater.md`）；不换系统安装包 |
 | 单实例 | ✅ | 同一 identifier 的后续启动聚焦已有进程（见 `docs/instance.md`） |
-| Autostart / Deep link | ⬜ | — |
+| Deep link | ✅ | 当前用户的 XDG scheme handler（见 `docs/deeplink.md`） |
+| Autostart | ⬜ | — |
 | 崩溃报告 / 日志插件 | ⬜ | CEF crashpad 可接 |
 
 ### 3.8 移动端
@@ -171,7 +172,7 @@
 
 ### P3 — 发行与生态
 
-14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link、平台安装包仍后置。
+14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包仍后置。
 15. 更多插件；文档站点与模板。
 
 ---
@@ -305,7 +306,8 @@ App
 - 菜单和托盘落地。 ✅（见 `docs/menu.md`）
 - window-state 落地。 ✅（见 `docs/window.md`）
 - 签过名的前端更新落地。 ✅（见 `docs/updater.md`）
-- 单实例落地。 ✅（见 `docs/instance.md`）；deep link 与平台安装包仍后置。
+- 单实例落地。 ✅（见 `docs/instance.md`）
+- deep link 落地。 ✅（见 `docs/deeplink.md`）；平台安装包仍后置。
 
 ---
 
@@ -332,8 +334,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新，以及单实例**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例，以及 deep link**。接下来的产品差距集中在：
 
-1. **deep link**
+1. **平台安装包**（msi / dmg / deb）
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。
