@@ -4,12 +4,17 @@
 
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
+#include "include/cef_scheme.h"
 #include "include/views/cef_browser_view.h"
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_helpers.h"
 
 #include "xgoef_handler.h"
 #include "xgoef_window.h"
+
+namespace xgoef {
+void RegisterAssetScheme(const std::string& root);
+}
 
 namespace xgoef {
 namespace {
@@ -93,11 +98,26 @@ class BrowserViewDelegate : public CefBrowserViewDelegate {
 
 App::App() : renderer_(new RendererHandler) {}
 
+void App::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) {
+  // Same options in the browser process and xgoef-helper. STANDARD makes the
+  // origin xgoef://app; the file handler itself runs in the browser process.
+  registrar->AddCustomScheme(
+      "xgoef", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_SECURE |
+                   CEF_SCHEME_OPTION_CORS_ENABLED |
+                   CEF_SCHEME_OPTION_FETCH_ENABLED);
+}
+
 void App::OnContextInitialized() {
   CEF_REQUIRE_UI_THREAD();
 
   CefRefPtr<CefCommandLine> command_line =
       CefCommandLine::GetGlobalCommandLine();
+
+  std::string asset_root =
+      command_line->GetSwitchValue("xgoef-asset-root").ToString();
+  if (!asset_root.empty()) {
+    RegisterAssetScheme(asset_root);
+  }
 
   cef_runtime_style_t runtime_style = CEF_RUNTIME_STYLE_DEFAULT;
   bool use_alloy_style = command_line->HasSwitch("use-alloy-style");

@@ -109,6 +109,9 @@ func cmdCreate(args []string) error {
 	if err := copyFile(js, filepath.Join(name, "api", "js", "xgoef.js")); err != nil {
 		return err
 	}
+	if err := copyFile(js, filepath.Join(name, "web", "xgoef.js")); err != nil {
+		return err
+	}
 	fmt.Printf("created %s\n", name)
 	fmt.Printf("next: cd %s && xgoef build --app . --out dist\n", name)
 	return nil
@@ -216,6 +219,10 @@ func stage(appDir, outDir string, dev bool) (string, error) {
 	if err := copyFile(js, filepath.Join(outDir, "api", "js", "xgoef.js")); err != nil {
 		return "", err
 	}
+	// xgoef://app/ is rooted at web/, so the bridge is also copied there.
+	if err := copyFile(js, filepath.Join(dstWeb, "xgoef.js")); err != nil {
+		return "", err
+	}
 	if err := rewriteBridgeSrc(filepath.Join(dstWeb, "index.html")); err != nil && !os.IsNotExist(err) {
 		return "", err
 	}
@@ -315,7 +322,9 @@ func rewriteBridgeSrc(indexPath string) error {
 	if err != nil {
 		return err
 	}
-	body := strings.ReplaceAll(string(b), `src="../../../api/js/xgoef.js"`, `src="../api/js/xgoef.js"`)
+	body := string(b)
+	body = strings.ReplaceAll(body, `src="../../../api/js/xgoef.js"`, `src="xgoef.js"`)
+	body = strings.ReplaceAll(body, `src="../api/js/xgoef.js"`, `src="xgoef.js"`)
 	if body == string(b) {
 		return nil
 	}

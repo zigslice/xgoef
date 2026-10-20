@@ -21,6 +21,8 @@ endif()
 set(XGOEF_CEF_SRCS
   xgoef_host.cc
   xgoef_app.cc
+  xgoef_asset.cc
+  xgoef_asset_path.cc
   xgoef_handler.cc
   xgoef_handler_linux.cc
   xgoef_renderer.cc

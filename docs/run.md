@@ -74,6 +74,10 @@ cd build/hello
 | 默认 `--disable-gpu --in-process-gpu` | 宿主不宜作 GPU 子进程；设 `XGOEF_ENABLE_GPU=1` 可关掉这些开关 |
 | `browser_subprocess_path` → `xgoef-helper` | 渲染/网络等进程走原生 helper，不重入 LLGo 宿主 |
 
+## 资源协议
+
+窗口 URL 用 `xgoef://app/index.html`。它只映射 `build.frontendDist`，不接受根以外的 `file://`。开发服务器仍用 `http://` / `https://`。细节见 [asset.md](asset.md)。
+
 ## 插件与 CLI
 
 `plugins: ["fs", "os"]` 会在 `App.Run` 里装上带范围的文件命令和平台命令。范围、权限和前端 `__XGOEF__.plugins` 见 [plugins.md](plugins.md)。

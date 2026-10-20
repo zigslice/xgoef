@@ -81,9 +81,15 @@ cp -f "$WRAPPER_A" "$RUNTIME_DIR"/libcef_dll_wrapper.a
 rm -rf "${HOME}/.cache/llgo/build/"*"/github.com/zigslice/xgoef/cef" 2>/dev/null || true
 cp -a "$ROOT/examples/hello/web" "$OUT"/
 cp -a "$ROOT/examples/hello/xgoef.conf.json" "$OUT"/
-mkdir -p "$OUT/api/js"
+mkdir -p "$OUT/api/js" "$OUT/web"
 cp -a "$ROOT/api/js/xgoef.js" "$OUT/api/js/"
-sed -i 's|src="../../../api/js/xgoef.js"|src="../api/js/xgoef.js"|' "$OUT/web/index.html"
+# The page is served from xgoef://app/, whose root is web/. The bridge must
+# live inside that directory; a sibling ../api path would leave the root.
+cp -a "$ROOT/api/js/xgoef.js" "$OUT/web/xgoef.js"
+sed -i \
+  -e 's|src="../../../api/js/xgoef.js"|src="xgoef.js"|' \
+  -e 's|src="../api/js/xgoef.js"|src="xgoef.js"|' \
+  "$OUT/web/index.html"
 
 # Helper must be our MessageRouter-enabled binary (not stock cefsimple_capi).
 cp -f "$HELPER_BIN" "$OUT/xgoef-helper"

@@ -35,6 +35,7 @@
 | `ipc/` | Command 注册与调用、Event 总线 |
 | `plugin/` | 插件契约（命令 + permission） |
 | `plugins/fs` `plugins/os` | 内置插件：带范围的文件命令、平台信息 |
+| `asset/` | `xgoef://app/` → `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `api/js/` | 注入或随资源分发的前端桥 |
 | `cmd/xgoef/` | `create` / `dev` / `build`（分期目录；链宿主仍走构建脚本） |

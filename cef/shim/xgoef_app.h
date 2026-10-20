@@ -18,6 +18,8 @@ class App : public CefApp, public CefBrowserProcessHandler {
     return renderer_;
   }
 
+  void OnRegisterCustomSchemes(
+      CefRawPtr<CefSchemeRegistrar> registrar) override;
   void OnContextInitialized() override;
   CefRefPtr<CefClient> GetDefaultClient() override;
 

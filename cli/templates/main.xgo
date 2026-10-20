@@ -19,7 +19,7 @@ func isCEFSwitch(s string) bool {
 
 func resolveFileURL(base, u string) string {
 	if u == "" {
-		return "file://" + filepath.Join(base, "web", "index.html")
+		return "xgoef://app/index.html"
 	}
 	if len(u) >= 7 && u[:7] == "file://" {
 		p := u[7:]
