@@ -6,9 +6,10 @@ import (
 	"sync"
 )
 
-// Context is passed to command handlers (window id, etc. later).
+// Context is passed to command handlers.
 type Context struct {
 	Command string
+	Window  string
 }
 
 // Handler is a Tauri-like command implementation.
@@ -36,13 +37,18 @@ func (r *Router) Handle(name string, h Handler) {
 
 // Invoke runs a command by name (used by the CEF message bridge).
 func (r *Router) Invoke(name string, argsJSON []byte) ([]byte, error) {
+	return r.InvokeFrom("", name, argsJSON)
+}
+
+// InvokeFrom runs a command and records the calling window label.
+func (r *Router) InvokeFrom(window, name string, argsJSON []byte) ([]byte, error) {
 	r.mu.RLock()
 	h, ok := r.handlers[name]
 	r.mu.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("ipc: unknown command %q", name)
 	}
-	out, err := h(Context{Command: name}, argsJSON)
+	out, err := h(Context{Command: name, Window: window}, argsJSON)
 	if err != nil {
 		return nil, err
 	}

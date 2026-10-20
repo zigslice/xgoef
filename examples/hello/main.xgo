@@ -66,6 +66,7 @@ if len(cfg.App.Windows) > 0 {
 }
 
 app := xruntime.New(cfg, host)
+app.SetBase base
 app.Handle "greet", (ctx, argsJSON) => {
 	name := "world"
 	if len(argsJSON) > 0 {

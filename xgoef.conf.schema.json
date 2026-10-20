@@ -44,7 +44,29 @@
     },
     "plugins": {
       "type": "array",
+      "description": "Builtin plugin ids to load (fs, os).",
       "items": { "type": "string" }
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allow": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Scope roots. $APP, $RESOURCE, $HOME, or a path."
+            },
+            "deny": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
     },
     "capabilities": {
       "description": "Tauri-like capability list (P0 ACL). Legacy map form is also accepted by the loader.",

@@ -261,18 +261,19 @@ xgoef/
 ```go
 type Plugin interface {
     Name() string
-    Setup(app *runtime.App) error
-    Teardown(app *runtime.App) error
-    Commands() []CommandSpec    // name + permission id
-    Permissions() []Permission  // 供 ACL 声明
+    Permissions() []string      // 如 fs:read_text，须写入 capabilities
+    Setup(app plugin.Host) error // Host.Register 挂命令
+    Teardown(app plugin.Host) error
 }
 ```
+
+实现见 `plugin.Plugin`、`plugins/fs`、`plugins/os`。配置用短名 `"plugins": ["fs"]`，不是模块路径。
 
 应用侧装配：
 
 ```json
-// xgoef.conf.json
-"plugins": ["github.com/example/xgoef-plugin-fs"]
+// xgoef.conf.json — 内置插件用短名
+"plugins": ["fs", "os"]
 ```
 
 或在 `hello_app.xef`：

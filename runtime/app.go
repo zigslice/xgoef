@@ -12,6 +12,7 @@ import (
 	"github.com/zigslice/xgoef/conf"
 	"github.com/zigslice/xgoef/ipc"
 	"github.com/zigslice/xgoef/plugin"
+	"github.com/zigslice/xgoef/plugins"
 )
 
 // App is the Tauri-like application handle.
@@ -23,6 +24,9 @@ type App struct {
 	Events  *ipc.Bus
 	ACL     *acl.Guard
 	Plugins *plugin.Registry
+
+	base      string
+	pluginErr error
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -46,8 +50,18 @@ func New(cfg conf.File, host cef.Host) *App {
 }
 
 // Use registers a plugin (Tauri-like builder hook).
+// A duplicate or nil plugin is reported from Run / OpenPlugins.
 func (a *App) Use(p plugin.Plugin) *App {
-	a.Plugins.Add(p)
+	if a.pluginErr != nil {
+		return a
+	}
+	a.pluginErr = a.Plugins.Add(p)
+	return a
+}
+
+// SetBase sets the app directory used to expand $APP and relative fs paths.
+func (a *App) SetBase(dir string) *App {
+	a.base = dir
 	return a
 }
 
@@ -55,6 +69,53 @@ func (a *App) Use(p plugin.Plugin) *App {
 func (a *App) Handle(name string, h ipc.Handler) *App {
 	a.Router.Handle(name, h)
 	return a
+}
+
+// Register implements plugin.Host.
+func (a *App) Register(name string, h ipc.Handler) {
+	a.Router.Handle(name, h)
+}
+
+// OpenPlugins loads builtin plugins named in the config that were not
+// already added with Use. It is safe to call more than once.
+func (a *App) OpenPlugins() error {
+	if a.pluginErr != nil {
+		return a.pluginErr
+	}
+	base := a.base
+	if base == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		base = wd
+	}
+	resource := a.Config.Build.FrontendDist
+	if resource == "" {
+		resource = "web"
+	}
+	if !filepath.IsAbs(resource) {
+		resource = filepath.Join(base, resource)
+	}
+	opt := plugins.Options{
+		Base:     base,
+		Resource: resource,
+		Allow:    a.Config.Plugin.FS.Allow,
+		Deny:     a.Config.Plugin.FS.Deny,
+	}
+	for _, name := range a.Config.Plugins {
+		if a.Plugins.Has(name) {
+			continue
+		}
+		p, err := plugins.Open(name, opt)
+		if err != nil {
+			return err
+		}
+		if err := a.Plugins.Add(p); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Emit sends an event to all webviews (and host listeners).
@@ -115,6 +176,9 @@ func (a *App) Run() error {
 	}
 	settings.SubprocessPath = resolveSubprocess()
 
+	if err := a.OpenPlugins(); err != nil {
+		return err
+	}
 	if err := a.Plugins.Setup(a); err != nil {
 		return fmt.Errorf("plugin setup: %w", err)
 	}
@@ -206,7 +270,7 @@ func handleInvoke(guard *acl.Guard, router *ipc.Router, windowLabel string, id i
 	if len(args) == 0 {
 		args = []byte("{}")
 	}
-	out, err := router.Invoke(cmd, args)
+	out, err := router.InvokeFrom(windowLabel, cmd, args)
 	if err != nil {
 		return mustResponse(id, false, nil, err.Error())
 	}

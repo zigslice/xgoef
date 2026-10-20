@@ -33,10 +33,11 @@
 | `cef/shim/` | 仅当回调/Views 无法直接从 Go 表达时使用的薄 C 层 |
 | `runtime/` | 进程入口、初始化、消息循环、窗口/浏览器 |
 | `ipc/` | Command 注册与调用、Event 总线 |
-| `plugin/` | 插件生命周期与命令挂载 |
+| `plugin/` | 插件契约（命令 + permission） |
+| `plugins/fs` `plugins/os` | 内置插件：带范围的文件命令、平台信息 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `api/js/` | 注入或随资源分发的前端桥 |
-| `cmd/xgoef/` | 脚手架与构建辅助（后期） |
+| `cmd/xgoef/` | `create` / `dev` / `build`（分期目录；链宿主仍走构建脚本） |
 | `examples/hello/` | 最小可运行目标 |
 
 ## 对标 Tauri 2 的 API 形状
@@ -65,9 +66,12 @@ app.Listen "ui-ready", payload => {
 ### Plugins
 
 ```xgo
-app.Use fsplugin.New()
-# 插件可注册命令、挂钩 OnReady / OnExit
+# xgoef.conf.json: "plugins": ["fs", "os"]
+# 或显式：
+app.Use fsplugin
 ```
+
+内置 `fs:*` / `os:*` 在 `App.Run` 里按配置注册。详见 [docs/plugins.md](docs/plugins.md)。
 
 ### 配置
 

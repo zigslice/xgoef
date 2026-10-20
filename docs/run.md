@@ -74,6 +74,18 @@ cd build/hello
 | 默认 `--disable-gpu --in-process-gpu` | 宿主不宜作 GPU 子进程；设 `XGOEF_ENABLE_GPU=1` 可关掉这些开关 |
 | `browser_subprocess_path` → `xgoef-helper` | 渲染/网络等进程走原生 helper，不重入 LLGo 宿主 |
 
+## 插件与 CLI
+
+`plugins: ["fs", "os"]` 会在 `App.Run` 里装上带范围的文件命令和平台命令。范围、权限和前端 `__XGOEF__.plugins` 见 [plugins.md](plugins.md)。
+
+```bash
+xgoef create myapp
+xgoef build --app myapp --out myapp/dist
+xgoef dev --app examples/hello --out /tmp/xgoef-dev
+```
+
+`build` / `dev` 复制配置、前端和 `api/js/xgoef.js`。链接 CEF 宿主仍用 `scripts/build-xgoef-hello.sh`。
+
 ## 与 llcppg 的关系
 
 - 宿主已用 LLGo `go:linkname` 调 shim（无 cgo）。
