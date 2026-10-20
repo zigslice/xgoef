@@ -42,14 +42,14 @@
 | Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
 | Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
-| Plugin 生命周期 | ✅ | 契约 + `fs` / `os`；见 `docs/plugins.md` |
+| Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架并分期目录；链 CEF 宿主仍走 `scripts/build-xgoef-hello.sh` |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
 | 资源协议 / 资产嵌入 | 🟡 | `xgoef://app/` 映射 `frontendDist`；还没把资源打进二进制 |
-| 官方类插件（fs/dialog/…） | 🟡 | `fs`（范围）与 `os`；dialog 等未做 |
+| 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件和 `fs`/`os` 插件已经接上。还缺自定义资源协议、其余系统插件，以及把 CLI 分期目录和 CEF 链接收成一条命令。
+结论：前端 invoke、ACL、多窗口事件、资源协议和这批系统插件已经接上。还缺把 CLI 分期目录和 CEF 链接收成一条命令。
 
 ---
 
