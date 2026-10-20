@@ -49,7 +49,7 @@
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘，以及 window-state，都已经接上。还缺打包更新器。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state，以及签过名的前端更新，都已经接上。还缺单实例。平台安装包（msi / dmg / deb）仍后置。
 
 ---
 
@@ -125,14 +125,14 @@
 | `create-tauri-app` | 🟡 | `xgoef create <name>` 写出 XGo 骨架 |
 | `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期并链接宿主；热重载与安装包仍后置 |
 | 多前端模板（Vite/React/…） | ⬜ | — |
-| 平台打包（msi/dmg/deb/AppImage） | ⬜ | 依赖 CEF 运行时布局；需打包器设计 |
+| 平台打包（msi/dmg/deb/AppImage） | ⬜ | 发行目录已有签过名的 `update.json`；系统安装包仍后置 |
 | IDE / 代码生成（command 宏） | ⬜ | XGo 侧可用 codegen 或约定式注册 |
 
 ### 3.7 发行与运维
 
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
-| Updater 插件 | ⬜ / 远期 | 可对齐 `docs/10-ship-and-upgrade.md` |
+| Updater 插件 | 🟡 | `updater:check` / `updater:install` 替换签过名的前端封包（见 `docs/updater.md`）；不换系统安装包 |
 | 单实例 | ⬜ | — |
 | Autostart / Deep link | ⬜ | — |
 | 崩溃报告 / 日志插件 | ⬜ | CEF crashpad 可接 |
@@ -171,7 +171,7 @@
 
 ### P3 — 发行与生态
 
-14. 打包器、updater、单实例、deep link。
+14. updater ✅（见 `docs/updater.md`）；单实例、deep link、平台安装包仍后置。
 15. 更多插件；文档站点与模板。
 
 ---
@@ -303,7 +303,8 @@ App
 
 - Channels 落地。 ✅（见 `docs/channels.md`）
 - 菜单和托盘落地。 ✅（见 `docs/menu.md`）
-- window-state 落地。 ✅（见 `docs/window.md`）；打包/更新器仍后置。
+- window-state 落地。 ✅（见 `docs/window.md`）
+- 签过名的前端更新落地。 ✅（见 `docs/updater.md`）；平台安装包仍后置。
 
 ---
 
@@ -330,8 +331,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘，以及 window-state**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state，以及签过名的前端更新**。接下来的产品差距集中在：
 
-1. **打包更新器**
+1. **单实例**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

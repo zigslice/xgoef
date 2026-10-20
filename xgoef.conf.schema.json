@@ -70,7 +70,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -114,6 +114,16 @@
           "additionalProperties": false,
           "properties": {
             "mode": { "type": "string", "enum": ["memory", "system"] }
+          }
+        },
+        "updater": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "Directory or https URL that serves update.json and xgoef.assets."
+            }
           }
         }
       }

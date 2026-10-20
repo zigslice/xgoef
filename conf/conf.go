@@ -28,6 +28,12 @@ type PluginSection struct {
 	Shell     ShellConfig     `json:"shell"`
 	Dialog    DialogConfig    `json:"dialog"`
 	Clipboard ClipboardConfig `json:"clipboard"`
+	Updater   UpdaterConfig   `json:"updater"`
+}
+
+// UpdaterConfig points at a directory or https URL that serves update.json.
+type UpdaterConfig struct {
+	Endpoint string `json:"endpoint"`
 }
 
 // FSConfig is the scope for the fs builtin.

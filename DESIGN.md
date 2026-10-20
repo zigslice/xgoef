@@ -88,6 +88,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 窗口的坐标、宽高和最大化写在应用目录 `.xgoef/window-state.json`，下次按 label 恢复。详见 [docs/window.md](docs/window.md)。
 
+`xgoef build` 在有 `version` 时写出 `update.json`。`updater:check` / `updater:install` 用同一把 Ed25519 公钥校验后替换前端封包。详见 [docs/updater.md](docs/updater.md)。
+
 ### Plugins
 
 ```xgo

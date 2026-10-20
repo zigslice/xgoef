@@ -193,6 +193,14 @@
           return global.__XGOEF__.invoke("dialog:save", opts || {});
         },
       },
+      updater: {
+        check: function () {
+          return global.__XGOEF__.invoke("updater:check", {});
+        },
+        install: function () {
+          return global.__XGOEF__.invoke("updater:install", {});
+        },
+      },
     },
   };
 })(typeof window !== "undefined" ? window : globalThis);
