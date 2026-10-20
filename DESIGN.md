@@ -64,6 +64,24 @@ app.Listen "ui-ready", payload => {
 }
 ```
 
+### Channels
+
+```xgo
+app.Handle "progress", (ctx, argsJSON) => {
+    ch, err := ctx.Channel(argsJSON)
+    if err != nil {
+        return nil, err
+    }
+    return nil, ch.Send(1)
+}
+```
+
+```js
+const ch = window.__XGOEF__.channel()
+ch.onmessage((n) => console.log(n))
+await window.__XGOEF__.invoke("progress", { channel: ch })
+```
+
 ### Plugins
 
 ```xgo

@@ -16,7 +16,7 @@
 2. `api/js/xgoef.js` 把 invoke JSON 作为 `cefQuery({ request })`。
 3. 浏览器进程：`IpcHandler::OnQuery` → `xgoef_ipc_query_fn`（Go）→ ACL → `Router.Invoke` → `xgoef_ipc_respond` → `Callback::Success`（响应用 JSON envelope，便于 Promise reject）。
 
-Event 跨进程（`emit` / `listen`）仍为进程内占位；P1 再通。
+Event 见 [events.md](events.md)。有序的宿主 → 页面流见 [channels.md](channels.md)。
 
 ## C ABI
 

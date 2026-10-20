@@ -8,8 +8,9 @@ import (
 
 // Context is passed to command handlers.
 type Context struct {
-	Command string
-	Window  string
+	Command  string
+	Window   string
+	channels *Hub
 }
 
 // Handler is a Tauri-like command implementation.
@@ -21,11 +22,26 @@ type Handler func(ctx Context, argsJSON []byte) (any, error)
 type Router struct {
 	mu       sync.RWMutex
 	handlers map[string]Handler
+	channels *Hub
 }
 
 // NewRouter creates an empty command router.
 func NewRouter() *Router {
 	return &Router{handlers: make(map[string]Handler)}
+}
+
+// SetChannels attaches the hub Context.Channel will bind against.
+func (r *Router) SetChannels(h *Hub) {
+	r.mu.Lock()
+	r.channels = h
+	r.mu.Unlock()
+}
+
+// Channels returns the hub set by SetChannels.
+func (r *Router) Channels() *Hub {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.channels
 }
 
 // Handle registers or replaces a command.
@@ -44,11 +60,12 @@ func (r *Router) Invoke(name string, argsJSON []byte) ([]byte, error) {
 func (r *Router) InvokeFrom(window, name string, argsJSON []byte) ([]byte, error) {
 	r.mu.RLock()
 	h, ok := r.handlers[name]
+	hub := r.channels
 	r.mu.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("ipc: unknown command %q", name)
 	}
-	out, err := h(Context{Command: name, Window: window}, argsJSON)
+	out, err := h(Context{Command: name, Window: window, channels: hub}, argsJSON)
 	if err != nil {
 		return nil, err
 	}

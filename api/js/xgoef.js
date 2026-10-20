@@ -1,5 +1,5 @@
 /**
- * xgoef frontend bridge (Tauri-like invoke / listen / emit).
+ * xgoef frontend bridge (Tauri-like invoke / listen / emit / channel).
  *
  * Transport: CEF MessageRouter `window.cefQuery` (injected by the host
  * renderer shim). Falls back to `__xgoefPost` when present.
@@ -8,6 +8,7 @@
   const pending = new Map();
   let nextId = 1;
   const listeners = new Map();
+  const channels = new Map();
 
   function post(msg) {
     const body = JSON.stringify(msg);
@@ -70,6 +71,28 @@
           fn(msg.payload);
         } catch (_) {}
       });
+      return;
+    }
+    if (msg.type === "channel") {
+      acceptChannel(msg.channel, msg.index, msg.payload);
+    }
+  }
+
+  function acceptChannel(id, index, payload) {
+    const state = channels.get(id);
+    if (!state || typeof index !== "number" || index < state.expected || index > state.expected + 64) {
+      return;
+    }
+    state.buf.set(index, payload);
+    while (state.buf.has(state.expected)) {
+      const body = state.buf.get(state.expected);
+      state.buf.delete(state.expected);
+      state.expected++;
+      state.handlers.forEach(function (fn) {
+        try {
+          fn(body);
+        } catch (_) {}
+      });
     }
   }
 
@@ -98,6 +121,29 @@
     },
     emit: function (event, payload) {
       post({ type: "event", event: event, payload: payload });
+    },
+    channel: function () {
+      const id = nextId++;
+      const state = { expected: 0, handlers: [], buf: new Map() };
+      channels.set(id, state);
+      return {
+        id: id,
+        toJSON: function () {
+          return { __channel: id };
+        },
+        onmessage: function (handler) {
+          state.handlers.push(handler);
+          return function () {
+            state.handlers = state.handlers.filter(function (h) {
+              return h !== handler;
+            });
+          };
+        },
+        close: function () {
+          channels.delete(id);
+          post({ type: "channel-close", channel: id });
+        },
+      };
     },
     plugins: {
       fs: {

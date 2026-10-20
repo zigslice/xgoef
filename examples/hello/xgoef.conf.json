@@ -31,7 +31,7 @@
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "core:default"]
     },
     {
       "identifier": "aux",

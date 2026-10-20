@@ -19,6 +19,7 @@
 | 5b | **P1** 前端签进宿主二进制（Ed25519） | 完成（系统安装包签名仍后置） |
 | 6 | 框架 API（`runtime`/`ipc`/…）迁 `.xgo` | 待做 |
 | 6b | **Classfile**：`xclass` + `*_app.xef`/`*_cmd.xef`（见 [classfile-design.md](classfile-design.md)） | 待做 |
-| 7 | **P2+** Channels / 托盘菜单 / 打包更新器 | 待做 |
+| 7 | **P2** Channels（有序宿主 → 页面消息） | 完成 |
+| 7b | **P2+** 菜单 / 托盘 / 打包更新器 | 待做 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。
