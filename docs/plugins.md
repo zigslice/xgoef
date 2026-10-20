@@ -29,8 +29,9 @@ type Plugin interface {
 | `shell` | `shell:open` | 与命令名相同 |
 | `clipboard` | `clipboard:read_text` `clipboard:write_text` | 与命令名相同 |
 | `dialog` | `dialog:open` `dialog:save` | 与命令名相同 |
+| `updater` | `updater:check` `updater:install` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`。
 
 文本读写上限 1 MiB。
 
@@ -72,6 +73,10 @@ type Plugin interface {
 ## dialog
 
 `dialog:open` / `dialog:save` 先弹出选择器，再把返回的路径放进 `plugin.dialog.allow`。取消返回 `null`。默认选择器是 `zenity`；没装就报错，不会退回任意路径。
+
+## updater
+
+`updater:check` / `updater:install` 读取 `plugin.updater.endpoint` 上的 `update.json` 和 `xgoef.assets`。公钥是 `build.assetPublicKey`。细节见 [updater.md](updater.md)。
 
 ## 应用侧还要做的
 

@@ -122,16 +122,20 @@ func (a *App) OpenPlugins() error {
 		return err
 	}
 	opt := plugins.Options{
-		Base:          base,
-		Resource:      resource,
-		Allow:         a.Config.Plugin.FS.Allow,
-		Deny:          a.Config.Plugin.FS.Deny,
-		ShellSchemes:  a.Config.Plugin.Shell.Schemes,
-		ShellAllow:    a.Config.Plugin.Shell.Allow,
-		ShellDeny:     a.Config.Plugin.Shell.Deny,
-		DialogAllow:   a.Config.Plugin.Dialog.Allow,
-		DialogDeny:    a.Config.Plugin.Dialog.Deny,
-		ClipboardMode: a.Config.Plugin.Clipboard.Mode,
+		Base:            base,
+		Resource:        resource,
+		Allow:           a.Config.Plugin.FS.Allow,
+		Deny:            a.Config.Plugin.FS.Deny,
+		ShellSchemes:    a.Config.Plugin.Shell.Schemes,
+		ShellAllow:      a.Config.Plugin.Shell.Allow,
+		ShellDeny:       a.Config.Plugin.Shell.Deny,
+		DialogAllow:     a.Config.Plugin.Dialog.Allow,
+		DialogDeny:      a.Config.Plugin.Dialog.Deny,
+		ClipboardMode:   a.Config.Plugin.Clipboard.Mode,
+		Version:         a.Config.Version,
+		UpdaterEndpoint: a.Config.Plugin.Updater.Endpoint,
+		UpdaterPub:      a.Config.Build.AssetPublicKey,
+		Executable:      a.executable(),
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {
@@ -502,6 +506,17 @@ func (a *App) materializeSealed() (string, error) {
 		return "", err
 	}
 	return dest, nil
+}
+
+func (a *App) executable() string {
+	if a.exe != "" {
+		return a.exe
+	}
+	exe, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	return exe
 }
 
 func (a *App) baseDir() string {

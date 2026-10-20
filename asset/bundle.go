@@ -155,6 +155,62 @@ func AppendSeal(path string, payload []byte, priv ed25519.PrivateKey) error {
 	return os.WriteFile(path, append(body, blob...), st.Mode().Perm())
 }
 
+// VerifyStandalone checks that sealed is only a trailer and the signature matches.
+func VerifyStandalone(sealed []byte, pub ed25519.PublicKey) ([]byte, error) {
+	body, payload, err := splitTrailer(sealed)
+	if err != nil {
+		return nil, err
+	}
+	if len(body) != 0 {
+		return nil, fmt.Errorf("asset: sealed frontend is not a standalone trailer")
+	}
+	if err := verifyPayload(payload, sealed, pub); err != nil {
+		return nil, err
+	}
+	return payload, nil
+}
+
+// InstallSeal verifies a standalone seal and replaces the trailer on host.
+// When sibling is not empty, the same seal bytes are written there too.
+// The private key is not required: sealed is already signed.
+func InstallSeal(hostPath, siblingPath string, sealed []byte, pub ed25519.PublicKey) error {
+	if _, err := VerifyStandalone(sealed, pub); err != nil {
+		return err
+	}
+	st, err := os.Stat(hostPath)
+	if err != nil {
+		return err
+	}
+	data, err := os.ReadFile(hostPath)
+	if err != nil {
+		return err
+	}
+	hostBody, _, err := splitTrailer(data)
+	if err == ErrNoSeal {
+		hostBody = data
+	} else if err != nil {
+		return err
+	}
+	if err := writeAtomic(hostPath, append(hostBody, sealed...), st.Mode().Perm()); err != nil {
+		return err
+	}
+	if siblingPath == "" {
+		return nil
+	}
+	return writeAtomic(siblingPath, sealed, 0o644)
+}
+
+func writeAtomic(path string, data []byte, mode os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, mode); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
 // WriteSealFile writes a standalone signed archive (the same trailer bytes
 // that AppendSeal adds to a host binary).
 func WriteSealFile(path string, payload []byte, priv ed25519.PrivateKey) error {

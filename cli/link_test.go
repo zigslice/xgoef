@@ -9,6 +9,7 @@ import (
 
 	"github.com/zigslice/xgoef/asset"
 	"github.com/zigslice/xgoef/conf"
+	"github.com/zigslice/xgoef/update"
 )
 
 func TestLinkHostLayout(t *testing.T) {
@@ -46,6 +47,7 @@ func TestLinkHostLayout(t *testing.T) {
 	}
 	confBody := `{
 	  "productName": "xgoef-hello",
+	  "version": "0.0.1",
 	  "app": {"windows": [{"title": "t", "width": 1, "height": 1}]},
 	  "build": {"frontendDist": "web"}
 	}`
@@ -145,6 +147,13 @@ func TestLinkHostLayout(t *testing.T) {
 	if err != nil || string(sibling) != string(payload) {
 		t.Fatalf("standalone seal %v", err)
 	}
+	manifest, sealed, err := update.Fetch(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok, err := update.Check("0.0.0", manifest, sealed, pub); err != nil || !ok || manifest.Version != "0.0.1" {
+		t.Fatalf("update manifest %s %v %v", manifest.Version, ok, err)
+	}
 	src, err := os.ReadFile(filepath.Join(app, "xgoef.conf.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -159,6 +168,9 @@ func TestLinkHostLayout(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(devOut, "xgoef.assets")); !os.IsNotExist(err) {
 		t.Fatalf("dev wrote a seal: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(devOut, "update.json")); !os.IsNotExist(err) {
+		t.Fatalf("dev wrote an update manifest: %v", err)
 	}
 }
 

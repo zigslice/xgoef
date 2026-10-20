@@ -37,7 +37,7 @@ xgoef://app/css/app.css
 
 配置里带了公钥时，启动会校验宿主尾部；尾部没有封包时再校验旁边的 `xgoef.assets`。通过之后解到 `.xgoef/unpacked`，`xgoef://app/` 和 `$RESOURCE` 都读这个目录。签名不匹配，或公钥已配置但找不到封包，启动直接失败。
 
-`xgoef dev` 和 `--assets-only` 只留下 loose 的 `frontendDist`，方便改页面。系统安装包签名仍后置。
+`xgoef dev` 和 `--assets-only` 只留下 loose 的 `frontendDist`，方便改页面。配置里有 `version` 时，`xgoef build` 还会在发行目录写 `update.json`，给更新器当 endpoint。系统安装包签名仍后置。见 [updater.md](updater.md)。
 
 ## 代码
 
