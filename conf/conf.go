@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/zigslice/xgoef/acl"
+	"github.com/zigslice/xgoef/deeplink"
 )
 
 // File is the on-disk xgoef.conf.json shape (Tauri-like).
@@ -74,11 +75,29 @@ type Build struct {
 // AppSection holds window definitions plus the app menu and tray menu.
 // WindowState nil means remembered geometry is on.
 type AppSection struct {
-	Windows        []Window    `json:"windows"`
-	Menu           []MenuItem  `json:"menu,omitempty"`
-	Tray           *TrayConfig `json:"tray,omitempty"`
-	WindowState    *bool       `json:"windowState,omitempty"`
-	SingleInstance *bool       `json:"singleInstance,omitempty"`
+	Windows        []Window        `json:"windows"`
+	Menu           []MenuItem      `json:"menu,omitempty"`
+	Tray           *TrayConfig     `json:"tray,omitempty"`
+	WindowState    *bool           `json:"windowState,omitempty"`
+	SingleInstance *bool           `json:"singleInstance,omitempty"`
+	DeepLink       *DeepLinkConfig `json:"deepLink,omitempty"`
+}
+
+// DeepLinkConfig lists custom URL schemes this application accepts.
+type DeepLinkConfig struct {
+	Schemes []string `json:"schemes,omitempty"`
+}
+
+// DeepLinkSchemes returns the custom schemes to register.
+// An empty list means deep link is off. Schemes require an identifier.
+func (f File) DeepLinkSchemes() ([]string, error) {
+	if f.App.DeepLink == nil || len(f.App.DeepLink.Schemes) == 0 {
+		return nil, nil
+	}
+	if strings.TrimSpace(f.Identifier) == "" {
+		return nil, fmt.Errorf("conf: deepLink requires identifier")
+	}
+	return deeplink.Normalize(f.App.DeepLink.Schemes)
 }
 
 // WantSingleInstance reports whether a second launch should hand off to the

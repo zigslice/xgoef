@@ -24,9 +24,10 @@ func (a *App) acquireInstance() error {
 	if label == "" {
 		label = "main"
 	}
-	ln, err := instance.Acquire(dir, a.Config.Identifier, os.Args, func(args []string) {
+	ln, err := instance.Acquire(dir, a.Config.Identifier, a.programArgs(), func(args []string) {
 		_ = a.FocusWindow(label)
 		_ = a.Emit("single-instance", map[string]any{"args": args})
+		a.deliverDeepLink(args)
 	})
 	if errors.Is(err, instance.ErrRunning) {
 		return &ExitError{Code: 0}

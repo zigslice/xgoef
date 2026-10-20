@@ -8,4 +8,4 @@
 { "type": "event", "event": "single-instance", "payload": { "args": ["..."] } }
 ```
 
-页面用 `__XGOEF__.listen("single-instance", handler)` 接收。socket 权限是 `0600`。进程退出后文件会删掉；留下的坏文件下次启动会换掉。这不注册 URL scheme，深度链接仍后置。
+页面用 `__XGOEF__.listen("single-instance", handler)` 接收。socket 权限是 `0600`。进程退出后文件会删掉；留下的坏文件下次启动会换掉。参数里匹配已登记 scheme 的 URL 会另外发出 `deep-link`，见 [deeplink.md](deeplink.md)。

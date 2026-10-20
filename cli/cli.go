@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/zigslice/xgoef/conf"
+	"github.com/zigslice/xgoef/deeplink"
 )
 
 //go:embed templates
@@ -253,7 +254,30 @@ func stage(appDir, outDir string, dev bool) (string, error) {
 	if err != nil {
 		return outDir, nil
 	}
+	if err := writeDesktop(abs, cfg); err != nil {
+		return "", err
+	}
 	return abs, nil
+}
+
+func writeDesktop(outDir string, cfg conf.File) error {
+	schemes, err := cfg.DeepLinkSchemes()
+	if err != nil || len(schemes) == 0 {
+		return err
+	}
+	name := cfg.ProductName
+	if name == "" {
+		name = cfg.Identifier
+	}
+	body, err := deeplink.File(name, filepath.Join(outDir, sanitizeBin(cfg.ProductName)), schemes)
+	if err != nil {
+		return err
+	}
+	file, err := deeplink.FileName(cfg.Identifier)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(outDir, file), []byte(body), 0o644)
 }
 
 func validName(name string) bool {

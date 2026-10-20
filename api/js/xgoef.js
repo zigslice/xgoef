@@ -201,6 +201,11 @@
           return global.__XGOEF__.invoke("updater:install", {});
         },
       },
+      deeplink: {
+        getCurrent: function () {
+          return global.__XGOEF__.invoke("deeplink:get_current", {});
+        },
+      },
     },
   };
 })(typeof window !== "undefined" ? window : globalThis);

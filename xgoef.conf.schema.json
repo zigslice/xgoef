@@ -62,6 +62,17 @@
           "type": "boolean",
           "default": true,
           "description": "When identifier is set, a second launch focuses the first process. Set false to allow more than one."
+        },
+        "deepLink": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Custom URL schemes. The running app registers them for the current user and accepts matching arguments.",
+          "properties": {
+            "schemes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
         }
       }
     },
