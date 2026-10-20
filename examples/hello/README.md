@@ -2,6 +2,8 @@
 
 最小 **XGo** xgoef 应用：`main.xgo` + 配置 + `greet` 命令 + 本地 `web/`。
 
+页上还可以 *read note*（`fs:read_text`，读 `web/note.txt`）和 *os platform*（`os:platform`）。未授权命令会被 ACL 拒绝。说明见 [docs/plugins.md](../../docs/plugins.md)。
+
 ```bash
 # 工具链（一次）
 ./scripts/install-xgo-toolchain.sh

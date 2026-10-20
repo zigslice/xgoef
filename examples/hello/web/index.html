@@ -71,6 +71,8 @@
       <div class="actions">
         <button id="btn" type="button">invoke greet</button>
         <button id="btn-aux" class="secondary" type="button">open aux</button>
+        <button id="btn-fs" class="secondary" type="button">read note</button>
+        <button id="btn-os" class="secondary" type="button">os platform</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -94,6 +96,22 @@
         try {
           const msg = await window.__XGOEF__.invoke("open_aux", {});
           out.textContent = String(msg);
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-fs").onclick = async () => {
+        try {
+          const text = await window.__XGOEF__.plugins.fs.readText("web/note.txt");
+          out.textContent = String(text);
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-os").onclick = async () => {
+        try {
+          const plat = await window.__XGOEF__.plugins.os.platform();
+          out.textContent = "platform: " + plat;
         } catch (e) {
           out.textContent = e.message || String(e);
         }

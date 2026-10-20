@@ -21,12 +21,17 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": [],
+  "plugins": ["fs", "os"],
+  "plugin": {
+    "fs": {
+      "allow": ["$APP", "$RESOURCE"]
+    }
+  },
   "capabilities": [
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "core:default"]
+      "permissions": ["greet", "open_aux", "fs:read_text", "os:platform", "core:default"]
     },
     {
       "identifier": "aux",

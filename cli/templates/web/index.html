@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>__NAME__</title>
+  </head>
+  <body>
+    <h1>__NAME__</h1>
+    <button id="btn" type="button">invoke greet</button>
+    <button id="btn-fs" type="button">read note</button>
+    <button id="btn-os" type="button">os platform</button>
+    <div id="out">waiting for host</div>
+    <script src="../api/js/xgoef.js"></script>
+    <script>
+      const out = document.getElementById("out");
+      document.getElementById("btn").onclick = async () => {
+        try {
+          out.textContent = String(await window.__XGOEF__.invoke("greet", { name: "__NAME__" }));
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-fs").onclick = async () => {
+        try {
+          out.textContent = String(await window.__XGOEF__.plugins.fs.readText("web/note.txt"));
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-os").onclick = async () => {
+        try {
+          out.textContent = "platform: " + (await window.__XGOEF__.plugins.os.platform());
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+    </script>
+  </body>
+</html>
