@@ -99,5 +99,29 @@
     emit: function (event, payload) {
       post({ type: "event", event: event, payload: payload });
     },
+    plugins: {
+      fs: {
+        readText: function (path) {
+          return global.__XGOEF__.invoke("fs:read_text", { path: path });
+        },
+        writeText: function (path, contents) {
+          return global.__XGOEF__.invoke("fs:write_text", { path: path, contents: contents });
+        },
+        exists: function (path) {
+          return global.__XGOEF__.invoke("fs:exists", { path: path });
+        },
+        list: function (path) {
+          return global.__XGOEF__.invoke("fs:list", { path: path });
+        },
+      },
+      os: {
+        platform: function () {
+          return global.__XGOEF__.invoke("os:platform", {});
+        },
+        arch: function () {
+          return global.__XGOEF__.invoke("os:arch", {});
+        },
+      },
+    },
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -26,4 +26,4 @@
 acl: command "…" not permitted for window "…"
 ```
 
-一期不做 remote URL ACL、不做路径 scope（留给 fs 插件）。
+命令权限仍是精确匹配。`fs` 的路径范围不在这里做，见 [plugins.md](plugins.md)。

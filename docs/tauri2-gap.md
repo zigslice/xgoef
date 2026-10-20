@@ -20,7 +20,7 @@
 | 渲染 | 系统 WebView（WRY/TAO） | **自带 Chromium 的 CEF** | 包体更大、行为更齐、跨发行版一致；**不追求 Tauri 的小体积** |
 | 后端语言 | Rust（+ 插件侧 Swift/Kotlin） | **XGo 一等**，底层可混编 Go；LLGo 链 CEF | API 形状学 Tauri，实现栈不同 |
 | 平台 | Desktop + **Mobile** | **Desktop-first**（现阶段 Linux 可跑） | 移动端标为非目标 |
-| 安全模型 | Capabilities / ACL 一等公民 | 配置里有占位，**未执行** | 必须补，否则 invoke 裸奔 |
+| 安全模型 | Capabilities / ACL 一等公民 | 命令级默认拒绝；`fs` 另有目录范围 | 远程 URL ACL 与通用 scope 引擎仍缺 |
 | 插件生态 | 官方插件矩阵 + 社区 | 仅接口骨架 | 官方插件不照搬，先定契约再挑子集 |
 
 **刻意不对齐的点（非缺口）：**
@@ -38,18 +38,18 @@
 | --- | --- | --- |
 | 应用用 XGo 书写 | ✅ | `examples/hello/main.xgo`，`xgo build` → LLGo |
 | 窗口 + 本地页 | ✅（薄） | CEF Views/`cefsimple_capi` 路径；URL 经 `--url=` |
-| 配置文件 | 🟡 骨架 | `xgoef.conf.json` + schema；窗口字段极少 |
-| Command 路由（宿主侧） | 🟡 内存态 | `ipc.Router.Handle` / `Invoke` 可单测；**未接到 CEF** |
-| Event 总线（宿主侧） | 🟡 进程内 | `ipc.Bus`；**不跨渲染进程** |
-| 前端 JS 桥 | 🟡 占位 | `api/js/xgoef.js`（`invoke`/`listen`/`emit`）；无 `__xgoefPost` → 报 *host bridge not connected* |
-| Plugin 生命周期 | 🟡 接口 | `Setup`/`Teardown`；无命令注入、无 JS API 包 |
-| Capabilities | ⬜ 配置占位 | schema 有 `capabilities`；**运行时不校验** |
-| CLI（create/dev/build） | ⬜ | `cmd/xgoef` 仅 `info` |
-| 多窗口 / 托盘 / 菜单 | ⬜ | — |
-| 资源协议 / 资产嵌入 | ⬜ | 现用 `file://` |
-| 官方类插件（fs/dialog/…） | ⬜ | — |
+| 配置文件 | 🟡 | `xgoef.conf.json` + schema；窗口状态字段仍少 |
+| Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
+| Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
+| 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
+| Plugin 生命周期 | ✅ | 契约 + `fs` / `os`；见 `docs/plugins.md` |
+| Capabilities | ✅ | `acl.Guard` 默认拒绝 |
+| CLI（create/dev/build） | 🟡 | 生成骨架并分期目录；链 CEF 宿主仍走 `scripts/build-xgoef-hello.sh` |
+| 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
+| 资源协议 / 资产嵌入 | ⬜ | 现用 `file://`；`xgoef build` 只复制资源 |
+| 官方类插件（fs/dialog/…） | 🟡 | `fs`（范围）与 `os`；dialog 等未做 |
 
-结论：我们有 **Tauri 式分层的轮廓** 和 **能出窗的 CEF 宿主**；缺的是把「前端 ↔ 宿主」真正打通，以及围绕安全与窗口/资源的产品能力。
+结论：前端 invoke、ACL、多窗口事件和 `fs`/`os` 插件已经接上。还缺自定义资源协议、其余系统插件，以及把 CLI 分期目录和 CEF 链接收成一条命令。
 
 ---
 
@@ -62,7 +62,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | App / Builder 生命周期 | 🟡 | 有 `runtime.App.Run`；缺精细 hook（ready / exit / page-load） |
-| Window / Webview 多实例 | ⬜ | 仅第一窗；无 label、无 `createWindow` |
+| Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；无托盘 |
 | Window 状态（位置/尺寸/最大化） | ⬜ | conf 仅 title/width/height/url |
 | 菜单 / 托盘 / 任务栏 | ⬜ | CEF/Views 可做，未封装 |
 | 主题 / 装饰 / 透明 | ⬜ | — |
@@ -73,11 +73,11 @@
 
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
-| `invoke` → 后端 command | 🟡 | JS + Router 齐，**传输层未接**（MessageRouter / process message） |
+| `invoke` → 后端 command | ✅ | JS → MessageRouter → `ipc.Router` |
 | 命令参数/返回值 JSON | 🟡 | 有；缺 TypeScript 类型生成、缺结构化错误码 |
 | 异步 command | ⬜ | Handler 同步；无取消、无超时 |
-| Events 双向 | 🟡 | JS/宿主各有本地订阅；**跨进程未通** |
-| 按 webview/window 定向 emit | ⬜ | — |
+| Events 双向 | ✅ | `emit` / `listen` 与 `Emit` / `EmitTo` |
+| 按 webview/window 定向 emit | ✅ | `App.EmitTo(label, …)` |
 | Channels（有序大数据流） | ⬜ | 下载进度、子进程 stdout 等场景需要 |
 | `eval` / 注入脚本 | ⬜ | CEF 可做；未封装 |
 | IPC 权限门禁 | ⬜ | 见 ACL |
@@ -88,12 +88,12 @@
 
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
-| Capability 绑定窗口/webview | ⬜ | conf 占位未执行 |
-| Permission 标识（`plugin:perm`） | ⬜ | — |
-| 路径/命令 scope（allow/deny） | ⬜ | — |
+| Capability 绑定窗口/webview | ✅ | `acl.Guard.Allows(label, cmd)` |
+| Permission 标识（`plugin:perm`） | 🟡 | 用命令名（`fs:read_text`），没有独立 permission 对象 |
+| 路径/命令 scope（allow/deny） | 🟡 | `fs` 有目录 allow/deny；通用 scope 引擎没有 |
 | remote URL 能力边界 | ⬜ | 当前可加载任意 `file://`/`http(s)` |
 | CSP / 资产完整性 | ⬜ | Tauri codegen 侧有；我们未做 |
-| 隔离：未匹配 capability → 无 IPC | ⬜ | 必须有，否则 greet 模型不可产品化 |
+| 隔离：未匹配 capability → 无 IPC | ✅ | 默认拒绝 |
 
 **P0 设计落点（ACL）：** 见 §5.2。
 
@@ -111,9 +111,9 @@
 
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
-| Plugin = 原生逻辑 + 可选 JS API | 🟡 | 仅 Setup/Teardown |
-| 插件注册 command / 权限声明 | ⬜ | — |
-| 官方插件矩阵（fs/dialog/shell/…） | ⬜ | 按需移植子集，不 mirror 全表 |
+| Plugin = 原生逻辑 + 可选 JS API | 🟡 | `Setup` 注册命令；JS 在 `xgoef.js` 的 `plugins.fs` / `plugins.os` |
+| 插件注册 command / 权限声明 | ✅ | `Permissions()` + capabilities 精确匹配 |
+| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | `fs`（scoped）、`os`；dialog/clipboard 等待做 |
 | 移动端插件（Swift/Kotlin） | ✕ | 非目标 |
 
 **建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`window-state`。其余（sql/updater/websocket…）后置。
@@ -122,8 +122,8 @@
 
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
-| `create-tauri-app` | ⬜ | `xgoef create` 占位 |
-| `tauri dev` / `tauri build` | ⬜ | 现有 `scripts/build-xgoef-hello.sh` |
+| `create-tauri-app` | 🟡 | `xgoef create <name>` 写出 XGo 骨架 |
+| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期目录；链宿主仍是 `scripts/build-xgoef-hello.sh` |
 | 多前端模板（Vite/React/…） | ⬜ | — |
 | 平台打包（msi/dmg/deb/AppImage） | ⬜ | 依赖 CEF 运行时布局；需打包器设计 |
 | IDE / 代码生成（command 宏） | ⬜ | XGo 侧可用 codegen 或约定式注册 |
@@ -159,8 +159,8 @@
 5. Window API：label、多窗、关闭/聚焦、基础状态。 ✅（见 `docs/window.md`）
 6. 自定义资源协议（或严格 `asset` 根目录）替代裸 `file://`。
 7. Event 跨进程（含 `emit_to(label)`）。 ✅（见 `docs/events.md`）
-8. Plugin 契约：注册 commands + 可选 `api/js/plugins/<name>.js`。
-9. `xgoef dev` / `xgoef build`（封装 CEF 拷贝、llgo/xgo、前端 dist）。
+8. Plugin 契约：注册 commands + `fs` / `os`。 ✅（见 `docs/plugins.md`）
+9. `xgoef dev` / `xgoef build` 分期目录。 🟡（CEF 拷贝与 llgo 链接仍在 `scripts/build-xgoef-hello.sh`）
 
 ### P2 — 体验对齐
 
@@ -243,30 +243,19 @@ App
 - 生产：`frontendDist` 映射为 `xgoef://app/...`（CEF 自定义 scheme）或受限目录的 `file://`。
 - 禁止默认放开任意本地路径读取（与 capabilities / fs scope 联动）。
 
-### 5.5 Plugin 契约（P1）
+### 5.5 Plugin 契约（P1，已落地 fs / os）
 
-```xgo
-type Plugin interface {
-    Name() string
-    Setup(app *runtime.App) error
-    Teardown(app *runtime.App) error
-    # 新增：
-    # Commands() []CommandSpec   // name + permission id
-    # Permissions() []string
-}
-```
+见 [plugins.md](plugins.md)。配置 `plugins: ["fs", "os"]` 在启动时装载。JS 命名空间是 `__XGOEF__.plugins.fs`。
 
-- JS：约定 `api/js/plugins/<name>.js` 或打包进单一 `xgoef.js` 命名空间 `__XGOEF__.plugins.fs`。
-- 配置 `plugins: ["fs", "dialog"]` → 构建期或启动期装载。
 - **作者体验（classfile）**：应用侧用 `*_cmd.xef` / 内嵌 `*_plugin.xef`；可发布插件用包契约。详见 [classfile-design.md](classfile-design.md)。
 
 ### 5.6 CLI（P1）
 
 | 命令 | 行为 |
 | --- | --- |
-| `xgoef create` | 模板：`main.xgo` + `xgoef.conf.json` + `web/` |
-| `xgoef dev` | 可选拉起前端 dev server；`xgo build`/`llgo`；拷贝 CEF runtime；热重载策略二期 |
-| `xgoef build` | 正式产物目录布局（hello 脚本 upstream） |
+| `xgoef create` | 模板：`main.xgo` + `xgoef.conf.json` + `web/` + `api/js/xgoef.js` |
+| `xgoef dev` | 分期到 `build/dev`；若设置了 `devUrl`，改写首个窗口 URL。热重载与拉起 CEF 仍后置 |
+| `xgoef build` | 分期到 `dist/`（conf、前端、JS）。链 `libcef` 仍用 `scripts/build-xgoef-hello.sh` |
 
 复用现有 `scripts/build-xgoef-hello.sh` / `install-xgo-toolchain.sh`，避免两套工具链逻辑。
 
@@ -305,8 +294,8 @@ type Plugin interface {
 **里程碑 B（P1 核心）：**
 
 - 至少两个 window label；从宿主 `emit` 到指定窗。
-- 一个 scoped `fs` 或 `dialog` 插件可演示。
-- `xgoef build` 打出可拷贝运行的目录。
+- 一个 scoped `fs` 插件可演示（hello 的 *read note*）。 ✅
+- `xgoef build` 打出可拷贝的资源目录（宿主二进制仍由构建脚本链接）。 🟡
 
 **里程碑 C：**
 
@@ -337,10 +326,10 @@ type Plugin interface {
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef **已具备「XGo 后端 + CEF 窗 + 配置/IPC/插件的外形」**；真正的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os` 插件，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
 
-1. **IPC 未接通**  
-2. **无强制 ACL**  
-3. **窗口/资源/插件/CLI 仍停留在骨架**
+1. **资源协议**（替代裸 `file://`）
+2. **其余系统插件**（dialog、clipboard、shell…）
+3. **CLI 与 CEF/LLGo 链接合成一次构建**
 
-先打通 P0，再按 P1 做壳，系统插件与发行能力放在其后。刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。
+刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

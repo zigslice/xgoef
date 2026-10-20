@@ -13,8 +13,8 @@
 | 3 | **P0** 接通 `api/js/xgoef.js` ↔ `ipc.Router` + MessageRouter 桥 | 完成 |
 | 3b | **P0** Capabilities 强制执行（`acl` + conf） | 完成 |
 | 3c | **P1** Event 跨进程 + Window label/`CreateWindow`/`EmitTo` | 完成 |
-| 4 | **P1** Plugin 契约 + 首批系统插件 | 待做 |
-| 5 | **P1** `cmd/xgoef` create/dev/build + 资源协议 | 待做 |
+| 4 | **P1** Plugin 契约 + 首批系统插件（`fs` 范围、`os`） | 完成 |
+| 5 | **P1** `xgoef create` / `dev` / `build` 资源目录；自定义资源协议 | 部分（CLI 已分期目录；`xgoef://` 待做） |
 | 6 | 框架 API（`runtime`/`ipc`/…）迁 `.xgo` | 待做 |
 | 6b | **Classfile**：`xclass` + `*_app.xef`/`*_cmd.xef`（见 [classfile-design.md](classfile-design.md)） | 待做 |
 | 7 | **P2+** Channels / 托盘菜单 / 打包更新器 | 待做 |

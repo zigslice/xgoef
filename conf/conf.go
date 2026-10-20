@@ -17,7 +17,20 @@ type File struct {
 	App          AppSection       `json:"app"`
 	CEF          CEFSection       `json:"cef"`
 	Plugins      []string         `json:"plugins"`
+	Plugin       PluginSection    `json:"plugin"`
 	Capabilities []acl.Capability `json:"capabilities"`
+}
+
+// PluginSection holds per-plugin settings. FS allow/deny roots use $APP,
+// $RESOURCE, and $HOME (see plugins/fs).
+type PluginSection struct {
+	FS FSConfig `json:"fs"`
+}
+
+// FSConfig is the scope for the fs builtin.
+type FSConfig struct {
+	Allow []string `json:"allow"`
+	Deny  []string `json:"deny"`
 }
 
 // Build holds frontend paths.
@@ -56,6 +69,7 @@ type rawFile struct {
 	App          AppSection      `json:"app"`
 	CEF          CEFSection      `json:"cef"`
 	Plugins      []string        `json:"plugins"`
+	Plugin       PluginSection   `json:"plugin"`
 	Capabilities json.RawMessage `json:"capabilities"`
 }
 
@@ -77,6 +91,7 @@ func Load(path string) (File, error) {
 	f.App = raw.App
 	f.CEF = raw.CEF
 	f.Plugins = raw.Plugins
+	f.Plugin = raw.Plugin
 
 	caps, err := parseCapabilities(raw.Capabilities)
 	if err != nil {
