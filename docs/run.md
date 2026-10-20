@@ -36,7 +36,7 @@ cd build/hello
 ./xgoef-hello
 ```
 
-`scripts/build-xgoef-hello.sh` 只设置 `PATH`、`LLGO_ROOT`、`CGO_ENABLED=0` 和 `XGO_GOCMD`，然后执行同一条 `xgoef build`。cmake、拷贝 CEF 运行时和 `xgo build` 都在 CLI 里。`--assets-only` 只复制前端，不链接。配置里有 `version` 时，发行目录的 `bundle/` 还会有 deb、msi 和 dmg，见 [bundle.md](bundle.md)。
+`scripts/build-xgoef-hello.sh` 只设置 `PATH`、`LLGO_ROOT`、`CGO_ENABLED=0` 和 `XGO_GOCMD`，然后执行同一条 `xgoef build`。cmake、拷贝 CEF 运行时和 `xgo build` 都在 CLI 里。`--assets-only` 只复制前端，不链接。配置里有 `version` 时，发行目录的 `bundle/` 还会有 deb、msi、dmg 和 AppImage，见 [bundle.md](bundle.md)。
 
 `xgoef build` 还会把 `web/` 签进宿主尾部，并把公钥写进发行目录的 `xgoef.conf.json`。私钥在 `.xgoef/asset.key`。细节见 [asset.md](asset.md)。
 

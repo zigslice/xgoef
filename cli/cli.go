@@ -316,6 +316,7 @@ func maybeBundle(outDir string) error {
 	fmt.Printf("bundled %s\n", paths.Deb)
 	fmt.Printf("bundled %s\n", paths.MSI)
 	fmt.Printf("bundled %s\n", paths.DMG)
+	fmt.Printf("bundled %s\n", paths.AppImage)
 	return nil
 }
 

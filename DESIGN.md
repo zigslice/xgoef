@@ -38,7 +38,7 @@
 | `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `deeplink/` | 自定义 URL scheme 的参数接收入口和当前用户 XDG 关联 |
-| `bundle/` | deb、msi、dmg；不做系统安装包签名 |
+| `bundle/` | deb、msi、dmg、AppImage；不做系统安装包签名 |
 | `api/js/` | 注入或随资源分发的前端桥 |
 | `cmd/xgoef/` | `create` / `dev` / `build`（分期目录并链接 CEF 宿主） |
 | `examples/hello/` | 最小可运行目标 |
@@ -96,7 +96,7 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `app.deepLink.schemes` 把自定义 URL 交给这个进程，并写成当前用户的 XDG scheme 关联。详见 [docs/deeplink.md](docs/deeplink.md)。
 
-`xgoef build` 在有 `version` 时把分期目录打成 deb、msi 和 dmg。详见 [docs/bundle.md](docs/bundle.md)。
+`xgoef build` 在有 `version` 时把分期目录打成 deb、msi、dmg 和 AppImage。详见 [docs/bundle.md](docs/bundle.md)。
 
 `xgoef dev` 拉起分期目录里的宿主。前端文件变化后重新复制，页面收到 `dev-reload` 再刷新。详见 [docs/dev.md](docs/dev.md)。
 

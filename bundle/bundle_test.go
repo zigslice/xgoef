@@ -1,9 +1,12 @@
 package bundle
 
 import (
+	"bytes"
+	"encoding/binary"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -97,4 +100,105 @@ func TestPackages(t *testing.T) {
 	if string(bin) != "bin" {
 		t.Fatalf("%q", bin)
 	}
+
+	raw, err := os.ReadFile(paths.AppImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := os.Stat(paths.AppImage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Mode().Perm()&0o111 == 0 {
+		t.Fatalf("appimage mode %o", st.Mode().Perm())
+	}
+	destImage := filepath.Join(t.TempDir(), "image")
+	out, err = exec.Command("unsquashfs", "-d", destImage, "-offset", appImageOffset(raw), paths.AppImage).CombinedOutput()
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	page, err = os.ReadFile(filepath.Join(destImage, "usr", "lib", "xgoef-hello", "web", "index.html"))
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	if string(page) != "hello-page" {
+		t.Fatalf("%q", page)
+	}
+	desktop, err := os.ReadFile(filepath.Join(destImage, "xgoef-hello.desktop"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(desktop), "x-scheme-handler/hello;") || !strings.Contains(string(desktop), "Icon=xgoef-hello") {
+		t.Fatalf("%s", desktop)
+	}
+	run, err := os.ReadFile(filepath.Join(destImage, "AppRun"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(run), "/usr/bin/xgoef-hello") {
+		t.Fatalf("%s", run)
+	}
+	target, err := os.Readlink(filepath.Join(destImage, "usr", "bin", "xgoef-hello"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if target != "../lib/xgoef-hello/xgoef-hello" {
+		t.Fatalf("%s", target)
+	}
+}
+
+func TestAppImageRuns(t *testing.T) {
+	root := t.TempDir()
+	script := "#!/bin/sh\necho appimage-ok\n"
+	if err := os.WriteFile(filepath.Join(root, "xgoef-hello"), []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	blob := bytes.Repeat([]byte{'Z'}, sqBlockSize+10)
+	if err := os.WriteFile(filepath.Join(root, "blob"), blob, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := Write(root, Spec{
+		Product:    "xgoef-hello",
+		Version:    "0.0.1",
+		Identifier: "com.example.hello",
+		Arch:       "amd64",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	cache := t.TempDir()
+	cmd := exec.Command(paths.AppImage)
+	cmd.Env = append(os.Environ(), "XDG_CACHE_HOME="+cache)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	if string(out) != "appimage-ok\n" {
+		t.Fatalf("%q", out)
+	}
+	got, err := os.ReadFile(filepath.Join(cache, "xgoef-appimage", mustCacheDir(t, cache), "usr", "lib", "xgoef-hello", "blob"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, blob) {
+		t.Fatalf("blob %d", len(got))
+	}
+}
+
+func appImageOffset(raw []byte) string {
+	marker := []byte("XGOEF_SQ_OFFSET!")
+	at := bytes.Index(raw, marker)
+	if at < 0 || at+24 > len(raw) {
+		return "0"
+	}
+	return strconv.FormatUint(binary.LittleEndian.Uint64(raw[at+16:]), 10)
+}
+
+func mustCacheDir(t *testing.T, cache string) string {
+	t.Helper()
+	matches, err := filepath.Glob(filepath.Join(cache, "xgoef-appimage", "*"))
+	if err != nil || len(matches) != 1 {
+		t.Fatalf("%v %v", matches, err)
+	}
+	return filepath.Base(matches[0])
 }
