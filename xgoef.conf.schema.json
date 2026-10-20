@@ -57,6 +57,11 @@
           "type": "boolean",
           "default": true,
           "description": "Remember each window's position, size, and maximized flag in .xgoef/window-state.json."
+        },
+        "singleInstance": {
+          "type": "boolean",
+          "default": true,
+          "description": "When identifier is set, a second launch focuses the first process. Set false to allow more than one."
         }
       }
     },

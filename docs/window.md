@@ -22,7 +22,7 @@ App
 `app.windows[].label` (default `main`) is applied via `--xgoef-label=` on startup.
 Capabilities should list each label that may invoke commands.
 
-窗口菜单和托盘见 [menu.md](menu.md)。
+窗口菜单和托盘见 [menu.md](menu.md)。第二次启动同一 identifier 时会交给已经在跑的进程，见 [instance.md](instance.md)。
 
 ## 记住位置（window-state）
 

@@ -2,7 +2,7 @@
 
 最小 **XGo** xgoef 应用：`main.xgo` + 配置 + `greet` 命令。页面地址是 `xgoef://app/index.html`（只读 `web/`）。
 
-页上还可以 *read note*、*os platform*、*clipboard*、*channel*，以及 *menu* / *tray*。菜单项里的命令仍走 capabilities。窗口的位置和大小会记在应用目录的 `.xgoef/window-state.json`。说明见 [docs/plugins.md](../../docs/plugins.md)、[docs/channels.md](../../docs/channels.md)、[docs/menu.md](../../docs/menu.md) 和 [docs/window.md](../../docs/window.md)。
+页上还可以 *read note*、*os platform*、*clipboard*、*channel*，以及 *menu* / *tray*。菜单项里的命令仍走 capabilities。窗口的位置和大小会记在应用目录的 `.xgoef/window-state.json`。配置里的 identifier 使第二次启动交给已经打开的进程。说明见 [docs/plugins.md](../../docs/plugins.md)、[docs/channels.md](../../docs/channels.md)、[docs/menu.md](../../docs/menu.md)、[docs/window.md](../../docs/window.md) 和 [docs/instance.md](../../docs/instance.md)。
 
 ```bash
 # 工具链（一次）
