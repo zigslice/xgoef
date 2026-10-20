@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/zigslice/xgoef/bundle"
 	"github.com/zigslice/xgoef/conf"
 	"github.com/zigslice/xgoef/deeplink"
 )
@@ -147,6 +148,11 @@ func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
 		return err
 	}
 	if assetsOnly {
+		if !dev {
+			if err := maybeBundle(dir); err != nil {
+				return err
+			}
+		}
 		fmt.Printf("staged %s\n", dir)
 		return nil
 	}
@@ -160,6 +166,9 @@ func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
 			return err
 		}
 		fmt.Printf("sealed %s\n", bin)
+		if err := maybeBundle(dir); err != nil {
+			return err
+		}
 	}
 	fmt.Printf("built %s\n", bin)
 	fmt.Printf("run: cd %s && ./%s\n", dir, sanitizeBin(cfg.ProductName))
@@ -258,6 +267,30 @@ func stage(appDir, outDir string, dev bool) (string, error) {
 		return "", err
 	}
 	return abs, nil
+}
+
+func maybeBundle(outDir string) error {
+	cfg, err := conf.Load(filepath.Join(outDir, "xgoef.conf.json"))
+	if err != nil || strings.TrimSpace(cfg.Version) == "" {
+		return err
+	}
+	schemes, err := cfg.DeepLinkSchemes()
+	if err != nil {
+		return err
+	}
+	paths, err := bundle.Write(outDir, bundle.Spec{
+		Product:    cfg.ProductName,
+		Version:    cfg.Version,
+		Identifier: cfg.Identifier,
+		Schemes:    schemes,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("bundled %s\n", paths.Deb)
+	fmt.Printf("bundled %s\n", paths.MSI)
+	fmt.Printf("bundled %s\n", paths.DMG)
+	return nil
 }
 
 func writeDesktop(outDir string, cfg conf.File) error {

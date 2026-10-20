@@ -12,4 +12,4 @@
 
 页面用 `__XGOEF__.listen("deep-link", handler)` 接收。已经打开的页面也可以调用 `deeplink:get_current`，返回最近一次收到的 `{urls: [...]}`。这个命令要写进窗口的 capabilities。前端封装是 `__XGOEF__.plugins.deeplink.getCurrent()`。
 
-这是当前用户的 scheme 关联。Windows 注册表、macOS URL type，以及 msi / dmg / deb 仍后置。
+启动时写的是当前用户的 XDG scheme 关联。系统 deb 里的 `.desktop` 和 dmg 的 `Info.plist` 会带上同一组 scheme。Windows 注册表仍后置。见 [bundle.md](bundle.md)。

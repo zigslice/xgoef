@@ -44,12 +44,12 @@
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
 | Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
-| CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；热重载与安装包仍后置 |
+| CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；热重载与 AppImage 仍后置 |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow`；菜单栏与托盘菜单已接（见 `docs/menu.md`）。常驻图标要能加载 `libgtk-3.so.0` |
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例，以及 deep link，都已经接上。平台安装包（msi / dmg / deb）仍后置。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link，以及 deb / msi / dmg，都已经接上。AppImage 仍后置。
 
 ---
 
@@ -123,9 +123,9 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | `create-tauri-app` | 🟡 | `xgoef create <name>` 写出 XGo 骨架 |
-| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期并链接宿主；热重载与安装包仍后置 |
+| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期并链接宿主；有 `version` 时写 deb / msi / dmg。热重载与 AppImage 仍后置 |
 | 多前端模板（Vite/React/…） | ⬜ | — |
-| 平台打包（msi/dmg/deb/AppImage） | ⬜ | 发行目录已有签过名的 `update.json`；系统安装包仍后置 |
+| 平台打包（msi/dmg/deb/AppImage） | 🟡 | deb / msi / dmg 见 `docs/bundle.md`；AppImage 仍后置。系统安装包签名仍后置 |
 | IDE / 代码生成（command 宏） | ⬜ | XGo 侧可用 codegen 或约定式注册 |
 
 ### 3.7 发行与运维
@@ -172,7 +172,7 @@
 
 ### P3 — 发行与生态
 
-14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包仍后置。
+14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包 ✅（deb / msi / dmg，见 `docs/bundle.md`）；AppImage 仍后置。
 15. 更多插件；文档站点与模板。
 
 ---
@@ -258,7 +258,7 @@ App
 | --- | --- |
 | `xgoef create` | 模板：`main.xgo` + `xgoef.conf.json` + `web/` + `api/js/xgoef.js` |
 | `xgoef dev` | 链接宿主并分期到 `build/dev`；若设置了 `devUrl`，改写首个窗口 URL。热重载与拉起进程仍后置 |
-| `xgoef build` | 链接 shim、拷贝 CEF 运行时、`xgo build` 宿主，并分期 conf / 前端 / JS。`--assets-only` 只分期 |
+| `xgoef build` | 链接 shim、拷贝 CEF 运行时、`xgo build` 宿主，并分期 conf / 前端 / JS。有 `version` 时再写 `bundle/` 里的 deb、msi、dmg。`--assets-only` 不链接，仍会在有 `version` 时写这三份包 |
 
 工具链环境由 `scripts/build-xgoef-hello.sh` 设置后执行 `xgoef build`。安装仍用 `scripts/install-xgo-toolchain.sh`。cmake 与 `xgo build` 只写在 CLI 里。
 
@@ -307,7 +307,8 @@ App
 - window-state 落地。 ✅（见 `docs/window.md`）
 - 签过名的前端更新落地。 ✅（见 `docs/updater.md`）
 - 单实例落地。 ✅（见 `docs/instance.md`）
-- deep link 落地。 ✅（见 `docs/deeplink.md`）；平台安装包仍后置。
+- deep link 落地。 ✅（见 `docs/deeplink.md`）
+- 平台安装包落地。 ✅（deb / msi / dmg，见 `docs/bundle.md`）；AppImage 仍后置。
 
 ---
 
@@ -334,8 +335,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例，以及 deep link**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link，以及 deb / msi / dmg**。接下来的产品差距集中在：
 
-1. **平台安装包**（msi / dmg / deb）
+1. **AppImage**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。
