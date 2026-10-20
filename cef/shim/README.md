@@ -10,6 +10,6 @@ CEF C++ host pad（MessageRouter + Views），供 **LLGo**（`go:linkname`，无
 | `xgoef_asset.cc` / `xgoef_asset_path.cc` | `xgoef://app/` scheme；路径规则与 `asset` 包一致 |
 | `xgoef_helper_main.cc` | 原生 `xgoef-helper`（渲染侧注入 `window.cefQuery`） |
 
-构建入口：仓库根目录 `scripts/build-xgoef-hello.sh`（编出 `libxgoef_cef.a` + `xgoef-helper`，再 `xgo build`）。
+构建入口：`xgoef build`（`scripts/build-xgoef-hello.sh` 只设置工具链后调用它）。编出 `libxgoef_cef.a` + `xgoef-helper`，再 `xgo build`。
 
 原则：shim **不写业务**；业务在 XGo/Go 的 `runtime` / `ipc` / `acl`。llcppg 扩大 capi 后，此目录应收窄为仅保留回调/Views/MessageRouter 难点。

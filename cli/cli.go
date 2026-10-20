@@ -29,7 +29,7 @@ func Run(args []string) int {
 		return 0
 	case "info":
 		fmt.Println("xgoef: XGo + LLGo + CEF client framework")
-		fmt.Println("builtins: fs (scoped), os")
+		fmt.Println("builtins: fs, os, shell, clipboard, dialog")
 		fmt.Println("see docs/plugins.md and docs/run.md")
 		return 0
 	case "create":
@@ -63,13 +63,13 @@ func usage(w io.Writer) {
 Usage:
   xgoef info
   xgoef create <name>
-  xgoef dev  [--app dir] [--out dir]
-  xgoef build [--app dir] [--out dir]
+  xgoef dev  [--app dir] [--out dir] [--assets-only]
+  xgoef build [--app dir] [--out dir] [--assets-only]
 
-create writes main.xgo, xgoef.conf.json, web/, and a copy of api/js/xgoef.js.
-build / dev stage a copyable directory (conf, frontend, JS bridge).
+create writes main.xgo, xgoef.conf.json, web/, and a copy of xgoef.js.
+build / dev stage the frontend and link the CEF shim plus the XGo host
+(cmake, xgoef-helper, xgo build). --assets-only skips the link.
 dev rewrites the first window URL to build.devUrl when that field is set.
-Linking the CEF host still uses scripts/build-xgoef-hello.sh.
 `)
 }
 
@@ -113,62 +113,77 @@ func cmdCreate(args []string) error {
 		return err
 	}
 	fmt.Printf("created %s\n", name)
-	fmt.Printf("next: cd %s && xgoef build --app . --out dist\n", name)
+	fmt.Printf("next: xgoef build --app %s --out %s/dist\n", name, name)
 	return nil
 }
 
 func cmdBuild(args []string) error {
-	appDir, outDir, err := parseStageFlags(args, "dist")
+	appDir, outDir, assetsOnly, err := parseStageFlags(args, "dist")
 	if err != nil {
 		return err
 	}
-	dir, err := stage(appDir, outDir, false)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("staged %s\n", dir)
-	fmt.Println("link the host with scripts/build-xgoef-hello.sh when building examples/hello")
-	return nil
+	return buildAll(appDir, outDir, false, assetsOnly)
 }
 
 func cmdDev(args []string) error {
-	appDir, outDir, err := parseStageFlags(args, filepath.Join("build", "dev"))
+	appDir, outDir, assetsOnly, err := parseStageFlags(args, filepath.Join("build", "dev"))
 	if err != nil {
 		return err
 	}
-	dir, err := stage(appDir, outDir, true)
+	return buildAll(appDir, outDir, true, assetsOnly)
+}
+
+func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
+	if !assetsOnly {
+		if _, err := linkHost(appDir, outDir); err != nil {
+			return err
+		}
+	}
+	dir, err := stage(appDir, outDir, dev)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("dev stage %s\n", dir)
+	if assetsOnly {
+		fmt.Printf("staged %s\n", dir)
+		return nil
+	}
+	cfg, err := conf.Load(filepath.Join(appDir, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	bin := filepath.Join(dir, sanitizeBin(cfg.ProductName))
+	fmt.Printf("built %s\n", bin)
+	fmt.Printf("run: cd %s && ./%s\n", dir, sanitizeBin(cfg.ProductName))
 	return nil
 }
 
-func parseStageFlags(args []string, defaultOut string) (appDir, outDir string, err error) {
+func parseStageFlags(args []string, defaultOut string) (appDir, outDir string, assetsOnly bool, err error) {
 	appDir = "."
 	outDir = ""
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--app":
 			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("missing value for --app")
+				return "", "", false, fmt.Errorf("missing value for --app")
 			}
 			i++
 			appDir = args[i]
 		case "--out":
 			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("missing value for --out")
+				return "", "", false, fmt.Errorf("missing value for --out")
 			}
 			i++
 			outDir = args[i]
+		case "--assets-only":
+			assetsOnly = true
 		default:
-			return "", "", fmt.Errorf("unknown flag %q", args[i])
+			return "", "", false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	if outDir == "" {
 		outDir = filepath.Join(appDir, defaultOut)
 	}
-	return appDir, outDir, nil
+	return appDir, outDir, assetsOnly, nil
 }
 
 // stage copies conf, frontendDist, and xgoef.js into outDir.

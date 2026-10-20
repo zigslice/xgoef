@@ -11,7 +11,7 @@ import (
 )
 
 // LLGoPackage links the native CEF host shim + libcef.
-// Paths come from pkg-config (see scripts/build-xgoef-hello.sh).
+// Paths come from pkg-config (written by xgoef build).
 //
 // Do not put -Wl,-rpath,$ORIGIN (or any $VAR) in the .pc Libs line: LLGo runs
 // os.Expand on pkg-config output, which empties $ORIGIN and leaves

@@ -43,7 +43,7 @@ func TestCreateAndBuild(t *testing.T) {
 	}
 
 	out := filepath.Join(root, "out")
-	if code := Run([]string{"build", "--app", filepath.Join(root, "demo"), "--out", out}); code != 0 {
+	if code := Run([]string{"build", "--assets-only", "--app", filepath.Join(root, "demo"), "--out", out}); code != 0 {
 		t.Fatalf("build exit %d", code)
 	}
 	cfg, err := conf.Load(filepath.Join(out, "xgoef.conf.json"))
@@ -70,7 +70,7 @@ func TestCreateAndBuild(t *testing.T) {
 	if err := os.WriteFile(confPath, []byte(patched), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if code := Run([]string{"dev", "--app", filepath.Join(root, "demo"), "--out", devOut}); code != 0 {
+	if code := Run([]string{"dev", "--assets-only", "--app", filepath.Join(root, "demo"), "--out", devOut}); code != 0 {
 		t.Fatalf("dev exit %d", code)
 	}
 	devCfg, err := conf.Load(filepath.Join(devOut, "xgoef.conf.json"))
@@ -89,7 +89,7 @@ func TestBuildRewritesHelloScript(t *testing.T) {
 	}
 	repo := filepath.Join(wd, "..")
 	out := t.TempDir()
-	if code := Run([]string{"build", "--app", filepath.Join(repo, "examples", "hello"), "--out", out}); code != 0 {
+	if code := Run([]string{"build", "--assets-only", "--app", filepath.Join(repo, "examples", "hello"), "--out", out}); code != 0 {
 		t.Fatalf("build exit %d", code)
 	}
 	html, err := os.ReadFile(filepath.Join(out, "web", "index.html"))

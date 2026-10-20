@@ -44,12 +44,12 @@
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
 | Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
-| CLI（create/dev/build） | 🟡 | 生成骨架并分期目录；链 CEF 宿主仍走 `scripts/build-xgoef-hello.sh` |
+| CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；热重载与安装包仍后置 |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow` 已有；托盘和菜单没有 |
 | 资源协议 / 资产嵌入 | 🟡 | `xgoef://app/` 映射 `frontendDist`；还没把资源打进二进制 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议和这批系统插件已经接上。还缺把 CLI 分期目录和 CEF 链接收成一条命令。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件，以及 `xgoef build` 一次完成分期和链接，都已经接上。还缺把前端资源嵌入发行物并签名。
 
 ---
 
@@ -123,7 +123,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | `create-tauri-app` | 🟡 | `xgoef create <name>` 写出 XGo 骨架 |
-| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期目录；链宿主仍是 `scripts/build-xgoef-hello.sh` |
+| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` / `xgoef build` 分期并链接宿主；热重载与安装包仍后置 |
 | 多前端模板（Vite/React/…） | ⬜ | — |
 | 平台打包（msi/dmg/deb/AppImage） | ⬜ | 依赖 CEF 运行时布局；需打包器设计 |
 | IDE / 代码生成（command 宏） | ⬜ | XGo 侧可用 codegen 或约定式注册 |
@@ -160,7 +160,7 @@
 6. 自定义资源协议（或严格 `asset` 根目录）替代裸 `file://`。 ✅（见 `docs/asset.md`）
 7. Event 跨进程（含 `emit_to(label)`）。 ✅（见 `docs/events.md`）
 8. Plugin 契约：注册 commands + `fs` / `os`。 ✅（见 `docs/plugins.md`）
-9. `xgoef dev` / `xgoef build` 分期目录。 🟡（CEF 拷贝与 llgo 链接仍在 `scripts/build-xgoef-hello.sh`）
+9. `xgoef dev` / `xgoef build` 分期目录并链接 CEF 宿主。 ✅（`--assets-only` 只分期；热重载仍后置）
 
 ### P2 — 体验对齐
 
@@ -256,10 +256,10 @@ App
 | 命令 | 行为 |
 | --- | --- |
 | `xgoef create` | 模板：`main.xgo` + `xgoef.conf.json` + `web/` + `api/js/xgoef.js` |
-| `xgoef dev` | 分期到 `build/dev`；若设置了 `devUrl`，改写首个窗口 URL。热重载与拉起 CEF 仍后置 |
-| `xgoef build` | 分期到 `dist/`（conf、前端、JS）。链 `libcef` 仍用 `scripts/build-xgoef-hello.sh` |
+| `xgoef dev` | 链接宿主并分期到 `build/dev`；若设置了 `devUrl`，改写首个窗口 URL。热重载与拉起进程仍后置 |
+| `xgoef build` | 链接 shim、拷贝 CEF 运行时、`xgo build` 宿主，并分期 conf / 前端 / JS。`--assets-only` 只分期 |
 
-复用现有 `scripts/build-xgoef-hello.sh` / `install-xgo-toolchain.sh`，避免两套工具链逻辑。
+工具链环境由 `scripts/build-xgoef-hello.sh` 设置后执行 `xgoef build`。安装仍用 `scripts/install-xgo-toolchain.sh`。cmake 与 `xgo build` 只写在 CLI 里。
 
 ---
 
@@ -297,7 +297,7 @@ App
 
 - 至少两个 window label；从宿主 `emit` 到指定窗。
 - 一个 scoped `fs` 插件可演示（hello 的 *read note*）。 ✅
-- `xgoef build` 打出可拷贝的资源目录（宿主二进制仍由构建脚本链接）。 🟡
+- `xgoef build` 打出可拷贝的资源目录和宿主二进制。 ✅（安装包与签名仍后置）
 
 **里程碑 C：**
 
@@ -328,10 +328,9 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`，以及 create/dev/build 的资源目录**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`，以及 `xgoef build` 一次完成资源分期和 CEF/LLGo 链接**。接下来的产品差距集中在：
 
-1. **CLI 与 CEF/LLGo 链接合成一次构建**
-2. **把前端资源打进发行目录之外的嵌入/签名**
-3. **菜单、托盘、Channels**
+1. **把前端资源打进发行目录之外的嵌入/签名**
+2. **菜单、托盘、Channels**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。
