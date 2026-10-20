@@ -31,10 +31,12 @@ cmake --build "$CEF_ROOT/build" --target libcef_dll_wrapper -j"$(nproc)"
 ## 构建与运行
 
 ```bash
-./scripts/build-xgoef-hello.sh
+xgoef build --app examples/hello --out build/hello
 cd build/hello
 ./xgoef-hello
 ```
+
+`scripts/build-xgoef-hello.sh` 只设置 `PATH`、`LLGO_ROOT`、`CGO_ENABLED=0` 和 `XGO_GOCMD`，然后执行同一条 `xgoef build`。cmake、拷贝 CEF 运行时和 `xgo build` 都在 CLI 里。`--assets-only` 只复制前端，不链接。
 
 产物目录含：`xgoef-hello`（由 `main.xgo` 经 xgo+llgo 生成）、`xgoef-helper`（本仓库 shim 编的原生子进程，含渲染侧 MessageRouter）、`libcef.so`、Resources、`web/`、`api/js/xgoef.js`。
 
@@ -88,7 +90,7 @@ xgoef build --app myapp --out myapp/dist
 xgoef dev --app examples/hello --out /tmp/xgoef-dev
 ```
 
-`build` / `dev` 复制配置、前端和 `api/js/xgoef.js`。链接 CEF 宿主仍用 `scripts/build-xgoef-hello.sh`。
+`build` / `dev` 默认链接 CEF shim 与 XGo 宿主，并复制配置、前端和 `xgoef.js`。需要 `xgo`、`llgo`、`cmake`、`pkg-config`，以及 `CEF_ROOT`（未设置时按仓库根 `CEF_VERSION` 找 `third_party/cef`）。`--assets-only` 只复制资源。
 
 ## 与 llcppg 的关系
 

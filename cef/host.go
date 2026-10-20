@@ -53,7 +53,7 @@ func (Unimplemented) RunLoop() {}
 func (Unimplemented) Shutdown() {}
 
 // ErrBindingsMissing is returned when not building with LLGo / CEF host.
-var ErrBindingsMissing = errBindings("cef: NativeHost requires LLGo (llgo build); see scripts/build-xgoef-hello.sh")
+var ErrBindingsMissing = errBindings("cef: NativeHost requires LLGo (llgo build); see xgoef build")
 
 type errBindings string
 

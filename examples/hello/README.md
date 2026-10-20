@@ -8,7 +8,7 @@
 # 工具链（一次）
 ./scripts/install-xgo-toolchain.sh
 
-# 构建并运行（XGo → LLGo，无 cgo）
+# 构建并运行（脚本设置工具链后执行 xgoef build）
 ./scripts/build-xgoef-hello.sh
 cd build/hello && ./xgoef-hello
 ```

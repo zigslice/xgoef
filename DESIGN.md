@@ -38,7 +38,7 @@
 | `asset/` | `xgoef://app/` → `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `api/js/` | 注入或随资源分发的前端桥 |
-| `cmd/xgoef/` | `create` / `dev` / `build`（分期目录；链宿主仍走构建脚本） |
+| `cmd/xgoef/` | `create` / `dev` / `build`（分期目录并链接 CEF 宿主） |
 | `examples/hello/` | 最小可运行目标 |
 
 ## 对标 Tauri 2 的 API 形状

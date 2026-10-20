@@ -25,7 +25,7 @@ xgoef/
 ├── plugin/        # 插件接口
 ├── conf/          # 配置
 ├── api/js/        # 前端桥
-├── cmd/xgoef/     # CLI 占位
+├── cmd/xgoef/     # create / dev / build
 └── examples/hello # 最小应用形状
 ```
 
@@ -47,7 +47,7 @@ xgoef ≈ Tauri2 的应用模型 × CEF 的 Chromium × (XGo + LLGo + llcppg)
 ```bash
 # 需工具链 + CEF + cefsimple_capi（作 xgoef-helper）
 ./scripts/install-xgo-toolchain.sh   # 一次
-./scripts/build-xgoef-hello.sh       # xgo build → LLGo
+./scripts/build-xgoef-hello.sh       # 设置工具链后执行 xgoef build
 cd build/hello && ./xgoef-hello
 ```
 
@@ -60,7 +60,7 @@ cd build/hello && ./xgoef-hello
 ## 下一步
 
 1. `llcppg` 扩大到更多 `include/capi` 头，收窄 shim（MessageRouter 仍可留在 shim）
-2. **P1**：把 `xgoef build` 和 CEF/LLGo 链接收成一次构建（资源协议见 [docs/asset.md](docs/asset.md)，插件见 [docs/plugins.md](docs/plugins.md)）
+2. **P1**：把前端资源嵌入发行物并签名（一次构建见 [docs/run.md](docs/run.md)，资源协议见 [docs/asset.md](docs/asset.md)）
 3. 将 `runtime` / `ipc` 等框架 API 逐步迁到 `.xgo`
 
 无 CEF 时 `go test ./...`（gc）仍可通过（`!llgo` stub）。
