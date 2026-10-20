@@ -27,6 +27,7 @@ type App struct {
 	Plugins *plugin.Registry
 
 	base      string
+	exe       string
 	assets    *asset.Root
 	pluginErr error
 }
@@ -69,6 +70,14 @@ func (a *App) SetBase(dir string) *App {
 	return a
 }
 
+// SetExecutable overrides the host binary used to read a sealed frontend.
+// Tests use it; production leaves it empty and reads os.Executable.
+func (a *App) SetExecutable(path string) *App {
+	a.exe = path
+	a.assets = nil
+	return a
+}
+
 // Handle registers an IPC command on the app router.
 func (a *App) Handle(name string, h ipc.Handler) *App {
 	a.Router.Handle(name, h)
@@ -94,12 +103,9 @@ func (a *App) OpenPlugins() error {
 		}
 		base = wd
 	}
-	resource := a.Config.Build.FrontendDist
-	if resource == "" {
-		resource = "web"
-	}
-	if !filepath.IsAbs(resource) {
-		resource = filepath.Join(base, resource)
+	resource, err := a.resourceDir(base)
+	if err != nil {
+		return err
 	}
 	opt := plugins.Options{
 		Base:          base,
@@ -387,9 +393,39 @@ func (a *App) NavigationURL(u string) (string, error) {
 	return root.FileURL(path)
 }
 
+func (a *App) resourceDir(base string) (string, error) {
+	if a.Config.Build.AssetPublicKey != "" {
+		root, err := a.frontend()
+		if err != nil {
+			return "", err
+		}
+		return root.Dir(), nil
+	}
+	resource := a.Config.Build.FrontendDist
+	if resource == "" {
+		resource = "web"
+	}
+	if !filepath.IsAbs(resource) {
+		resource = filepath.Join(base, resource)
+	}
+	return resource, nil
+}
+
 func (a *App) frontend() (*asset.Root, error) {
 	if a.assets != nil {
 		return a.assets, nil
+	}
+	if a.Config.Build.AssetPublicKey != "" {
+		dir, err := a.materializeSealed()
+		if err != nil {
+			return nil, err
+		}
+		root, err := asset.Open(dir)
+		if err != nil {
+			return nil, err
+		}
+		a.assets = root
+		return root, nil
 	}
 	dist := a.Config.Build.FrontendDist
 	if dist == "" {
@@ -404,6 +440,36 @@ func (a *App) frontend() (*asset.Root, error) {
 	}
 	a.assets = root
 	return root, nil
+}
+
+func (a *App) materializeSealed() (string, error) {
+	pub, err := asset.ParsePublicKey(a.Config.Build.AssetPublicKey)
+	if err != nil {
+		return "", err
+	}
+	exe := a.exe
+	if exe == "" {
+		exe, err = os.Executable()
+		if err != nil {
+			return "", err
+		}
+	}
+	payload, err := asset.ReadSealedPayload(exe, pub)
+	if err == asset.ErrNoSeal {
+		sibling := filepath.Join(a.baseDir(), "xgoef.assets")
+		payload, err = asset.ReadSealedPayload(sibling, pub)
+		if os.IsNotExist(err) {
+			return "", fmt.Errorf("asset: sealed frontend missing")
+		}
+	}
+	if err != nil {
+		return "", err
+	}
+	dest := filepath.Join(a.baseDir(), ".xgoef", "unpacked")
+	if err := asset.ExtractZip(payload, dest); err != nil {
+		return "", err
+	}
+	return dest, nil
 }
 
 func (a *App) baseDir() string {

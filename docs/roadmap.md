@@ -15,7 +15,8 @@
 | 3c | **P1** Event 跨进程 + Window label/`CreateWindow`/`EmitTo` | 完成 |
 | 4 | **P1** Plugin 契约 + 首批系统插件（`fs` 范围、`os`） | 完成 |
 | 4c | **P2** `shell` / `clipboard` / `dialog` | 完成 |
-| 5 | **P1** `xgoef://app/` 资源协议；CLI 与 CEF 链接合成一次构建 | 完成（嵌入与签名仍后置） |
+| 5 | **P1** `xgoef://app/` 资源协议；CLI 与 CEF 链接合成一次构建 | 完成 |
+| 5b | **P1** 前端签进宿主二进制（Ed25519） | 完成（系统安装包签名仍后置） |
 | 6 | 框架 API（`runtime`/`ipc`/…）迁 `.xgo` | 待做 |
 | 6b | **Classfile**：`xclass` + `*_app.xef`/`*_cmd.xef`（见 [classfile-design.md](classfile-design.md)） | 待做 |
 | 7 | **P2+** Channels / 托盘菜单 / 打包更新器 | 待做 |

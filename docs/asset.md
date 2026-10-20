@@ -31,11 +31,20 @@ xgoef://app/css/app.css
 
 `../api/js/xgoef.js` 会走出根，scheme 不会读。`xgoef build` 和 `scripts/build-xgoef-hello.sh` 会把桥复制到 `web/xgoef.js`。
 
+## 嵌入与签名
+
+`xgoef build` 在分期完成之后把 `web/` 打成 zip，用 Ed25519 签名，追加到宿主二进制末尾，并写出同样内容的 `xgoef.assets`。公钥写入发行目录里的 `xgoef.conf.json`（`build.assetPublicKey`）。私钥放在应用目录 `.xgoef/asset.key`（已 gitignore），也可以用环境变量 `XGOEF_ASSET_KEY` 指向已有的 64 字节私钥。
+
+配置里带了公钥时，启动会校验宿主尾部；尾部没有封包时再校验旁边的 `xgoef.assets`。通过之后解到 `.xgoef/unpacked`，`xgoef://app/` 和 `$RESOURCE` 都读这个目录。签名不匹配，或公钥已配置但找不到封包，启动直接失败。
+
+`xgoef dev` 和 `--assets-only` 只留下 loose 的 `frontendDist`，方便改页面。系统安装包签名仍后置。
+
 ## 代码
 
 | 位置 | 作用 |
 | --- | --- |
 | `asset.Root` | Go 侧映射和拒绝规则（单测） |
+| `asset.PackDir` / `AppendSeal` | 把前端签进宿主尾部；`xgoef.assets` 是同一份封包 |
 | `runtime.App.NavigationURL` | 启动 URL / `CreateWindow` |
 | `cef/shim/xgoef_asset.cc` | CEF `CefSchemeHandlerFactory` |
 | `cef/shim/xgoef_asset_path.cc` | 与 Go 对齐的路径规则（不链接 CEF，可单独编译） |

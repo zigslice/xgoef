@@ -12,7 +12,11 @@
       "type": "object",
       "properties": {
         "frontendDist": { "type": "string", "default": "web" },
-        "devUrl": { "type": "string" }
+        "devUrl": { "type": "string" },
+        "assetPublicKey": {
+          "type": "string",
+          "description": "Base64 Ed25519 public key. When set, the host serves the signed frontend from the binary trailer or xgoef.assets."
+        }
       }
     },
     "app": {

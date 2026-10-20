@@ -35,7 +35,7 @@
 | `ipc/` | Command 注册与调用、Event 总线 |
 | `plugin/` | 插件契约（命令 + permission） |
 | `plugins/fs` `plugins/os` `plugins/shell` `plugins/clipboard` `plugins/dialog` | 内置插件 |
-| `asset/` | `xgoef://app/` → `frontendDist`，拒绝根外路径 |
+| `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `api/js/` | 注入或随资源分发的前端桥 |
 | `cmd/xgoef/` | `create` / `dev` / `build`（分期目录并链接 CEF 宿主） |

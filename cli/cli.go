@@ -68,8 +68,10 @@ Usage:
 
 create writes main.xgo, xgoef.conf.json, web/, and a copy of xgoef.js.
 build / dev stage the frontend and link the CEF shim plus the XGo host
-(cmake, xgoef-helper, xgo build). --assets-only skips the link.
-dev rewrites the first window URL to build.devUrl when that field is set.
+(cmake, xgoef-helper, xgo build). build also signs web/ into the host
+binary. --assets-only skips the link and the seal.
+dev rewrites the first window URL to build.devUrl when that field is set
+and does not seal, so the loose frontend stays in use.
 `)
 }
 
@@ -152,6 +154,12 @@ func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
 		return err
 	}
 	bin := filepath.Join(dir, sanitizeBin(cfg.ProductName))
+	if !dev {
+		if err := sealStaged(appDir, dir, bin); err != nil {
+			return err
+		}
+		fmt.Printf("sealed %s\n", bin)
+	}
 	fmt.Printf("built %s\n", bin)
 	fmt.Printf("run: cd %s && ./%s\n", dir, sanitizeBin(cfg.ProductName))
 	return nil

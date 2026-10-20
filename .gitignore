@@ -83,6 +83,9 @@ root_cache/
 # XGo → Go codegen (source of truth is *.xgo)
 **/xgo_autogen*.go
 
+# Ed25519 asset signing key. The public key is written into the staged conf.
+.xgoef/
+
 # CEF distribution tarballs
 /cef_binary_*.tar.bz2
 /cef_binary_*.tar.bz2.sha1

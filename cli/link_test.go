@@ -1,10 +1,14 @@
 package cli
 
 import (
+	"crypto/ed25519"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/zigslice/xgoef/asset"
+	"github.com/zigslice/xgoef/conf"
 )
 
 func TestLinkHostLayout(t *testing.T) {
@@ -132,6 +136,43 @@ func TestLinkHostLayout(t *testing.T) {
 	if !strings.Contains(strings.Join(log, "\n"), "xgo build -o") {
 		t.Fatalf("commands:\n%s", strings.Join(log, "\n"))
 	}
+	pub := sealedPublicKey(t, filepath.Join(out, "xgoef.conf.json"))
+	payload, err := asset.ReadSealedPayload(filepath.Join(out, "xgoef-hello"), pub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sibling, err := asset.ReadSealedPayload(filepath.Join(out, "xgoef.assets"), pub)
+	if err != nil || string(sibling) != string(payload) {
+		t.Fatalf("standalone seal %v", err)
+	}
+	src, err := os.ReadFile(filepath.Join(app, "xgoef.conf.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(src), "assetPublicKey") {
+		t.Fatal("source conf gained assetPublicKey")
+	}
+
+	devOut := filepath.Join(module, "build", "devapp")
+	if code := Run([]string{"dev", "--app", app, "--out", devOut}); code != 0 {
+		t.Fatalf("dev exit %d", code)
+	}
+	if _, err := os.Stat(filepath.Join(devOut, "xgoef.assets")); !os.IsNotExist(err) {
+		t.Fatalf("dev wrote a seal: %v", err)
+	}
+}
+
+func sealedPublicKey(t *testing.T, confPath string) ed25519.PublicKey {
+	t.Helper()
+	cfg, err := conf.Load(confPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pub, err := asset.ParsePublicKey(cfg.Build.AssetPublicKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pub
 }
 
 func TestLinkMissingToolchain(t *testing.T) {
