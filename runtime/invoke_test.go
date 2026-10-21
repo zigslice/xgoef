@@ -277,7 +277,7 @@ func TestDispatchStructuredError(t *testing.T) {
 		t.Fatalf("%s", got)
 	}
 	box = newReplyBox()
-	dispatchFrontend(allowGuard("greet", "boom"), r, nil, newInvokeGate(), "main",
+	dispatchFrontend(allowGuard("greet", "boom", "missing"), r, nil, newInvokeGate(), "main",
 		`{"type":"invoke","id":3,"cmd":"missing"}`, 3, box.add)
 	if !strings.Contains(box.wait(t), `"code":"ipc.unknown_command"`) {
 		t.Fatal(box.body)
