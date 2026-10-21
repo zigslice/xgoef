@@ -72,8 +72,13 @@ func TestInvokeContextCancel(t *testing.T) {
 func TestInvokeFromContextDoesNotEnd(t *testing.T) {
 	r := NewRouter()
 	r.Handle("ping", func(ctx Context, _ []byte) (any, error) {
-		if ctx.Err() != nil || ctx.Done() == nil {
+		if ctx.Err() != nil {
 			return nil, errors.New("background context ended")
+		}
+		select {
+		case <-ctx.Done():
+			return nil, errors.New("background context ended")
+		default:
 		}
 		return "ok", nil
 	})

@@ -24,7 +24,7 @@ Event 见 [events.md](events.md)。有序的宿主 → 页面流见 [channels.md
 
 ## 异步、超时与取消
 
-页面上的 command 不再占着 CEF UI 线程。菜单点击和 `Router.Invoke` 仍在调用方里面跑完，context 不会结束。
+页面上的 command 不再占着 CEF UI 线程。这次调用的 `ctx.Done()` 会在取消或超时后关闭。菜单点击和 `Router.Invoke` 仍在调用方里面跑完，用的 context 不会结束，`Done()` 为 nil。
 
 ```js
 const job = window.__XGOEF__.invoke("wait", {}, { timeout: 2000 })
