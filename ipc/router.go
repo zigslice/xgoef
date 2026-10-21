@@ -1,13 +1,27 @@
 package ipc
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 )
 
+// ErrCanceled is returned when the page cancels an invoke, or the frame drops it.
+var ErrCanceled = errors.New("ipc: canceled")
+
+// ErrTimeout is returned when an invoke exceeds its deadline.
+var ErrTimeout = errors.New("ipc: timeout")
+
+// ErrInvalidTimeout is returned when the page asks for a timeout this host rejects.
+var ErrInvalidTimeout = errors.New("ipc: invalid timeout")
+
 // Context is passed to command handlers.
+// The embedded context is canceled when the page cancels the invoke or the
+// deadline passes. Invoke and menu activation use a context that does not end.
 type Context struct {
+	context.Context
 	Command  string
 	Window   string
 	channels *Hub
@@ -58,6 +72,16 @@ func (r *Router) Invoke(name string, argsJSON []byte) ([]byte, error) {
 
 // InvokeFrom runs a command and records the calling window label.
 func (r *Router) InvokeFrom(window, name string, argsJSON []byte) ([]byte, error) {
+	return r.InvokeContext(context.Background(), window, name, argsJSON)
+}
+
+// InvokeContext runs a command with a context the handler can observe.
+// A canceled or expired context is reported as ErrCanceled or ErrTimeout
+// when the handler returns that context error.
+func (r *Router) InvokeContext(ctx context.Context, window, name string, argsJSON []byte) ([]byte, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	r.mu.RLock()
 	h, ok := r.handlers[name]
 	hub := r.channels
@@ -65,14 +89,24 @@ func (r *Router) InvokeFrom(window, name string, argsJSON []byte) ([]byte, error
 	if !ok {
 		return nil, fmt.Errorf("ipc: unknown command %q", name)
 	}
-	out, err := h(Context{Command: name, Window: window, channels: hub}, argsJSON)
+	out, err := h(Context{Context: ctx, Command: name, Window: window, channels: hub}, argsJSON)
 	if err != nil {
-		return nil, err
+		return nil, normalizeErr(err)
 	}
 	if out == nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(out)
+}
+
+func normalizeErr(err error) error {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return ErrTimeout
+	}
+	if errors.Is(err, context.Canceled) {
+		return ErrCanceled
+	}
+	return err
 }
 
 // Commands returns registered command names (for capabilities checks).

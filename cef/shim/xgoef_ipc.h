@@ -26,8 +26,8 @@ class IpcHandler : public CefMessageRouterBrowserSide::Handler {
 };
 
 void IpcSetHandler(xgoef_ipc_query_fn fn);
+void IpcSetCancelHandler(xgoef_ipc_cancel_fn fn);
 void IpcRespond(int64_t query_id, int ok, const char* result_utf8);
-void IpcCancel(int64_t query_id);
 
 }  // namespace xgoef
 

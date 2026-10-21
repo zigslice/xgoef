@@ -8,4 +8,4 @@
 
 这里没有跑 CEF / LLGo 链接。拉起和热重载用套接字与 `dev-reload` 事件测过。
 
-`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，见 [bundle.md](bundle.md)。异步 command 与取消仍后置。
+`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，见 [bundle.md](bundle.md)。页面 command 的超时和取消见 [ipc.md](ipc.md)。接下来是 TS 类型与 invoke 声明生成。

@@ -1,8 +1,11 @@
 package ipc
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"testing"
+	"time"
 )
 
 func TestRouterInvoke(t *testing.T) {
@@ -34,5 +37,51 @@ func TestRouterUnknown(t *testing.T) {
 	r := NewRouter()
 	if _, err := r.Invoke("nope", nil); err == nil {
 		t.Fatal("expected error")
+	}
+}
+
+func TestInvokeContextCancel(t *testing.T) {
+	r := NewRouter()
+	started := make(chan struct{})
+	r.Handle("slow", func(ctx Context, _ []byte) (any, error) {
+		if ctx.Done() == nil {
+			return nil, errors.New("missing done")
+		}
+		close(started)
+		<-ctx.Done()
+		return nil, ctx.Err()
+	})
+	ctx, cancel := context.WithCancel(context.Background())
+	errc := make(chan error, 1)
+	go func() {
+		_, err := r.InvokeContext(ctx, "main", "slow", []byte("{}"))
+		errc <- err
+	}()
+	<-started
+	cancel()
+	select {
+	case err := <-errc:
+		if !errors.Is(err, ErrCanceled) {
+			t.Fatal(err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("handler did not return")
+	}
+}
+
+func TestInvokeFromContextDoesNotEnd(t *testing.T) {
+	r := NewRouter()
+	r.Handle("ping", func(ctx Context, _ []byte) (any, error) {
+		if ctx.Err() != nil || ctx.Done() == nil {
+			return nil, errors.New("background context ended")
+		}
+		return "ok", nil
+	})
+	out, err := r.InvokeFrom("main", "ping", []byte("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(out) != `"ok"` {
+		t.Fatalf("%s", out)
 	}
 }

@@ -17,6 +17,9 @@ type WindowSpec struct {
 // Bridge wires the C MessageRouter shim to Go IPC and window control.
 type Bridge interface {
 	SetQueryHandler(h QueryHandler)
+	// SetCancelHandler is invoked when CEF drops a query (navigation or
+	// cefQueryCancel). queryID is the CEF id, not the JSON invoke id.
+	SetCancelHandler(h func(queryID int64))
 	Respond(queryID int64, ok bool, resultUTF8 string)
 
 	// Events (host → renderer). jsonUTF8 is a full envelope.
