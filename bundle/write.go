@@ -10,9 +10,10 @@ import (
 
 // Paths are the packages written under root/bundle.
 type Paths struct {
-	Deb string
-	MSI string
-	DMG string
+	Deb      string
+	MSI      string
+	DMG      string
+	AppImage string
 }
 
 type fileItem struct {
@@ -21,7 +22,7 @@ type fileItem struct {
 	Mode int64
 }
 
-// Write packs the staged directory into a deb, an msi, and a dmg.
+// Write packs the staged directory into a deb, an msi, a dmg, and an AppImage.
 // root/bundle is not included in the payload.
 func Write(root string, spec Spec) (Paths, error) {
 	var err error
@@ -49,9 +50,10 @@ func Write(root string, spec Spec) (Paths, error) {
 		return Paths{}, err
 	}
 	paths := Paths{
-		Deb: filepath.Join(out, pkg+"_"+version+"_"+spec.Arch+".deb"),
-		MSI: filepath.Join(out, pkg+"_"+version+"_"+spec.Arch+".msi"),
-		DMG: filepath.Join(out, pkg+"_"+version+".dmg"),
+		Deb:      filepath.Join(out, pkg+"_"+version+"_"+spec.Arch+".deb"),
+		MSI:      filepath.Join(out, pkg+"_"+version+"_"+spec.Arch+".msi"),
+		DMG:      filepath.Join(out, pkg+"_"+version+".dmg"),
+		AppImage: filepath.Join(out, pkg+"_"+version+"_"+spec.Arch+".AppImage"),
 	}
 	if err := writeDeb(paths.Deb, spec, files); err != nil {
 		return Paths{}, err
@@ -60,6 +62,9 @@ func Write(root string, spec Spec) (Paths, error) {
 		return Paths{}, err
 	}
 	if err := writeDMG(paths.DMG, spec, files); err != nil {
+		return Paths{}, err
+	}
+	if err := writeAppImage(paths.AppImage, spec, files); err != nil {
 		return Paths{}, err
 	}
 	return paths, nil

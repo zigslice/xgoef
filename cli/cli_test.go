@@ -165,4 +165,8 @@ func TestStageWritesDesktopFile(t *testing.T) {
 	if err != nil || len(dmg) != 1 {
 		t.Fatalf("%v %v", dmg, err)
 	}
+	image, err := filepath.Glob(filepath.Join(bundled, "bundle", "*.AppImage"))
+	if err != nil || len(image) != 1 {
+		t.Fatalf("%v %v", image, err)
+	}
 }
