@@ -3,6 +3,7 @@ package conf
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -58,6 +59,22 @@ func TestLoadCapabilitiesArray(t *testing.T) {
 	}
 	if len(f.Capabilities) != 1 || f.Capabilities[0].Permissions[0] != "greet" {
 		t.Fatalf("%+v", f.Capabilities)
+	}
+}
+
+func TestLoadRejectsCommandType(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.json")
+	body := `{
+	  "productName":"t",
+	  "app":{"windows":[{"title":"t","width":1,"height":1}]},
+	  "commands":[{"name":"greet","result":"nope"}]
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "unsupported type") {
+		t.Fatal(err)
 	}
 }
 

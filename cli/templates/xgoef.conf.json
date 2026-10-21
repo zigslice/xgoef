@@ -23,6 +23,13 @@
     "cacheDir": "root_cache"
   },
   "plugins": ["fs", "os"],
+  "commands": [
+    {
+      "name": "greet",
+      "args": [{ "name": "name", "type": "string", "optional": true }],
+      "result": "string"
+    }
+  ],
   "plugin": {
     "fs": {
       "allow": ["$APP", "$RESOURCE"]

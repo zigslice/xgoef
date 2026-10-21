@@ -7,20 +7,22 @@ import (
 	"strings"
 
 	"github.com/zigslice/xgoef/acl"
+	"github.com/zigslice/xgoef/binding"
 	"github.com/zigslice/xgoef/deeplink"
 )
 
 // File is the on-disk xgoef.conf.json shape (Tauri-like).
 type File struct {
-	ProductName  string           `json:"productName"`
-	Version      string           `json:"version"`
-	Identifier   string           `json:"identifier"`
-	Build        Build            `json:"build"`
-	App          AppSection       `json:"app"`
-	CEF          CEFSection       `json:"cef"`
-	Plugins      []string         `json:"plugins"`
-	Plugin       PluginSection    `json:"plugin"`
-	Capabilities []acl.Capability `json:"capabilities"`
+	ProductName  string            `json:"productName"`
+	Version      string            `json:"version"`
+	Identifier   string            `json:"identifier"`
+	Build        Build             `json:"build"`
+	App          AppSection        `json:"app"`
+	CEF          CEFSection        `json:"cef"`
+	Plugins      []string          `json:"plugins"`
+	Plugin       PluginSection     `json:"plugin"`
+	Commands     []binding.Command `json:"commands,omitempty"`
+	Capabilities []acl.Capability  `json:"capabilities"`
 }
 
 // PluginSection holds per-plugin settings. Scope roots use $APP, $RESOURCE,
@@ -158,15 +160,16 @@ type CEFSection struct {
 
 // rawFile accepts both the P0 capabilities array and the legacy map form.
 type rawFile struct {
-	ProductName  string          `json:"productName"`
-	Version      string          `json:"version"`
-	Identifier   string          `json:"identifier"`
-	Build        Build           `json:"build"`
-	App          AppSection      `json:"app"`
-	CEF          CEFSection      `json:"cef"`
-	Plugins      []string        `json:"plugins"`
-	Plugin       PluginSection   `json:"plugin"`
-	Capabilities json.RawMessage `json:"capabilities"`
+	ProductName  string            `json:"productName"`
+	Version      string            `json:"version"`
+	Identifier   string            `json:"identifier"`
+	Build        Build             `json:"build"`
+	App          AppSection        `json:"app"`
+	CEF          CEFSection        `json:"cef"`
+	Plugins      []string          `json:"plugins"`
+	Plugin       PluginSection     `json:"plugin"`
+	Commands     []binding.Command `json:"commands"`
+	Capabilities json.RawMessage   `json:"capabilities"`
 }
 
 // Load reads and decodes a config file.
@@ -188,6 +191,19 @@ func Load(path string) (File, error) {
 	f.CEF = raw.CEF
 	f.Plugins = raw.Plugins
 	f.Plugin = raw.Plugin
+	seenCmd := map[string]bool{}
+	f.Commands = make([]binding.Command, len(raw.Commands))
+	for i, cmd := range raw.Commands {
+		norm, err := binding.Normalize(cmd)
+		if err != nil {
+			return f, err
+		}
+		if seenCmd[norm.Name] {
+			return f, fmt.Errorf("binding: duplicate command %q", norm.Name)
+		}
+		seenCmd[norm.Name] = true
+		f.Commands[i] = norm
+	}
 
 	caps, err := parseCapabilities(raw.Capabilities)
 	if err != nil {

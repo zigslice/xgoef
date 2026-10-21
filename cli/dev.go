@@ -127,7 +127,11 @@ func refreshFrontend(appDir, outDir string) error {
 	if err := rewriteBridgeSrc(filepath.Join(dst, "index.html")); err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	return nil
+	cfg, err := conf.Load(filepath.Join(appDir, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	return writeBindings(cfg, outDir)
 }
 
 func devSocket(outDir string) string {

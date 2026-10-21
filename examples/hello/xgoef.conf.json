@@ -40,6 +40,21 @@
     "cacheDir": "root_cache"
   },
   "plugins": ["fs", "os", "clipboard"],
+  "commands": [
+    {
+      "name": "greet",
+      "doc": "返回 hello 文本",
+      "args": [{ "name": "name", "type": "string", "optional": true }],
+      "result": "string"
+    },
+    { "name": "open_aux", "result": "string" },
+    {
+      "name": "progress",
+      "args": [{ "name": "channel", "type": "XgoefChannel" }],
+      "result": "string"
+    },
+    { "name": "wait", "result": "string" }
+  ],
   "plugin": {
     "fs": {
       "allow": ["$APP", "$RESOURCE"]
