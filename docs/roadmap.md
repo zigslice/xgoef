@@ -31,6 +31,7 @@
 | 7j | **P2** 异步 command 与取消 | 完成 |
 | 7k | **P2** TS 类型与 invoke 声明生成 | 完成 |
 | 7l | **P2** 结构化错误码 | 完成 |
-| 7m | **P3** `process` 插件 | 待做 |
+| 7m | **P3** `process` 插件 | 完成 |
+| 7n | **P3** `notification` 插件 | 待做 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

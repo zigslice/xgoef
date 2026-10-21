@@ -39,7 +39,7 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": ["fs", "os", "clipboard"],
+  "plugins": ["fs", "os", "clipboard", "process"],
   "commands": [
     {
       "name": "greet",
@@ -64,7 +64,7 @@
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "core:default"]
     },
     {
       "identifier": "aux",

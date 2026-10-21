@@ -116,7 +116,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process).",
       "items": { "type": "string" }
     },
     "plugin": {

@@ -109,6 +109,19 @@ async function main() {
     assert.equal(err.code, "ipc.transport");
     assert.equal(err.message, "nope");
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    sandbox.__XGOEF__.plugins.process.exit();
+    sandbox.__XGOEF__.plugins.process.exit(7);
+    sandbox.__XGOEF__.plugins.process.relaunch();
+    assert.deepEqual(posted.map((msg) => msg.cmd), ["process:exit", "process:exit", "process:relaunch"]);
+    assert.deepEqual(posted[0].args, {});
+    assert.deepEqual(posted[1].args, { code: 7 });
+    assert.deepEqual(posted[2].args, {});
+  }
 }
 
 main().catch((err) => {
