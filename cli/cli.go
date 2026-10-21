@@ -73,7 +73,10 @@ build / dev stage the frontend and link the CEF shim plus the XGo host
 (cmake, xgoef-helper, xgo build). build also signs web/ into the host
 binary. --assets-only skips the link and the seal.
 dev rewrites the first window URL to build.devUrl when that field is set
-and does not seal, so the loose frontend stays in use.
+and does not seal, so the loose frontend stays in use. It then runs the
+host from the output directory and recopies the frontend when those files
+change. The page reloads on the dev-reload event. --assets-only still
+returns after staging when the host binary is not in the output directory.
 `)
 }
 
@@ -152,9 +155,10 @@ func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
 			if err := maybeBundle(dir); err != nil {
 				return err
 			}
+			fmt.Printf("staged %s\n", dir)
+			return nil
 		}
-		fmt.Printf("staged %s\n", dir)
-		return nil
+		return finishDev(appDir, dir, true)
 	}
 	cfg, err := conf.Load(filepath.Join(appDir, "xgoef.conf.json"))
 	if err != nil {
@@ -169,10 +173,32 @@ func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
 		if err := maybeBundle(dir); err != nil {
 			return err
 		}
+		fmt.Printf("built %s\n", bin)
+		fmt.Printf("run: cd %s && ./%s\n", dir, sanitizeBin(cfg.ProductName))
+		return nil
 	}
 	fmt.Printf("built %s\n", bin)
-	fmt.Printf("run: cd %s && ./%s\n", dir, sanitizeBin(cfg.ProductName))
-	return nil
+	return finishDev(appDir, dir, false)
+}
+
+func finishDev(appDir, dir string, assetsOnly bool) error {
+	cfg, err := conf.Load(filepath.Join(dir, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	bin := filepath.Join(dir, sanitizeBin(cfg.ProductName))
+	st, err := os.Stat(bin)
+	if err != nil || st.IsDir() {
+		if assetsOnly {
+			fmt.Printf("staged %s\n", dir)
+			return nil
+		}
+		if err == nil {
+			err = fmt.Errorf("not a file")
+		}
+		return fmt.Errorf("dev: host binary %s: %w", bin, err)
+	}
+	return serveDev(appDir, dir, bin)
 }
 
 func parseStageFlags(args []string, defaultOut string) (appDir, outDir string, assetsOnly bool, err error) {

@@ -99,7 +99,7 @@ func TestLinkHostLayout(t *testing.T) {
 		case "xgo":
 			for i, a := range args {
 				if a == "-o" && i+1 < len(args) {
-					return os.WriteFile(args[i+1], []byte("bin"), 0o755)
+					return os.WriteFile(args[i+1], []byte("#!/bin/sh\nexit 0\n"), 0o755)
 				}
 			}
 		}

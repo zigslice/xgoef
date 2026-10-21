@@ -92,7 +92,7 @@ xgoef build --app myapp --out myapp/dist
 xgoef dev --app examples/hello --out /tmp/xgoef-dev
 ```
 
-`build` / `dev` 默认链接 CEF shim 与 XGo 宿主，并复制配置、前端和 `xgoef.js`。需要 `xgo`、`llgo`、`cmake`、`pkg-config`，以及 `CEF_ROOT`（未设置时按仓库根 `CEF_VERSION` 找 `third_party/cef`）。`--assets-only` 只复制资源。
+`build` / `dev` 默认链接 CEF shim 与 XGo 宿主，并复制配置、前端和 `xgoef.js`。需要 `xgo`、`llgo`、`cmake`、`pkg-config`，以及 `CEF_ROOT`（未设置时按仓库根 `CEF_VERSION` 找 `third_party/cef`）。`--assets-only` 只复制资源。`xgoef dev` 接着拉起宿主，前端一变就重载页面，见 [dev.md](dev.md)。
 
 ## Channels
 
