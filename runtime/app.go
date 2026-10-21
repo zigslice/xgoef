@@ -50,6 +50,7 @@ type App struct {
 	deepConfig string
 	deepMu     sync.Mutex
 	deepURLs   []string
+	invokes    *invokeGate
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -74,6 +75,7 @@ func New(cfg conf.File, host cef.Host) *App {
 		Channels: hub,
 		ACL:      acl.NewGuard(cfg.Capabilities),
 		Plugins:  plugin.NewRegistry(),
+		invokes:  newInvokeGate(),
 	}
 }
 
@@ -297,13 +299,18 @@ func (a *App) wireIPC() {
 	bridge := a.Bridge
 	events := a.Events
 
+	gate := a.invokes
 	bridge.SetQueryHandler(func(queryID int64, windowLabel, requestJSON string) {
 		wl := windowLabel
 		if wl == "" {
 			wl = label
 		}
-		resp := handleMessage(guard, router, events, wl, requestJSON)
-		bridge.Respond(queryID, true, resp)
+		dispatchFrontend(guard, router, events, gate, wl, requestJSON, queryID, func(resp string) {
+			bridge.Respond(queryID, true, resp)
+		})
+	})
+	bridge.SetCancelHandler(func(queryID int64) {
+		gate.cancelQuery(queryID)
 	})
 }
 

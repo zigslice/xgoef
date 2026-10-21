@@ -15,6 +15,7 @@ namespace {
 
 std::mutex g_mu;
 xgoef_ipc_query_fn g_handler = nullptr;
+xgoef_ipc_cancel_fn g_cancel = nullptr;
 std::map<int64_t, CefRefPtr<CefMessageRouterBrowserSide::Callback>> g_pending;
 
 void RespondOnUI(int64_t query_id, int ok, std::string result) {
@@ -79,12 +80,25 @@ void IpcHandler::OnQueryCanceled(CefRefPtr<CefBrowser> browser,
   CEF_REQUIRE_UI_THREAD();
   (void)browser;
   (void)frame;
-  IpcCancel(query_id);
+  xgoef_ipc_cancel_fn cancel = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(g_mu);
+    g_pending.erase(query_id);
+    cancel = g_cancel;
+  }
+  if (cancel) {
+    cancel(query_id);
+  }
 }
 
 void IpcSetHandler(xgoef_ipc_query_fn fn) {
   std::lock_guard<std::mutex> lock(g_mu);
   g_handler = fn;
+}
+
+void IpcSetCancelHandler(xgoef_ipc_cancel_fn fn) {
+  std::lock_guard<std::mutex> lock(g_mu);
+  g_cancel = fn;
 }
 
 void IpcRespond(int64_t query_id, int ok, const char* result_utf8) {
@@ -96,15 +110,14 @@ void IpcRespond(int64_t query_id, int ok, const char* result_utf8) {
   CefPostTask(TID_UI, base::BindOnce(&RespondOnUI, query_id, ok, result));
 }
 
-void IpcCancel(int64_t query_id) {
-  std::lock_guard<std::mutex> lock(g_mu);
-  g_pending.erase(query_id);
-}
-
 }  // namespace xgoef
 
 extern "C" void xgoef_ipc_set_handler(xgoef_ipc_query_fn fn) {
   xgoef::IpcSetHandler(fn);
+}
+
+extern "C" void xgoef_ipc_set_cancel_handler(xgoef_ipc_cancel_fn fn) {
+  xgoef::IpcSetCancelHandler(fn);
 }
 
 extern "C" void xgoef_ipc_respond(int64_t query_id,

@@ -77,6 +77,8 @@
         <button id="btn-ch" class="secondary" type="button">channel</button>
         <button id="btn-menu" class="secondary" type="button">menu</button>
         <button id="btn-tray" class="secondary" type="button">tray</button>
+        <button id="btn-wait" class="secondary" type="button">wait</button>
+        <button id="btn-cancel" class="secondary" type="button">cancel wait</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -145,6 +147,21 @@
           out.textContent = String(await window.__XGOEF__.invoke("progress", { channel: ch }));
         } catch (e) {
           out.textContent = e.message || String(e);
+        }
+      };
+      let waiting = null;
+      document.getElementById("btn-wait").onclick = async () => {
+        const job = window.__XGOEF__.invoke("wait", {}, { timeout: 2000 });
+        waiting = job;
+        try {
+          out.textContent = String(await job);
+        } catch (e) {
+          out.textContent = e.message || String(e);
+        }
+      };
+      document.getElementById("btn-cancel").onclick = () => {
+        if (waiting && typeof waiting.cancel === "function") {
+          waiting.cancel();
         }
       };
       document.getElementById("btn-menu").onclick = async () => {

@@ -46,6 +46,11 @@ typedef void (*xgoef_ipc_query_fn)(int64_t query_id,
 /* Register the Go/LLGo invoke handler. Pass NULL to clear. */
 void xgoef_ipc_set_handler(xgoef_ipc_query_fn fn);
 
+/* Called on the CEF UI thread after a query is dropped (navigation or
+ * cefQueryCancel). The pending callback is already gone. */
+typedef void (*xgoef_ipc_cancel_fn)(int64_t query_id);
+void xgoef_ipc_set_cancel_handler(xgoef_ipc_cancel_fn fn);
+
 /* Complete a query. ok!=0 → Success(result_utf8); else Failure(-2, result_utf8).
  * Safe to call from any thread (posted to UI if needed). */
 void xgoef_ipc_respond(int64_t query_id, int ok, const char* result_utf8);

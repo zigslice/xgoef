@@ -16,7 +16,8 @@ type ipcQueryFn func(queryID int64, windowLabel, request *c.Char)
 
 // NativeBridge is the LLGo-backed IPC bridge to the C++ MessageRouter shim.
 type NativeBridge struct {
-	handler QueryHandler
+	handler  QueryHandler
+	onCancel func(queryID int64)
 }
 
 // activeBridge is the process-wide bridge registered with the C shim.
@@ -37,6 +38,26 @@ func (b *NativeBridge) SetQueryHandler(h QueryHandler) {
 		return
 	}
 	xgoefIPCSetHandler(nativeOnQuery)
+}
+
+// SetCancelHandler registers the callback for CEF OnQueryCanceled.
+func (b *NativeBridge) SetCancelHandler(h func(queryID int64)) {
+	b.onCancel = h
+	activeBridge = b
+	if h == nil {
+		xgoefIPCSetCancelHandler(nil)
+		return
+	}
+	xgoefIPCSetCancelHandler(nativeOnCancel)
+}
+
+//llgo:cdecl
+func nativeOnCancel(queryID int64) {
+	b := activeBridge
+	if b == nil || b.onCancel == nil {
+		return
+	}
+	b.onCancel(queryID)
 }
 
 //llgo:cdecl
@@ -198,6 +219,12 @@ func goStr(p *c.Char) string {
 
 //go:linkname xgoefIPCSetHandler C.xgoef_ipc_set_handler
 func xgoefIPCSetHandler(fn ipcQueryFn)
+
+//llgo:cdecl
+type ipcCancelFn func(queryID int64)
+
+//go:linkname xgoefIPCSetCancelHandler C.xgoef_ipc_set_cancel_handler
+func xgoefIPCSetCancelHandler(fn ipcCancelFn)
 
 //go:linkname xgoefIPCRespond C.xgoef_ipc_respond
 func xgoefIPCRespond(queryID int64, ok c.Int, result *c.Char)

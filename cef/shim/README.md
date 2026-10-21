@@ -5,7 +5,7 @@ CEF C++ host pad（MessageRouter + Views），供 **LLGo**（`go:linkname`，无
 | 文件 | 作用 |
 | --- | --- |
 | `xgoef_host.h` / `xgoef_host.cc` | lifecycle C ABI：`xgoef_cef_*` |
-| `xgoef_ipc.*` | `cefQuery` → C 回调 → `xgoef_ipc_respond` |
+| `xgoef_ipc.*` | `cefQuery` → C 回调 → `xgoef_ipc_respond`；取消时 `xgoef_ipc_set_cancel_handler` |
 | `xgoef_app.*` / `xgoef_handler.*` / `xgoef_renderer.*` | 浏览器 + 渲染进程 MessageRouter |
 | `xgoef_asset.cc` / `xgoef_asset_path.cc` | `xgoef://app/` scheme；路径规则与 `asset` 包一致 |
 | `xgoef_helper_main.cc` | 原生 `xgoef-helper`（渲染侧注入 `window.cefQuery`） |

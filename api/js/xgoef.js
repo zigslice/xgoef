@@ -99,12 +99,32 @@
   global.__xgoefDispatch = dispatch;
 
   global.__XGOEF__ = {
-    invoke: function (cmd, args) {
+    invoke: function (cmd, args, opts) {
       const id = nextId++;
-      return new Promise(function (resolve, reject) {
+      opts = opts || {};
+      let cancelPosted = false;
+      function cancel() {
+        if (cancelPosted) return;
+        cancelPosted = true;
+        post({ type: "cancel", invoke: id });
+      }
+      const promise = new Promise(function (resolve, reject) {
         pending.set(id, { resolve: resolve, reject: reject });
-        post({ type: "invoke", id: id, cmd: cmd, args: args || {} });
+        const msg = { type: "invoke", id: id, cmd: cmd, args: args || {} };
+        if (typeof opts.timeout === "number" && opts.timeout !== 0) {
+          msg.timeout = opts.timeout;
+        }
+        post(msg);
       });
+      promise.cancel = cancel;
+      if (opts.signal && typeof opts.signal.addEventListener === "function") {
+        if (opts.signal.aborted) {
+          cancel();
+        } else {
+          opts.signal.addEventListener("abort", cancel);
+        }
+      }
+      return promise;
     },
     listen: function (event, handler) {
       if (!listeners.has(event)) listeners.set(event, []);

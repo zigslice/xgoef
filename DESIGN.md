@@ -55,7 +55,11 @@ app.Handle "greet", (ctx, argsJSON) => {
 
 # 前端
 const msg = await window.__XGOEF__.invoke('greet', { name: 'xgo' })
+const job = window.__XGOEF__.invoke('wait', {}, { timeout: 2000 })
+job.cancel()
 ```
+
+页面 invoke 在 CEF 查询回调外执行。`ctx.Done()` 在取消或超时后关闭。详见 [docs/ipc.md](docs/ipc.md)。
 
 ### Events
 

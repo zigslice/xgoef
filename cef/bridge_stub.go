@@ -5,6 +5,7 @@ package cef
 // NativeBridge is a no-op stub for gc builds / unit tests.
 type NativeBridge struct {
 	handler    QueryHandler
+	onCancel   func(queryID int64)
 	menu       string
 	trayTip    string
 	tray       string
@@ -20,6 +21,8 @@ func NewNativeBridge() *NativeBridge {
 }
 
 func (b *NativeBridge) SetQueryHandler(h QueryHandler) { b.handler = h }
+
+func (b *NativeBridge) SetCancelHandler(h func(queryID int64)) { b.onCancel = h }
 
 func (b *NativeBridge) Respond(queryID int64, ok bool, resultUTF8 string) {}
 
