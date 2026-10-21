@@ -23,4 +23,4 @@ AppImage 里是未压缩的 squashfs。根上有 `AppRun`、`<包名>.desktop`�
 
 在 linux/amd64 上，文件前面是一段 runtime ELF，squashfs 接在后面。运行时解到 `$XDG_CACHE_HOME/xgoef-appimage/`（未设置时用 `~/.cache`），然后执行 `AppRun`。其它架构写出的是 squashfs 本身，用 `unsquashfs` 读取。runtime 不做系统安装包签名。
 
-`xgoef dev` 会拉起宿主，并在前端变化时热重载，见 [dev.md](dev.md)。页面 command 的超时和取消见 [ipc.md](ipc.md)。`web/xgoef.d.ts` 见 [binding.md](binding.md)。接下来是结构化错误码。
+`xgoef dev` 会拉起宿主，并在前端变化时热重载，见 [dev.md](dev.md)。页面 command 的超时、取消和错误码见 [ipc.md](ipc.md)。`web/xgoef.d.ts` 见 [binding.md](binding.md)。

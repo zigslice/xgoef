@@ -44,12 +44,12 @@
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
 | Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
-| CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；`xgoef dev` 会拉起宿主并热重载（见 `docs/dev.md`）。`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage（见 `docs/bundle.md`），并写 `web/xgoef.d.ts`（见 `docs/binding.md`）。结构化错误码仍后置 |
+| CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；`xgoef dev` 会拉起宿主并热重载（见 `docs/dev.md`）。`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage（见 `docs/bundle.md`），并写 `web/xgoef.d.ts`（见 `docs/binding.md`） |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow`；菜单栏与托盘菜单已接（见 `docs/menu.md`）。常驻图标要能加载 `libgtk-3.so.0` |
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | `fs`、`os`、`shell`、`clipboard`、`dialog`；notification 等未做 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command，以及 invoke 的 TypeScript 声明，都已经接上。结构化错误码仍后置。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明，以及结构化错误码，都已经接上。
 
 ---
 
@@ -74,7 +74,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | `invoke` → 后端 command | ✅ | JS → MessageRouter → `ipc.Router` |
-| 命令参数/返回值 JSON | 🟡 | TypeScript 声明见 `docs/binding.md`；缺结构化错误码 |
+| 命令参数/返回值 JSON | ✅ | TypeScript 声明见 `docs/binding.md`；错误码见 `docs/ipc.md` |
 | 异步 command | ✅ | 页面 invoke 在回调外执行；可取消、可超时（见 `docs/ipc.md`） |
 | Events 双向 | ✅ | `emit` / `listen` 与 `Emit` / `EmitTo` |
 | 按 webview/window 定向 emit | ✅ | `App.EmitTo(label, …)` |
@@ -123,7 +123,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | `create-tauri-app` | 🟡 | `xgoef create <name>` 写出 XGo 骨架 |
-| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` 拉起宿主并热重载（见 `docs/dev.md`）；`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，并写 `web/xgoef.d.ts`。结构化错误码仍后置 |
+| `tauri dev` / `tauri build` | 🟡 | `xgoef dev` 拉起宿主并热重载（见 `docs/dev.md`）；`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，并写 `web/xgoef.d.ts` |
 | 多前端模板（Vite/React/…） | ⬜ | — |
 | 平台打包（msi/dmg/deb/AppImage） | ✅ | deb / msi / dmg / AppImage 见 `docs/bundle.md`。系统安装包签名仍后置 |
 | IDE / 代码生成（command 宏） | 🟡 | `xgoef build` / `xgoef dev` 写出 `web/xgoef.d.ts`（见 `docs/binding.md`） |
@@ -172,7 +172,7 @@
 
 ### P3 — 发行与生态
 
-14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包 ✅（deb / msi / dmg / AppImage，见 `docs/bundle.md`）；`xgoef dev` 拉起并热重载 ✅（见 `docs/dev.md`）；异步 command ✅（见 `docs/ipc.md`）；invoke 的 TypeScript 声明 ✅（见 `docs/binding.md`）。系统安装包签名仍后置。结构化错误码仍后置。
+14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包 ✅（deb / msi / dmg / AppImage，见 `docs/bundle.md`）；`xgoef dev` 拉起并热重载 ✅（见 `docs/dev.md`）；异步 command ✅（见 `docs/ipc.md`）；invoke 的 TypeScript 声明 ✅（见 `docs/binding.md`）；结构化错误码 ✅（见 `docs/ipc.md`）。系统安装包签名仍后置。
 15. 更多插件；文档站点与模板。
 
 ---
@@ -198,8 +198,11 @@
 ```json
 { "type": "invoke", "id": 1, "cmd": "greet", "args": { "name": "xgo" } }
 { "type": "response", "id": 1, "ok": true, "payload": "hello, xgo (from xgoef)" }
+{ "type": "response", "id": 1, "ok": false, "error": { "code": "ipc.canceled", "message": "ipc: canceled" } }
 { "type": "event", "event": "tick", "payload": { "n": 1 } }
 ```
+
+失败响应的 `error` 是 `{ code, message }`。记号和 `ipc.Fail` 见 [ipc.md](ipc.md)。
 
 **线程：** UI/浏览器线程投递；重活丢到工作线程再 `post` 回 UI（CEF 规则不变）。
 
@@ -312,6 +315,7 @@ App
 - `xgoef dev` 拉起进程并热重载。 ✅（见 `docs/dev.md`）
 - 异步 command、超时与取消。 ✅（见 `docs/ipc.md`）
 - invoke 的 TypeScript 声明。 ✅（见 `docs/binding.md`）
+- 结构化错误码。 ✅（见 `docs/ipc.md`）
 
 ---
 
@@ -338,8 +342,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command，以及 invoke 的 TypeScript 声明**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明，以及结构化错误码**。接下来的产品差距集中在：
 
-1. **结构化错误码**
+1. **`process` 插件**（首批里还剩 `notification`、`global-shortcut`）
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

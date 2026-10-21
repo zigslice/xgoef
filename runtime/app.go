@@ -326,7 +326,7 @@ func handleMessage(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, window
 		Channel int64           `json:"channel"`
 	}
 	if err := json.Unmarshal([]byte(requestJSON), &req); err != nil {
-		return mustResponse(0, false, nil, "invalid invoke JSON: "+err.Error())
+		return failResponse(0, ipc.Fail(ipc.CodeInvalidMessage, "invalid invoke JSON: %s", err.Error()))
 	}
 	switch req.Type {
 	case "", "invoke":
@@ -340,24 +340,24 @@ func handleMessage(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, window
 			// JS → host: local listeners only (avoid echo loop to all webviews).
 			events.NotifyLocal(req.Event, payload)
 		}
-		return mustResponse(req.ID, true, map[string]any{"ok": true}, "")
+		return okResponse(req.ID, map[string]any{"ok": true})
 	case "channel-close":
 		if req.Channel < 1 || router == nil || router.Channels() == nil {
-			return mustResponse(req.ID, false, nil, "ipc: missing channel")
+			return failResponse(req.ID, ipc.Fail(ipc.CodeMissingChannel, "ipc: missing channel"))
 		}
 		router.Channels().Close(windowLabel, req.Channel)
-		return mustResponse(req.ID, true, map[string]any{"ok": true}, "")
+		return okResponse(req.ID, map[string]any{"ok": true})
 	default:
-		return mustResponse(req.ID, false, nil, "unsupported message type "+req.Type)
+		return failResponse(req.ID, ipc.Fail(ipc.CodeUnsupported, "unsupported message type %s", req.Type))
 	}
 }
 
 func handleInvoke(guard *acl.Guard, router *ipc.Router, windowLabel string, id int, cmd string, argsJSON json.RawMessage) string {
 	if cmd == "" {
-		return mustResponse(id, false, nil, "missing cmd")
+		return failResponse(id, ipc.Fail(ipc.CodeMissingCmd, "missing cmd"))
 	}
 	if guard == nil || !guard.Allows(windowLabel, cmd) {
-		return mustResponse(id, false, nil, (&acl.DenyError{Window: windowLabel, Command: cmd}).Error())
+		return failResponse(id, &acl.DenyError{Window: windowLabel, Command: cmd})
 	}
 	args := []byte(argsJSON)
 	if len(args) == 0 {
@@ -365,16 +365,30 @@ func handleInvoke(guard *acl.Guard, router *ipc.Router, windowLabel string, id i
 	}
 	out, err := router.InvokeFrom(windowLabel, cmd, args)
 	if err != nil {
-		return mustResponse(id, false, nil, err.Error())
+		return failResponse(id, err)
 	}
 	var payload any
 	if err := json.Unmarshal(out, &payload); err != nil {
-		return mustResponse(id, false, nil, "marshal response: "+err.Error())
+		return failResponse(id, ipc.Fail(ipc.CodeBadResponse, "marshal response: %s", err.Error()))
 	}
-	return mustResponse(id, true, payload, "")
+	return okResponse(id, payload)
 }
 
-func mustResponse(id int, ok bool, payload any, errMsg string) string {
+type responseError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func okResponse(id int, payload any) string {
+	return writeResponse(id, true, payload, nil)
+}
+
+func failResponse(id int, err error) string {
+	code, message := ipc.Describe(err)
+	return writeResponse(id, false, nil, &responseError{Code: code, Message: message})
+}
+
+func writeResponse(id int, ok bool, payload any, err *responseError) string {
 	msg := map[string]any{
 		"type": "response",
 		"id":   id,
@@ -383,11 +397,14 @@ func mustResponse(id int, ok bool, payload any, errMsg string) string {
 	if ok {
 		msg["payload"] = payload
 	} else {
-		msg["error"] = errMsg
+		if err == nil {
+			err = &responseError{Code: ipc.CodeFailed, Message: "invoke failed"}
+		}
+		msg["error"] = err
 	}
-	b, err := json.Marshal(msg)
-	if err != nil {
-		return `{"type":"response","id":0,"ok":false,"error":"response encode failed"}`
+	b, mErr := json.Marshal(msg)
+	if mErr != nil {
+		return `{"type":"response","id":0,"ok":false,"error":{"code":"ipc.encode","message":"response encode failed"}}`
 	}
 	return string(b)
 }

@@ -3,7 +3,6 @@ package runtime
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -78,7 +77,7 @@ func (g *invokeGate) run(window string, id int, queryID int64, perCall time.Dura
 		}()
 		defer func() {
 			if rec := recover(); rec != nil {
-				sl.send(mustResponse(id, false, nil, fmt.Sprintf("ipc: panic: %v", rec)))
+				sl.send(failResponse(id, ipc.Fail(ipc.CodePanic, "ipc: panic: %v", rec)))
 			}
 		}()
 		body := work(ctx)
@@ -171,9 +170,9 @@ func flightKey(window string, id int) string {
 
 func invokeStatus(id int, err error) string {
 	if err == context.DeadlineExceeded {
-		return mustResponse(id, false, nil, ipc.ErrTimeout.Error())
+		return failResponse(id, ipc.ErrTimeout)
 	}
-	return mustResponse(id, false, nil, ipc.ErrCanceled.Error())
+	return failResponse(id, ipc.ErrCanceled)
 }
 
 // dispatchFrontend delivers one page envelope. Invokes run off the caller so
@@ -191,7 +190,7 @@ func dispatchFrontend(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, gat
 		Invoke  int             `json:"invoke"`
 	}
 	if err := json.Unmarshal([]byte(requestJSON), &req); err != nil {
-		respond(mustResponse(0, false, nil, "invalid invoke JSON: "+err.Error()))
+		respond(failResponse(0, ipc.Fail(ipc.CodeInvalidMessage, "invalid invoke JSON: %s", err.Error())))
 		return
 	}
 	switch req.Type {
@@ -199,7 +198,7 @@ func dispatchFrontend(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, gat
 		if gate != nil {
 			gate.cancelID(window, req.Invoke)
 		}
-		respond(mustResponse(req.ID, true, map[string]any{"ok": true}, ""))
+		respond(okResponse(req.ID, map[string]any{"ok": true}))
 		return
 	case "", "invoke":
 		if gate == nil {
@@ -207,16 +206,16 @@ func dispatchFrontend(guard *acl.Guard, router *ipc.Router, events *ipc.Bus, gat
 			return
 		}
 		if req.Cmd == "" {
-			respond(mustResponse(req.ID, false, nil, "missing cmd"))
+			respond(failResponse(req.ID, ipc.Fail(ipc.CodeMissingCmd, "missing cmd")))
 			return
 		}
 		if guard == nil || !guard.Allows(window, req.Cmd) {
-			respond(mustResponse(req.ID, false, nil, (&acl.DenyError{Window: window, Command: req.Cmd}).Error()))
+			respond(failResponse(req.ID, &acl.DenyError{Window: window, Command: req.Cmd}))
 			return
 		}
 		per, err := invokeTimeout(req.Timeout)
 		if err != nil {
-			respond(mustResponse(req.ID, false, nil, err.Error()))
+			respond(failResponse(req.ID, err))
 			return
 		}
 		args := []byte(req.Args)
@@ -247,21 +246,21 @@ func invokeTimeout(ms *float64) (time.Duration, error) {
 
 func invokeBody(router *ipc.Router, window string, id int, cmd string, args []byte, ctx context.Context) string {
 	if router == nil {
-		return mustResponse(id, false, nil, "ipc: no router")
+		return failResponse(id, ipc.Fail(ipc.CodeNoRouter, "ipc: no router"))
 	}
 	out, err := router.InvokeContext(ctx, window, cmd, args)
 	if err != nil {
 		if ctx.Err() != nil {
 			return invokeStatus(id, ctx.Err())
 		}
-		return mustResponse(id, false, nil, err.Error())
+		return failResponse(id, err)
 	}
 	if ctx.Err() != nil {
 		return invokeStatus(id, ctx.Err())
 	}
 	var payload any
 	if err := json.Unmarshal(out, &payload); err != nil {
-		return mustResponse(id, false, nil, "marshal response: "+err.Error())
+		return failResponse(id, ipc.Fail(ipc.CodeBadResponse, "marshal response: %s", err.Error()))
 	}
-	return mustResponse(id, true, payload, "")
+	return okResponse(id, payload)
 }

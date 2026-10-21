@@ -56,14 +56,14 @@ type Plugin interface {
 | `$HOME` | 用户主目录 |
 | 其他 | 绝对路径，或相对 `$APP` |
 
-`..` 和指向范围外的符号链接都会拒绝。hello 用 `web/note.txt` 演示 `fs:read_text`。
+`..` 和指向范围外的符号链接都会拒绝，错误码是 `fs.denied`。hello 用 `web/note.txt` 演示 `fs:read_text`。
 
 ## shell
 
 `shell:open` 接受 `url` 或 `path`，不会经过 shell。
 
-- URL 默认只允许 `http` 和 `https`，拒绝用户名密码、`file:` 和 `javascript:`。
-- 本地路径要单独放进 `plugin.shell.allow`。没配 allow 就拒绝所有路径。
+- URL 默认只允许 `http` 和 `https`，拒绝用户名密码、`file:` 和 `javascript:`。这些拒绝的错误码是 `shell.denied`。
+- 本地路径要单独放进 `plugin.shell.allow`。没配 allow 就拒绝所有路径，错误码同样是 `shell.denied`。
 - 实际启动用 `xdg-open`，参数是一个 argv，不是命令字符串。
 
 ## clipboard
@@ -72,7 +72,7 @@ type Plugin interface {
 
 ## dialog
 
-`dialog:open` / `dialog:save` 先弹出选择器，再把返回的路径放进 `plugin.dialog.allow`。取消返回 `null`。默认选择器是 `zenity`；没装就报错，不会退回任意路径。
+`dialog:open` / `dialog:save` 先弹出选择器，再把返回的路径放进 `plugin.dialog.allow`。选到范围外是 `dialog.denied`。取消返回 `null`。默认选择器是 `zenity`；没装就报错，不会退回任意路径。没有单独记号的失败在页面上是 `command.failed`。见 [ipc.md](ipc.md)。
 
 ## updater
 

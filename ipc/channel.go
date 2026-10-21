@@ -2,7 +2,6 @@ package ipc
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"sync"
 )
@@ -41,7 +40,7 @@ func (h *Hub) SetEmitter(e Emitter) {
 // Open binds id for window, or returns the channel already bound there.
 func (h *Hub) Open(window string, id int64) (*Channel, error) {
 	if id < 1 {
-		return nil, fmt.Errorf("ipc: missing channel")
+		return nil, Fail(CodeMissingChannel, "ipc: missing channel")
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -51,7 +50,7 @@ func (h *Hub) Open(window string, id int64) (*Channel, error) {
 		closed := ch.closed
 		ch.mu.Unlock()
 		if closed {
-			return nil, fmt.Errorf("ipc: channel %d closed", id)
+			return nil, Fail(CodeChannelClosed, "ipc: channel %d closed", id)
 		}
 		return ch, nil
 	}
@@ -79,12 +78,12 @@ func (h *Hub) Close(window string, id int64) {
 // Send appends one payload. Indexes start at 0 and increase by one.
 func (c *Channel) Send(payload any) error {
 	if c == nil {
-		return fmt.Errorf("ipc: missing channel")
+		return Fail(CodeMissingChannel, "ipc: missing channel")
 	}
 	c.mu.Lock()
 	if c.closed {
 		c.mu.Unlock()
-		return fmt.Errorf("ipc: channel %d closed", c.id)
+		return Fail(CodeChannelClosed, "ipc: channel %d closed", c.id)
 	}
 	index := c.next
 	c.next++
@@ -129,7 +128,7 @@ func channelKey(window string, id int64) string {
 func ParseChannelID(argsJSON []byte) (int64, error) {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(argsJSON, &raw); err != nil {
-		return 0, fmt.Errorf("ipc: channel args: %w", err)
+		return 0, Fail(CodeChannelArgs, "ipc: channel args: %s", err.Error())
 	}
 	var found []int64
 	if id, ok := channelNumber(raw["__channel"]); ok {
@@ -148,10 +147,10 @@ func ParseChannelID(argsJSON []byte) (int64, error) {
 		}
 	}
 	if len(found) != 1 {
-		return 0, fmt.Errorf("ipc: want one channel")
+		return 0, Fail(CodeChannelCount, "ipc: want one channel")
 	}
 	if found[0] < 1 {
-		return 0, fmt.Errorf("ipc: missing channel")
+		return 0, Fail(CodeMissingChannel, "ipc: missing channel")
 	}
 	return found[0], nil
 }
@@ -170,7 +169,7 @@ func channelNumber(raw json.RawMessage) (int64, bool) {
 // Channel binds the channel referenced by argsJSON to this invoke's window.
 func (c Context) Channel(argsJSON []byte) (*Channel, error) {
 	if c.channels == nil {
-		return nil, fmt.Errorf("ipc: channels are not configured")
+		return nil, Fail(CodeChannelsUnconfigured, "ipc: channels are not configured")
 	}
 	id, err := ParseChannelID(argsJSON)
 	if err != nil {

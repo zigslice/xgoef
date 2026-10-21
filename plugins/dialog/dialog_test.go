@@ -45,7 +45,7 @@ func TestPickerScopeAndCancel(t *testing.T) {
 		t.Fatalf("%s", out)
 	}
 	next = Result{Path: outside}
-	if _, err := r.Invoke("dialog:open", []byte(`{}`)); err == nil || !strings.Contains(err.Error(), "outside") {
+	if _, err := r.Invoke("dialog:open", []byte(`{}`)); err == nil || !strings.Contains(err.Error(), "outside") || ipc.CodeOf(err) != "dialog.denied" {
 		t.Fatalf("outside: %v", err)
 	}
 	next = Result{Cancelled: true}

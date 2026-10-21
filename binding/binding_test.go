@@ -93,6 +93,10 @@ export interface XgoefInvokeResult<T> extends Promise<T> {
   cancel(): void;
 }
 
+export interface XgoefError extends Error {
+  readonly code: string;
+}
+
 export interface XgoefCommands {
   /** hello */
   greet: { args: { name?: string }; result: string };
@@ -112,6 +116,7 @@ export interface Xgoef {
   listen(event: string, handler: (payload: unknown) => void): () => void;
   emit(event: string, payload?: unknown): void;
   channel(): XgoefChannel;
+  readonly XgoefError: new (code: string, message?: string) => XgoefError;
   plugins: {
     os: {
       platform(): XgoefInvokeResult<string>;

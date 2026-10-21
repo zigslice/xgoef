@@ -35,8 +35,13 @@ func TestRouterInvoke(t *testing.T) {
 
 func TestRouterUnknown(t *testing.T) {
 	r := NewRouter()
-	if _, err := r.Invoke("nope", nil); err == nil {
+	_, err := r.Invoke("nope", nil)
+	if err == nil {
 		t.Fatal("expected error")
+	}
+	code, msg := Describe(err)
+	if code != CodeUnknownCommand || msg != `ipc: unknown command "nope"` {
+		t.Fatalf("%s %s", code, msg)
 	}
 }
 

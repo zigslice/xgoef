@@ -71,7 +71,7 @@ func TestInvokeSendsChannelInOrder(t *testing.T) {
 		t.Fatalf("close %s", closed)
 	}
 	out = handleMessage(g, r, nil, "main", `{"type":"invoke","id":3,"cmd":"progress","args":{"channel":{"__channel":4}}}`)
-	if !strings.Contains(out, `"ok":false`) || !strings.Contains(out, "closed") {
+	if !strings.Contains(out, `"ok":false`) || !strings.Contains(out, `"code":"ipc.channel_closed"`) || !strings.Contains(out, "closed") {
 		t.Fatalf("after close %s", out)
 	}
 }

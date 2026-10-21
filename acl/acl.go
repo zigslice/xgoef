@@ -57,6 +57,9 @@ func (e *DenyError) Error() string {
 	return fmt.Sprintf("acl: command %q not permitted for window %q", e.Command, e.Window)
 }
 
+// Code is the stable invoke error code for a capability rejection.
+func (e *DenyError) Code() string { return "acl.denied" }
+
 func windowMatches(windows []string, label string) bool {
 	if len(windows) == 0 {
 		// Empty windows list ⇒ capability applies to all labels.

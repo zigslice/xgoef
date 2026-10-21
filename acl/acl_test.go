@@ -24,6 +24,16 @@ func TestAllowsExactPermission(t *testing.T) {
 	}
 }
 
+func TestDenyErrorCode(t *testing.T) {
+	err := &DenyError{Window: "main", Command: "secret"}
+	if err.Code() != "acl.denied" {
+		t.Fatal(err.Code())
+	}
+	if err.Error() == "" {
+		t.Fatal("empty message")
+	}
+}
+
 func TestDefaultDenyEmpty(t *testing.T) {
 	g := NewGuard(nil)
 	if g.Allows("main", "greet") {

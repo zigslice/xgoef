@@ -59,7 +59,7 @@ const job = window.__XGOEF__.invoke('wait', {}, { timeout: 2000 })
 job.cancel()
 ```
 
-页面 invoke 在 CEF 查询回调外执行。`ctx.Done()` 在取消或超时后关闭。详见 [docs/ipc.md](docs/ipc.md)。
+页面 invoke 在 CEF 查询回调外执行。`ctx.Done()` 在取消或超时后关闭。失败的响应带 `code` 和 `message`；应用命令用 `ipc.Fail` 给出自己的记号。详见 [docs/ipc.md](docs/ipc.md)。
 
 `commands` 写在 `xgoef.conf.json` 里。`xgoef build` 和 `xgoef dev` 据此生成 `web/xgoef.d.ts`。详见 [docs/binding.md](docs/binding.md)。
 

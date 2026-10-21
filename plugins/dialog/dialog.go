@@ -108,7 +108,7 @@ func (p *Plugin) pick(req Request) (any, error) {
 	}
 	abs, err := p.scope.Resolve(p.base, res.Path)
 	if err != nil {
-		return nil, fmt.Errorf("dialog: path %q is outside the configured scope", res.Path)
+		return nil, ipc.Fail("dialog.denied", "dialog: path %q is outside the configured scope", res.Path)
 	}
 	return abs, nil
 }
