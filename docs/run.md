@@ -100,6 +100,8 @@ xgoef dev --app examples/hello --out /tmp/xgoef-dev
 
 页面 command 在查询回调外执行。`invoke(cmd, args, { timeout })` 的 `timeout` 是毫秒；返回的 Promise 有 `cancel()`。hello 的 *wait* / *cancel wait* 走这条路。细节见 [ipc.md](ipc.md)。
 
+`xgoef build` 和 `xgoef dev` 把 `commands` 和已启用插件写成 `web/xgoef.d.ts`。细节见 [binding.md](binding.md)。
+
 ## 与 llcppg 的关系
 
 - 宿主已用 LLGo `go:linkname` 调 shim（无 cgo）。

@@ -68,14 +68,15 @@ Usage:
   xgoef dev  [--app dir] [--out dir] [--assets-only]
   xgoef build [--app dir] [--out dir] [--assets-only]
 
-create writes main.xgo, xgoef.conf.json, web/, and a copy of xgoef.js.
+create writes main.xgo, xgoef.conf.json, web/, a copy of xgoef.js, and xgoef.d.ts.
 build / dev stage the frontend and link the CEF shim plus the XGo host
 (cmake, xgoef-helper, xgo build). build also signs web/ into the host
 binary. --assets-only skips the link and the seal.
 dev rewrites the first window URL to build.devUrl when that field is set
 and does not seal, so the loose frontend stays in use. It then runs the
 host from the output directory and recopies the frontend when those files
-change. The page reloads on the dev-reload event. --assets-only still
+change. The page reloads on the dev-reload event. Stage also writes
+web/xgoef.d.ts from conf commands and the enabled plugins. --assets-only still
 returns after staging when the host binary is not in the output directory.
 `)
 }
@@ -117,6 +118,13 @@ func cmdCreate(args []string) error {
 		return err
 	}
 	if err := copyFile(js, filepath.Join(name, "web", "xgoef.js")); err != nil {
+		return err
+	}
+	cfg, err := conf.Load(filepath.Join(name, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	if err := emitBindings(cfg, name); err != nil {
 		return err
 	}
 	fmt.Printf("created %s\n", name)
@@ -283,6 +291,9 @@ func stage(appDir, outDir string, dev bool) (string, error) {
 		return "", err
 	}
 	if err := rewriteBridgeSrc(filepath.Join(dstWeb, "index.html")); err != nil && !os.IsNotExist(err) {
+		return "", err
+	}
+	if err := emitBindings(cfg, outDir); err != nil {
 		return "", err
 	}
 	abs, err := filepath.Abs(outDir)

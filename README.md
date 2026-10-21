@@ -60,7 +60,7 @@ cd build/hello && ./xgoef-hello
 ## 下一步
 
 1. `llcppg` 扩大到更多 `include/capi` 头，收窄 shim（MessageRouter 仍可留在 shim）
-2. **P2**：TS 类型与 `invoke` 声明生成（异步 command 见 [docs/ipc.md](docs/ipc.md)）
+2. **P2**：结构化错误码（invoke 声明见 [docs/binding.md](docs/binding.md)）
 3. 将 `runtime` / `ipc` 等框架 API 逐步迁到 `.xgo`
 
 无 CEF 时 `go test ./...`（gc）仍可通过（`!llgo` stub）。

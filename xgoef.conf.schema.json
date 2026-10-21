@@ -84,6 +84,36 @@
         "cacheDir": { "type": "string" }
       }
     },
+    "commands": {
+      "type": "array",
+      "description": "App invoke shapes. xgoef build and xgoef dev write web/xgoef.d.ts from these plus the enabled plugins.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "doc": { "type": "string" },
+          "result": {
+            "type": "string",
+            "description": "TypeScript result. Empty means null. Allowed: string, number, boolean, null, unknown, XgoefChannel, T[], A | B, and { name: T; name?: T }."
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "optional": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
     "plugins": {
       "type": "array",
       "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater).",

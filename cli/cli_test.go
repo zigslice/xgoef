@@ -28,6 +28,13 @@ func TestCreateAndBuild(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "demo", "main.xgo")); err != nil {
 		t.Fatal(err)
 	}
+	dts, err := os.ReadFile(filepath.Join(root, "demo", "web", "xgoef.d.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(dts), "greet:") || !strings.Contains(string(dts), `"fs:read_text"`) {
+		t.Fatalf("create bindings:\n%s", dts)
+	}
 	body, err := os.ReadFile(filepath.Join(root, "demo", "web", "index.html"))
 	if err != nil {
 		t.Fatal(err)
@@ -57,6 +64,16 @@ func TestCreateAndBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(out, "web", "note.txt")); err != nil {
+		t.Fatal(err)
+	}
+	staged, err := os.ReadFile(filepath.Join(out, "web", "xgoef.d.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(staged), `"os:platform"`) {
+		t.Fatalf("staged bindings:\n%s", staged)
+	}
+	if _, err := os.Stat(filepath.Join(out, "api", "js", "xgoef.d.ts")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -104,6 +121,41 @@ func TestBuildRewritesHelloScript(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(out, "web", "xgoef.js")); err != nil {
 		t.Fatal(err)
+	}
+	dts, err := os.ReadFile(filepath.Join(out, "web", "xgoef.d.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(dts)
+	for _, needle := range []string{"wait:", "XgoefChannel", `"clipboard:read_text"`, `"deeplink:get_current"`, `"menu:popup"`} {
+		if !strings.Contains(text, needle) {
+			t.Fatalf("missing %s\n%s", needle, text)
+		}
+	}
+}
+
+func TestRefreshRewritesBindings(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	app := filepath.Join(wd, "..", "examples", "hello")
+	out := t.TempDir()
+	if code := Run([]string{"build", "--assets-only", "--app", app, "--out", out}); code != 0 {
+		t.Fatalf("build exit %d", code)
+	}
+	if err := os.WriteFile(filepath.Join(out, "web", "xgoef.d.ts"), []byte("gone"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := refreshFrontend(app, out); err != nil {
+		t.Fatal(err)
+	}
+	body, err := os.ReadFile(filepath.Join(out, "web", "xgoef.d.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(body), "greet:") || strings.Contains(string(body), "gone") {
+		t.Fatalf("%s", body)
 	}
 }
 

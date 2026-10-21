@@ -49,6 +49,8 @@ Handler 看 `ctx.Done()` 才会停下来。不看的 handler 会继续跑到返�
 
 hello 的 *wait* 停 1.5 秒，*cancel wait* 取消它。
 
+`xgoef build` / `xgoef dev` 会按配置写出 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+
 ## C ABI
 
 见 `cef/shim/xgoef_host.h`：`xgoef_ipc_set_handler` / `xgoef_ipc_respond` / `xgoef_ipc_set_cancel_handler`。
