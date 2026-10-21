@@ -113,6 +113,7 @@ func helperMethod(c Command) (string, bool) {
 		"os:platform", "os:arch",
 		"clipboard:read_text", "clipboard:write_text",
 		"updater:check", "updater:install",
+		"process:exit", "process:relaunch",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

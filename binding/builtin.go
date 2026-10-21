@@ -45,6 +45,10 @@ var builtinPlugins = map[string][]Command{
 		{Name: "updater:check", Result: "{ version: string; notes?: string; current: string } | null"},
 		{Name: "updater:install", Result: "{ version: string; restart: boolean }"},
 	},
+	"process": {
+		{Name: "process:exit", Args: []Arg{{Name: "code", Type: "number", Optional: true}}, Result: "null"},
+		{Name: "process:relaunch", Result: "null"},
+	},
 }
 
 var chromeCommands = []Command{
@@ -59,4 +63,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "deeplink"}

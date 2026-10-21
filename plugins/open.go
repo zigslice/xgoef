@@ -9,6 +9,7 @@ import (
 	"github.com/zigslice/xgoef/plugins/dialog"
 	"github.com/zigslice/xgoef/plugins/fs"
 	osinfo "github.com/zigslice/xgoef/plugins/os"
+	"github.com/zigslice/xgoef/plugins/process"
 	"github.com/zigslice/xgoef/plugins/shell"
 	"github.com/zigslice/xgoef/plugins/updater"
 )
@@ -31,9 +32,11 @@ type Options struct {
 	UpdaterEndpoint string
 	UpdaterPub      string
 	Executable      string
+	Args            []string
+	Release         func()
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -55,6 +58,12 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 		return dialog.New(opt.Base, opt.Resource, opt.DialogAllow, opt.DialogDeny, nil)
 	case "updater":
 		return updater.New(opt.Version, opt.UpdaterEndpoint, opt.UpdaterPub, opt.Base, opt.Executable)
+	case "process":
+		return process.New(process.Spec{
+			Executable: opt.Executable,
+			Args:       opt.Args,
+			Release:    opt.Release,
+		}), nil
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

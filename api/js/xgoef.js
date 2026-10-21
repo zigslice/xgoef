@@ -246,6 +246,18 @@
           return global.__XGOEF__.invoke("updater:install", {});
         },
       },
+      process: {
+        exit: function (code) {
+          const args = {};
+          if (typeof code === "number") {
+            args.code = code;
+          }
+          return global.__XGOEF__.invoke("process:exit", args);
+        },
+        relaunch: function () {
+          return global.__XGOEF__.invoke("process:relaunch", {});
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});

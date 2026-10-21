@@ -79,6 +79,8 @@
         <button id="btn-tray" class="secondary" type="button">tray</button>
         <button id="btn-wait" class="secondary" type="button">wait</button>
         <button id="btn-cancel" class="secondary" type="button">cancel wait</button>
+        <button id="btn-exit" class="secondary" type="button">exit</button>
+        <button id="btn-relaunch" class="secondary" type="button">relaunch</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -172,6 +174,20 @@
       document.getElementById("btn-menu").onclick = async () => {
         try {
           out.textContent = String(await window.__XGOEF__.invoke("menu:popup", {}));
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-exit").onclick = async () => {
+        try {
+          await window.__XGOEF__.plugins.process.exit(0);
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-relaunch").onclick = async () => {
+        try {
+          await window.__XGOEF__.plugins.process.relaunch();
         } catch (e) {
           show(e);
         }

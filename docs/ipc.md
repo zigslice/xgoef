@@ -85,6 +85,8 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `ipc.transport` | `cefQuery` 失败 |
 | `acl.denied` | capability 拒绝，见 [acl.md](acl.md) |
 | `fs.denied` / `shell.denied` / `dialog.denied` | 路径或 URL 不在范围内 |
+| `process.invalid` | `process:exit` 的退出码不合法，或 `process:relaunch` 带了参数 |
+| `process.relaunch` | 重启宿主失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

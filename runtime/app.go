@@ -156,6 +156,8 @@ func (a *App) OpenPlugins() error {
 		UpdaterEndpoint: a.Config.Plugin.Updater.Endpoint,
 		UpdaterPub:      a.Config.Build.AssetPublicKey,
 		Executable:      a.executable(),
+		Args:            a.programArgs(),
+		Release:         a.closeInstance,
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {

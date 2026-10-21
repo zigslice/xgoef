@@ -30,8 +30,9 @@ type Plugin interface {
 | `clipboard` | `clipboard:read_text` `clipboard:write_text` | 与命令名相同 |
 | `dialog` | `dialog:open` `dialog:save` | 与命令名相同 |
 | `updater` | `updater:check` `updater:install` | 与命令名相同 |
+| `process` | `process:exit` `process:relaunch` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -77,6 +78,12 @@ type Plugin interface {
 ## updater
 
 `updater:check` / `updater:install` 读取 `plugin.updater.endpoint` 上的 `update.json` 和 `xgoef.assets`。公钥是 `build.assetPublicKey`。细节见 [updater.md](updater.md)。
+
+## process
+
+`process:exit` 结束当前进程。`code` 省略时是 0，只接受 0 到 255 的整数，其它值是 `process.invalid`。进程在响应写回之前就结束，页面不一定收得到结果。
+
+`process:relaunch` 再启动当前宿主。参数沿用这次启动的参数，并去掉 CEF 子进程的 `--type` 和 `--utility-sub-type`。页面不能改可执行文件，也不能附加参数；带了参数就是 `process.invalid`。单实例锁先放开，再启动新进程，然后当前进程以 0 退出。可执行文件不存在时不会放开锁。启动失败是 `process.relaunch`。hello 的 *exit* 和 *relaunch* 走这两条命令。
 
 ## 应用侧还要做的
 
