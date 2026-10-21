@@ -87,6 +87,10 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `fs.denied` / `shell.denied` / `dialog.denied` | 路径或 URL 不在范围内 |
 | `process.invalid` | `process:exit` 的退出码不合法，或 `process:relaunch` 带了参数 |
 | `process.relaunch` | 重启宿主失败 |
+| `notification.invalid` | 通知标题、正文或参数不合法 |
+| `notification.denied` | 还没有通知权限 |
+| `notification.icon` | 图标不在配置的目录范围内 |
+| `notification.show` | `notify-send` 失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

@@ -25,7 +25,7 @@ func TestRenderAppAndOS(t *testing.T) {
 }
 
 func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
-	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process"}, true)
+	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,6 +48,10 @@ func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
 		`"process:relaunch": { args: Record<string, never>; result: null }`,
 		"exit(code?: number): XgoefInvokeResult<null>",
 		"relaunch(): XgoefInvokeResult<null>",
+		`"notification:show": { args: { title: string; body?: string; icon?: string }; result: null }`,
+		"isPermissionGranted(): XgoefInvokeResult<boolean>",
+		"requestPermission(): XgoefInvokeResult<string>",
+		"show(opts: { title: string; body?: string; icon?: string } | string): XgoefInvokeResult<null>",
 		`"deeplink:get_current": { args: Record<string, never>; result: { urls: string[] } }`,
 		"getCurrent(): XgoefInvokeResult<{ urls: string[] }>",
 		`"menu:popup"`,

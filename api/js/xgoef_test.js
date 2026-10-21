@@ -122,6 +122,21 @@ async function main() {
     assert.deepEqual(posted[1].args, { code: 7 });
     assert.deepEqual(posted[2].args, {});
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    sandbox.__XGOEF__.plugins.notification.requestPermission();
+    sandbox.__XGOEF__.plugins.notification.show("hello");
+    sandbox.__XGOEF__.plugins.notification.show({ title: "xgoef", body: "hi", icon: "icon.png" });
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      ["notification:request_permission", "notification:show", "notification:show"]
+    );
+    assert.deepEqual(posted[1].args, { title: "hello" });
+    assert.deepEqual(posted[2].args, { title: "xgoef", body: "hi", icon: "icon.png" });
+  }
 }
 
 main().catch((err) => {

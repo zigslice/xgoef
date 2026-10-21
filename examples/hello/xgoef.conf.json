@@ -39,7 +39,7 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": ["fs", "os", "clipboard", "process"],
+  "plugins": ["fs", "os", "clipboard", "process", "notification"],
   "commands": [
     {
       "name": "greet",
@@ -58,13 +58,16 @@
   "plugin": {
     "fs": {
       "allow": ["$APP", "$RESOURCE"]
+    },
+    "notification": {
+      "allow": ["$APP"]
     }
   },
   "capabilities": [
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "notification:is_permission_granted", "notification:request_permission", "notification:show", "core:default"]
     },
     {
       "identifier": "aux",

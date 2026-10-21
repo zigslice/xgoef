@@ -8,6 +8,7 @@ import (
 	"github.com/zigslice/xgoef/plugins/clipboard"
 	"github.com/zigslice/xgoef/plugins/dialog"
 	"github.com/zigslice/xgoef/plugins/fs"
+	"github.com/zigslice/xgoef/plugins/notification"
 	osinfo "github.com/zigslice/xgoef/plugins/os"
 	"github.com/zigslice/xgoef/plugins/process"
 	"github.com/zigslice/xgoef/plugins/shell"
@@ -27,6 +28,9 @@ type Options struct {
 	ShellDeny       []string
 	DialogAllow     []string
 	DialogDeny      []string
+	NotifyAllow     []string
+	NotifyDeny      []string
+	AppName         string
 	ClipboardMode   string
 	Version         string
 	UpdaterEndpoint string
@@ -36,7 +40,7 @@ type Options struct {
 	Release         func()
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -64,6 +68,8 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 			Args:       opt.Args,
 			Release:    opt.Release,
 		}), nil
+	case "notification":
+		return notification.New(opt.Base, opt.Resource, opt.AppName, opt.NotifyAllow, opt.NotifyDeny, nil)
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

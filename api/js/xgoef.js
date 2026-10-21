@@ -258,6 +258,20 @@
           return global.__XGOEF__.invoke("process:relaunch", {});
         },
       },
+      notification: {
+        isPermissionGranted: function () {
+          return global.__XGOEF__.invoke("notification:is_permission_granted", {});
+        },
+        requestPermission: function () {
+          return global.__XGOEF__.invoke("notification:request_permission", {});
+        },
+        show: function (opts) {
+          if (typeof opts === "string") {
+            return global.__XGOEF__.invoke("notification:show", { title: opts });
+          }
+          return global.__XGOEF__.invoke("notification:show", opts || {});
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});
