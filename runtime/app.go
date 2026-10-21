@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -216,6 +217,9 @@ func (a *App) FocusWindow(label string) error {
 // (before Run); when Run is entered, this is already the browser process.
 // Browser URL is passed as `--url=` for OnContextInitialized.
 func (a *App) Run() error {
+	reloadCtx, stopReload := context.WithCancel(context.Background())
+	defer stopReload()
+	go a.serveDevReload(reloadCtx)
 	if err := a.acquireInstance(); err != nil {
 		return err
 	}

@@ -98,6 +98,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `xgoef build` 在有 `version` 时把分期目录打成 deb、msi 和 dmg。详见 [docs/bundle.md](docs/bundle.md)。
 
+`xgoef dev` 拉起分期目录里的宿主。前端文件变化后重新复制，页面收到 `dev-reload` 再刷新。详见 [docs/dev.md](docs/dev.md)。
+
 ### Plugins
 
 ```xgo

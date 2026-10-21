@@ -208,4 +208,9 @@
       },
     },
   };
+  global.__XGOEF__.listen("dev-reload", function () {
+    if (global.location && typeof global.location.reload === "function") {
+      global.location.reload();
+    }
+  });
 })(typeof window !== "undefined" ? window : globalThis);

@@ -27,5 +27,6 @@
 | 7f | **P3** deep link | 完成 |
 | 7g | **P3** 平台安装包（msi / dmg / deb） | 完成 |
 | 7h | **P3** AppImage | 待做 |
+| 7i | **P1** `xgoef dev` 热重载并拉起进程 | 完成 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。
