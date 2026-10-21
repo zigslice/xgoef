@@ -20,10 +20,14 @@
 
 ## 运行时
 
-`runtime.App` 在每次 invoke 前调用 `acl.Guard.Allows(windowLabel, cmd)`。拒绝时返回：
+`runtime.App` 在每次 invoke 前调用 `acl.Guard.Allows(windowLabel, cmd)`。拒绝时 `code` 是 `acl.denied`，message 仍是：
 
 ```text
 acl: command "…" not permitted for window "…"
+```
+
+```json
+{ "code": "acl.denied", "message": "acl: command \"secret\" not permitted for window \"main\"" }
 ```
 
 命令权限仍是精确匹配。`fs` 的路径范围不在这里做，见 [plugins.md](plugins.md)。

@@ -8,7 +8,7 @@
 { "type": "invoke", "id": 1, "cmd": "greet", "args": { "name": "xgo" }, "timeout": 2000 }
 { "type": "cancel", "invoke": 1 }
 { "type": "response", "id": 1, "ok": true, "payload": "hello, xgo (from xgoef)" }
-{ "type": "response", "id": 1, "ok": false, "error": "ipc: canceled" }
+{ "type": "response", "id": 1, "ok": false, "error": { "code": "ipc.canceled", "message": "ipc: canceled" } }
 ```
 
 `timeout` 是毫秒，正整数。缺省或 `0` 表示这次调用自己不设期限。负数、小数，或超过 24 小时，返回 `ipc: invalid timeout`。
@@ -50,6 +50,42 @@ Handler 看 `ctx.Done()` 才会停下来。不看的 handler 会继续跑到返�
 hello 的 *wait* 停 1.5 秒，*cancel wait* 取消它。
 
 `xgoef build` / `xgoef dev` 会按配置写出 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+
+## 结构化错误
+
+失败时 `error` 是对象。`code` 是稳定记号，`message` 是给人看的那句文本。
+
+页面上 `invoke` reject 的是 `XgoefError`（`__XGOEF__.XgoefError`）。`e.code` 用来分支，`e.message` 是上面的文本。声明见 [binding.md](binding.md)。
+
+```xgo
+return nil, ipc.Fail("greet.empty", "name is empty")
+```
+
+记号是小写段，用点分开，至少两段，最长 64 个字符，例如 `greet.empty`。不合语法的记号会变成 `command.failed`，message 仍保留。普通 `error` 也是 `command.failed`。
+
+| code | 何时 |
+| --- | --- |
+| `ipc.canceled` | 页面取消，或导航丢掉这次调用 |
+| `ipc.timeout` | 超过期限 |
+| `ipc.invalid_timeout` | `timeout` 不是合法毫秒 |
+| `ipc.unknown_command` | 没有这个 command |
+| `ipc.missing_cmd` | 没写 `cmd` |
+| `ipc.invalid_message` | invoke JSON 解析失败 |
+| `ipc.no_router` | 没有 router |
+| `ipc.panic` | handler panic |
+| `ipc.bad_response` | 返回值无法编码，或页面解析不了宿主响应 |
+| `ipc.unsupported` | 不认识的消息 type |
+| `ipc.missing_channel` | 没有 channel id |
+| `ipc.channel_closed` | channel 已关 |
+| `ipc.channel_args` | channel 参数不是对象 |
+| `ipc.channel_count` | 参数里不是恰好一个 channel |
+| `ipc.channels_unconfigured` | 宿主没接 channel |
+| `ipc.encode` | 响应本身编码失败 |
+| `ipc.disconnected` | 页面上没有 `cefQuery` / `__xgoefPost` |
+| `ipc.transport` | `cefQuery` 失败 |
+| `acl.denied` | capability 拒绝，见 [acl.md](acl.md) |
+| `fs.denied` / `shell.denied` / `dialog.denied` | 路径或 URL 不在范围内 |
+| `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI
 

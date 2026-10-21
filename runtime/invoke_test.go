@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"errors"
 	"strings"
 	"sync"
 	"testing"
@@ -103,7 +104,7 @@ func TestDispatchCancel(t *testing.T) {
 		t.Fatal(cancelBox.body)
 	}
 	got := box.wait(t)
-	if !strings.Contains(got, `"ok":false`) || !strings.Contains(got, "ipc: canceled") {
+	if !strings.Contains(got, `"ok":false`) || !strings.Contains(got, `"code":"ipc.canceled"`) || !strings.Contains(got, "ipc: canceled") {
 		t.Fatalf("%s", got)
 	}
 	select {
@@ -133,7 +134,7 @@ func TestDispatchTimeoutUnblocksCaller(t *testing.T) {
 	if time.Since(start) > time.Second {
 		t.Fatal("timeout waited for the handler")
 	}
-	if !strings.Contains(got, "ipc: timeout") {
+	if !strings.Contains(got, `"code":"ipc.timeout"`) || !strings.Contains(got, "ipc: timeout") {
 		t.Fatalf("%s", got)
 	}
 	select {
@@ -248,8 +249,38 @@ func TestDispatchRejectsBadTimeoutAndACL(t *testing.T) {
 	box = newReplyBox()
 	dispatchFrontend(allowGuard("other"), r, nil, newInvokeGate(), "main",
 		`{"type":"invoke","id":3,"cmd":"greet"}`, 3, box.add)
-	if !strings.Contains(box.wait(t), "not permitted") || called {
+	if !strings.Contains(box.wait(t), `"code":"acl.denied"`) || !strings.Contains(box.body[0], "not permitted") || called {
 		t.Fatalf("%v %v", called, box.body)
+	}
+}
+
+func TestDispatchStructuredError(t *testing.T) {
+	r := ipc.NewRouter()
+	r.Handle("greet", func(ipc.Context, []byte) (any, error) {
+		return nil, ipc.Fail("greet.empty", "name is empty")
+	})
+	r.Handle("boom", func(ipc.Context, []byte) (any, error) {
+		return nil, errors.New("boom")
+	})
+	box := newReplyBox()
+	dispatchFrontend(allowGuard("greet", "boom"), r, nil, newInvokeGate(), "main",
+		`{"type":"invoke","id":1,"cmd":"greet","args":{}}`, 1, box.add)
+	got := box.wait(t)
+	if !strings.Contains(got, `"code":"greet.empty"`) || !strings.Contains(got, `"message":"name is empty"`) {
+		t.Fatalf("%s", got)
+	}
+	box = newReplyBox()
+	dispatchFrontend(allowGuard("greet", "boom"), r, nil, newInvokeGate(), "main",
+		`{"type":"invoke","id":2,"cmd":"boom"}`, 2, box.add)
+	got = box.wait(t)
+	if !strings.Contains(got, `"code":"command.failed"`) || !strings.Contains(got, `"message":"boom"`) {
+		t.Fatalf("%s", got)
+	}
+	box = newReplyBox()
+	dispatchFrontend(allowGuard("greet", "boom", "missing"), r, nil, newInvokeGate(), "main",
+		`{"type":"invoke","id":3,"cmd":"missing"}`, 3, box.add)
+	if !strings.Contains(box.wait(t), `"code":"ipc.unknown_command"`) {
+		t.Fatal(box.body)
 	}
 }
 

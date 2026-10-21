@@ -87,6 +87,11 @@
     <script>
       const out = document.getElementById("out");
       const evt = document.getElementById("evt");
+      function show(err) {
+        const code = err && err.code ? err.code + ": " : "";
+        const message = err && err.message ? err.message : String(err);
+        out.textContent = code + message;
+      }
       window.__XGOEF__.listen("tick", function (payload) {
         evt.textContent = "event: tick " + JSON.stringify(payload);
       });
@@ -101,7 +106,7 @@
           const msg = await window.__XGOEF__.invoke("greet", { name: "xgo" });
           out.textContent = String(msg);
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-aux").onclick = async () => {
@@ -109,7 +114,7 @@
           const msg = await window.__XGOEF__.invoke("open_aux", {});
           out.textContent = String(msg);
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-fs").onclick = async () => {
@@ -117,7 +122,7 @@
           const text = await window.__XGOEF__.plugins.fs.readText("web/note.txt");
           out.textContent = String(text);
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-os").onclick = async () => {
@@ -125,7 +130,7 @@
           const plat = await window.__XGOEF__.plugins.os.platform();
           out.textContent = "platform: " + plat;
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-clip").onclick = async () => {
@@ -133,7 +138,7 @@
           await window.__XGOEF__.plugins.clipboard.writeText("from xgoef");
           out.textContent = await window.__XGOEF__.plugins.clipboard.readText();
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-ch").onclick = async () => {
@@ -146,7 +151,7 @@
         try {
           out.textContent = String(await window.__XGOEF__.invoke("progress", { channel: ch }));
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       let waiting = null;
@@ -156,7 +161,7 @@
         try {
           out.textContent = String(await job);
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-cancel").onclick = () => {
@@ -168,14 +173,14 @@
         try {
           out.textContent = String(await window.__XGOEF__.invoke("menu:popup", {}));
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-tray").onclick = async () => {
         try {
           out.textContent = String(await window.__XGOEF__.invoke("tray:popup", {}));
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
     </script>

@@ -38,7 +38,7 @@ func TestOpenURLAndReject(t *testing.T) {
 	if string(out) != `"https://example.com/a"` {
 		t.Fatalf("%s", out)
 	}
-	if _, err := r.Invoke("shell:open", []byte(`{"url":"file:///etc/passwd"}`)); err == nil {
+	if _, err := r.Invoke("shell:open", []byte(`{"url":"file:///etc/passwd"}`)); err == nil || ipc.CodeOf(err) != "shell.denied" {
 		t.Fatal("file url must be rejected")
 	}
 	if _, err := r.Invoke("shell:open", []byte(`{"url":"javascript:alert(1)"}`)); err == nil {
@@ -54,7 +54,7 @@ func TestOpenURLAndReject(t *testing.T) {
 	if !strings.Contains(string(out), "note.txt") {
 		t.Fatalf("%s", out)
 	}
-	if _, err := r.Invoke("shell:open", []byte(`{"path":"../outside"}`)); err == nil || !strings.Contains(err.Error(), "outside") {
+	if _, err := r.Invoke("shell:open", []byte(`{"path":"../outside"}`)); err == nil || !strings.Contains(err.Error(), "outside") || ipc.CodeOf(err) != "shell.denied" {
 		t.Fatalf("path escape: %v", err)
 	}
 	if len(got) != 2 {

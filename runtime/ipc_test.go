@@ -48,7 +48,7 @@ func TestHandleInvokeACLDeny(t *testing.T) {
 		Permissions: []string{"greet"},
 	}})
 	out := handleMessage(g, r, nil, "main", `{"type":"invoke","id":2,"cmd":"secret","args":{}}`)
-	if !strings.Contains(out, `"ok":false`) || !strings.Contains(out, "not permitted") {
+	if !strings.Contains(out, `"ok":false`) || !strings.Contains(out, `"code":"acl.denied"`) || !strings.Contains(out, "not permitted") {
 		t.Fatalf("%s", out)
 	}
 }

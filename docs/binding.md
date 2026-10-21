@@ -21,4 +21,4 @@
 
 `shell.open` 在声明里是一个 `target` 字符串，和 `xgoef.js` 一致。`dialog.open` / `dialog.save` 是一个可选的 `opts` 对象。
 
-结构化错误码仍后置。
+失败的调用 reject `XgoefError`。声明里有这个接口，以及 `__XGOEF__.XgoefError`。`code` 是稳定记号，见 [ipc.md](ipc.md)。

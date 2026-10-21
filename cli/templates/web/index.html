@@ -13,25 +13,30 @@
     <script src="xgoef.js"></script>
     <script>
       const out = document.getElementById("out");
+      function show(err) {
+        const code = err && err.code ? err.code + ": " : "";
+        const message = err && err.message ? err.message : String(err);
+        out.textContent = code + message;
+      }
       document.getElementById("btn").onclick = async () => {
         try {
           out.textContent = String(await window.__XGOEF__.invoke("greet", { name: "__NAME__" }));
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-fs").onclick = async () => {
         try {
           out.textContent = String(await window.__XGOEF__.plugins.fs.readText("web/note.txt"));
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
       document.getElementById("btn-os").onclick = async () => {
         try {
           out.textContent = "platform: " + (await window.__XGOEF__.plugins.os.platform());
         } catch (e) {
-          out.textContent = e.message || String(e);
+          show(e);
         }
       };
     </script>

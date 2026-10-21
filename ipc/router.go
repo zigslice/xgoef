@@ -4,18 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"sync"
 )
-
-// ErrCanceled is returned when the page cancels an invoke, or the frame drops it.
-var ErrCanceled = errors.New("ipc: canceled")
-
-// ErrTimeout is returned when an invoke exceeds its deadline.
-var ErrTimeout = errors.New("ipc: timeout")
-
-// ErrInvalidTimeout is returned when the page asks for a timeout this host rejects.
-var ErrInvalidTimeout = errors.New("ipc: invalid timeout")
 
 // Context is passed to command handlers.
 // The embedded context is canceled when the page cancels the invoke or the
@@ -87,7 +77,7 @@ func (r *Router) InvokeContext(ctx context.Context, window, name string, argsJSO
 	hub := r.channels
 	r.mu.RUnlock()
 	if !ok {
-		return nil, fmt.Errorf("ipc: unknown command %q", name)
+		return nil, Fail(CodeUnknownCommand, "ipc: unknown command %q", name)
 	}
 	out, err := h(Context{Context: ctx, Command: name, Window: window, channels: hub}, argsJSON)
 	if err != nil {

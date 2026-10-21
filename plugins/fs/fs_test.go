@@ -53,7 +53,7 @@ func TestScopeAllowsDenyAndTraversal(t *testing.T) {
 	if string(got) != `"ok"` {
 		t.Fatalf("read %s", got)
 	}
-	if _, err := router.Invoke("fs:read_text", []byte(`{"path":"secret/no.txt"}`)); err == nil || !strings.Contains(err.Error(), "outside") {
+	if _, err := router.Invoke("fs:read_text", []byte(`{"path":"secret/no.txt"}`)); err == nil || !strings.Contains(err.Error(), "outside") || ipc.CodeOf(err) != "fs.denied" {
 		t.Fatalf("deny secret: %v", err)
 	}
 	if _, err := router.Invoke("fs:read_text", []byte(`{"path":"../outside/x.txt"}`)); err == nil || !strings.Contains(err.Error(), "outside") {

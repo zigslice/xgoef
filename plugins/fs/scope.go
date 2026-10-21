@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/zigslice/xgoef/ipc"
 )
 
 // Scope is an allow/deny list of directories. Empty allow denies every path.
@@ -62,7 +64,7 @@ func (s *Scope) Resolve(base, userPath string) (string, error) {
 }
 
 func deny(userPath string) error {
-	return fmt.Errorf("fs: path %q is outside the configured scope", userPath)
+	return ipc.Fail("fs.denied", "fs: path %q is outside the configured scope", userPath)
 }
 
 func (s *Scope) permits(path string) bool {

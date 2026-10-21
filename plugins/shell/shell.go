@@ -118,7 +118,7 @@ func (p *Plugin) openCmd(_ ipc.Context, argsJSON []byte) (any, error) {
 
 func (p *Plugin) checkURL(raw string) (string, error) {
 	if strings.ContainsAny(raw, "\r\n") {
-		return "", fmt.Errorf("shell: url %q is not allowed", raw)
+		return "", shellDenied("shell: url %q is not allowed", raw)
 	}
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -126,11 +126,11 @@ func (p *Plugin) checkURL(raw string) (string, error) {
 	}
 	scheme := strings.ToLower(u.Scheme)
 	if !u.IsAbs() || scheme == "" || !p.schemes[scheme] {
-		return "", fmt.Errorf("shell: url %q is not allowed", raw)
+		return "", shellDenied("shell: url %q is not allowed", raw)
 	}
 	if scheme == "http" || scheme == "https" {
 		if u.Host == "" || u.User != nil {
-			return "", fmt.Errorf("shell: url %q is not allowed", raw)
+			return "", shellDenied("shell: url %q is not allowed", raw)
 		}
 	}
 	return u.String(), nil
@@ -138,16 +138,20 @@ func (p *Plugin) checkURL(raw string) (string, error) {
 
 func (p *Plugin) checkPath(userPath string) (string, error) {
 	if p.scope == nil {
-		return "", fmt.Errorf("shell: path %q is outside the configured scope", userPath)
+		return "", shellDenied("shell: path %q is outside the configured scope", userPath)
 	}
 	abs, err := p.scope.Resolve(p.base, userPath)
 	if err != nil {
 		if strings.Contains(err.Error(), "outside") || strings.Contains(err.Error(), "not configured") {
-			return "", fmt.Errorf("shell: path %q is outside the configured scope", userPath)
+			return "", shellDenied("shell: path %q is outside the configured scope", userPath)
 		}
 		return "", fmt.Errorf("shell: %w", err)
 	}
 	return abs, nil
+}
+
+func shellDenied(format string, args ...any) error {
+	return ipc.Fail("shell.denied", format, args...)
 }
 
 func xdgOpen(target string) error {

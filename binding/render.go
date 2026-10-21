@@ -37,6 +37,9 @@ func Render(cmds []Command) (string, error) {
 	b.WriteString("export interface XgoefInvokeResult<T> extends Promise<T> {\n")
 	b.WriteString("  cancel(): void;\n")
 	b.WriteString("}\n\n")
+	b.WriteString("export interface XgoefError extends Error {\n")
+	b.WriteString("  readonly code: string;\n")
+	b.WriteString("}\n\n")
 	b.WriteString("export interface XgoefCommands {\n")
 	if len(norm) == 0 {
 		b.WriteString("  [cmd: string]: { args: Record<string, unknown>; result: unknown };\n")
@@ -57,6 +60,7 @@ func Render(cmds []Command) (string, error) {
 	b.WriteString("  listen(event: string, handler: (payload: unknown) => void): () => void;\n")
 	b.WriteString("  emit(event: string, payload?: unknown): void;\n")
 	b.WriteString("  channel(): XgoefChannel;\n")
+	b.WriteString("  readonly XgoefError: new (code: string, message?: string) => XgoefError;\n")
 	b.WriteString("  plugins: {\n")
 	b.WriteString(renderPlugins(norm))
 	b.WriteString("  };\n")

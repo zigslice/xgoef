@@ -10,6 +10,24 @@
   const listeners = new Map();
   const channels = new Map();
 
+  class XgoefError extends Error {
+    constructor(code, message) {
+      super(message || "invoke failed");
+      this.name = "XgoefError";
+      this.code = code || "command.failed";
+    }
+  }
+
+  function asError(body) {
+    if (body && typeof body === "object") {
+      return new XgoefError(body.code, body.message);
+    }
+    if (typeof body === "string" && body) {
+      return new XgoefError("command.failed", body);
+    }
+    return new XgoefError("command.failed", "invoke failed");
+  }
+
   function post(msg) {
     const body = JSON.stringify(msg);
 
@@ -25,7 +43,10 @@
               type: "response",
               id: msg.id,
               ok: false,
-              error: "invalid host response: " + (e && e.message ? e.message : e),
+              error: {
+                code: "ipc.bad_response",
+                message: "invalid host response: " + (e && e.message ? e.message : e),
+              },
             });
           }
         },
@@ -34,7 +55,10 @@
             type: "response",
             id: msg.id,
             ok: false,
-            error: message || "cefQuery failed (" + code + ")",
+            error: {
+              code: "ipc.transport",
+              message: message || "cefQuery failed (" + code + ")",
+            },
           });
         },
       });
@@ -51,7 +75,7 @@
         type: "response",
         id: msg.id,
         ok: false,
-        error: "xgoef host bridge not connected",
+        error: { code: "ipc.disconnected", message: "xgoef host bridge not connected" },
       });
     });
   }
@@ -61,7 +85,7 @@
       const { resolve, reject } = pending.get(msg.id);
       pending.delete(msg.id);
       if (msg.ok) resolve(msg.payload);
-      else reject(new Error(msg.error || "invoke failed"));
+      else reject(asError(msg.error));
       return;
     }
     if (msg.type === "event") {
@@ -142,6 +166,7 @@
     emit: function (event, payload) {
       post({ type: "event", event: event, payload: payload });
     },
+    XgoefError: XgoefError,
     channel: function () {
       const id = nextId++;
       const state = { expected: 0, handlers: [], buf: new Map() };

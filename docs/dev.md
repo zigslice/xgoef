@@ -8,4 +8,4 @@
 
 这里没有跑 CEF / LLGo 链接。拉起和热重载用套接字与 `dev-reload` 事件测过。
 
-`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，见 [bundle.md](bundle.md)。页面 command 的超时和取消见 [ipc.md](ipc.md)。`web/xgoef.d.ts` 见 [binding.md](binding.md)。接下来是结构化错误码。
+`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage，见 [bundle.md](bundle.md)。页面 command 的超时、取消和错误码见 [ipc.md](ipc.md)。`web/xgoef.d.ts` 见 [binding.md](binding.md)。
