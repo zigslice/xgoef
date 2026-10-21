@@ -116,7 +116,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -160,6 +160,15 @@
           "additionalProperties": false,
           "properties": {
             "mode": { "type": "string", "enum": ["memory", "system"] }
+          }
+        },
+        "notification": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Optional icon scope. An empty allow list still permits a title and body.",
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" } },
+            "deny": { "type": "array", "items": { "type": "string" } }
           }
         },
         "updater": {

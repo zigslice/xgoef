@@ -109,11 +109,14 @@ func helperMethod(c Command) (string, bool) {
 		return "target: string", true
 	case "dialog:open", "dialog:save":
 		return "opts?: " + formatArgs(c.Args), true
+	case "notification:show":
+		return "opts: { title: string; body?: string; icon?: string } | string", true
 	case "fs:read_text", "fs:write_text", "fs:exists", "fs:list",
 		"os:platform", "os:arch",
 		"clipboard:read_text", "clipboard:write_text",
 		"updater:check", "updater:install",
 		"process:exit", "process:relaunch",
+		"notification:is_permission_granted", "notification:request_permission",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

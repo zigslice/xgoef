@@ -49,6 +49,19 @@ var builtinPlugins = map[string][]Command{
 		{Name: "process:exit", Args: []Arg{{Name: "code", Type: "number", Optional: true}}, Result: "null"},
 		{Name: "process:relaunch", Result: "null"},
 	},
+	"notification": {
+		{Name: "notification:is_permission_granted", Result: "boolean"},
+		{Name: "notification:request_permission", Result: "string"},
+		{
+			Name: "notification:show",
+			Args: []Arg{
+				{Name: "title", Type: "string"},
+				{Name: "body", Type: "string", Optional: true},
+				{Name: "icon", Type: "string", Optional: true},
+			},
+			Result: "null",
+		},
+	},
 }
 
 var chromeCommands = []Command{
@@ -63,4 +76,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "deeplink"}

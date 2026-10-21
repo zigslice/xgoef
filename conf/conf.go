@@ -28,11 +28,12 @@ type File struct {
 // PluginSection holds per-plugin settings. Scope roots use $APP, $RESOURCE,
 // and $HOME (see plugins/fs).
 type PluginSection struct {
-	FS        FSConfig        `json:"fs"`
-	Shell     ShellConfig     `json:"shell"`
-	Dialog    DialogConfig    `json:"dialog"`
-	Clipboard ClipboardConfig `json:"clipboard"`
-	Updater   UpdaterConfig   `json:"updater"`
+	FS           FSConfig           `json:"fs"`
+	Shell        ShellConfig        `json:"shell"`
+	Dialog       DialogConfig       `json:"dialog"`
+	Clipboard    ClipboardConfig    `json:"clipboard"`
+	Updater      UpdaterConfig      `json:"updater"`
+	Notification NotificationConfig `json:"notification"`
 }
 
 // UpdaterConfig points at a directory or https URL that serves update.json.
@@ -56,6 +57,13 @@ type ShellConfig struct {
 
 // DialogConfig is the scope applied to the path a picker returns.
 type DialogConfig struct {
+	Allow []string `json:"allow"`
+	Deny  []string `json:"deny"`
+}
+
+// NotificationConfig is the scope for an optional notification icon.
+// An empty allow list still permits a title and body.
+type NotificationConfig struct {
 	Allow []string `json:"allow"`
 	Deny  []string `json:"deny"`
 }

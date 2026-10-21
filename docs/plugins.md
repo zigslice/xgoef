@@ -31,8 +31,9 @@ type Plugin interface {
 | `dialog` | `dialog:open` `dialog:save` | 与命令名相同 |
 | `updater` | `updater:check` `updater:install` | 与命令名相同 |
 | `process` | `process:exit` `process:relaunch` | 与命令名相同 |
+| `notification` | `notification:is_permission_granted` `notification:request_permission` `notification:show` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -84,6 +85,14 @@ type Plugin interface {
 `process:exit` 结束当前进程。`code` 省略时是 0，只接受 0 到 255 的整数，其它值是 `process.invalid`。进程在响应写回之前就结束，页面不一定收得到结果。
 
 `process:relaunch` 再启动当前宿主。参数沿用这次启动的参数，并去掉 CEF 子进程的 `--type` 和 `--utility-sub-type`。页面不能改可执行文件，也不能附加参数；带了参数就是 `process.invalid`。单实例锁先放开，再启动新进程，然后当前进程以 0 退出。可执行文件不存在时不会放开锁。启动失败是 `process.relaunch`。hello 的 *exit* 和 *relaunch* 走这两条命令。
+
+## notification
+
+`notification:request_permission` 返回 `granted` 或 `denied`。桌面有 `notify-send` 时授予，否则拒绝。这个状态只在当前进程里，启动时还没授予。`notification:is_permission_granted` 返回布尔值。
+
+`notification:show` 在授予之后发出通知。参数是 `title`，可选 `body` 和 `icon`。没授予是 `notification.denied`，不会去显示。标题必须是一行，最长 256 字节；正文最长 4096 字节。不合规则是 `notification.invalid`。
+
+`icon` 是范围内的文件，不是图标主题名。空的 `allow` 仍然可以只发标题和正文；给了范围外的路径是 `notification.icon`。实际调用是 `notify-send` 的 argv，标题放在 `--` 后面，不经过 shell。应用名来自 `productName`。hello 的 *notify* 先请求权限，再显示标题 xgoef。
 
 ## 应用侧还要做的
 
