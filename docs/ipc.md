@@ -91,6 +91,11 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `notification.denied` | 还没有通知权限 |
 | `notification.icon` | 图标不在配置的目录范围内 |
 | `notification.show` | `notify-send` 失败 |
+| `shortcut.invalid` | 快捷键字符串或参数不合法 |
+| `shortcut.denied` | 快捷键不在 `plugin.global-shortcut.allow` 里 |
+| `shortcut.registered` | 这条快捷键已经注册过 |
+| `shortcut.unavailable` | 当前进程装不上全局抓键 |
+| `shortcut.grab` | 向系统注册或取消抓键失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

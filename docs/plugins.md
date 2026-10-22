@@ -32,8 +32,9 @@ type Plugin interface {
 | `updater` | `updater:check` `updater:install` | 与命令名相同 |
 | `process` | `process:exit` `process:relaunch` | 与命令名相同 |
 | `notification` | `notification:is_permission_granted` `notification:request_permission` `notification:show` | 与命令名相同 |
+| `global-shortcut` | `global-shortcut:register` `global-shortcut:unregister` `global-shortcut:unregister_all` `global-shortcut:is_registered` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -93,6 +94,18 @@ type Plugin interface {
 `notification:show` 在授予之后发出通知。参数是 `title`，可选 `body` 和 `icon`。没授予是 `notification.denied`，不会去显示。标题必须是一行，最长 256 字节；正文最长 4096 字节。不合规则是 `notification.invalid`。
 
 `icon` 是范围内的文件，不是图标主题名。空的 `allow` 仍然可以只发标题和正文；给了范围外的路径是 `notification.icon`。实际调用是 `notify-send` 的 argv，标题放在 `--` 后面，不经过 shell。应用名来自 `productName`。hello 的 *notify* 先请求权限，再显示标题 xgoef。
+
+## global-shortcut
+
+`global-shortcut:register` 注册一条全局快捷键。字符串像 `Control+Shift+X`，大小写不敏感，`+` 两边可以有空格。至少要有一个修饰键（Control、Alt、Shift、Super），避免把单个字母从输入里抢走。`CommandOrControl` 在 Linux 上是 Control，在 macOS 上是 Super。规范形式固定为 Control、Alt、Shift、Super 再加键名，所以 `ctrl+shift+x` 和 `Shift+Control+X` 是同一条。
+
+空的 `plugin.global-shortcut.allow` 拒绝每一次注册。不在列表里是 `shortcut.denied`。写法不合法是 `shortcut.invalid`。已经注册过是 `shortcut.registered`。
+
+按下和松开时宿主发出事件 `global-shortcut`，payload 是 `{shortcut, state}`。`state` 是 `Pressed` 或 `Released`。页面用 `__XGOEF__.listen` 接收。
+
+Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没有显示器是 `shortcut.unavailable`。抓键失败是 `shortcut.grab`。NumLock 或 CapsLock 打开时仍然匹配。只通过 XWayland 暴露 `DISPLAY` 的 Wayland 会话里，合成器可能把全局键留在自己这边，页面就收不到按下事件。参数不经过 shell。
+
+`unregister` 取消一条，没注册过也成功。`unregister_all` 取消这个进程注册过的全部。`is_registered` 返回布尔值。前端是 `plugins["global-shortcut"].register(shortcut)`、`unregister`、`unregisterAll`、`isRegistered`。hello 的 *shortcut* 注册 `Control+Shift+X`。
 
 ## 应用侧还要做的
 

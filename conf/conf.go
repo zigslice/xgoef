@@ -28,12 +28,13 @@ type File struct {
 // PluginSection holds per-plugin settings. Scope roots use $APP, $RESOURCE,
 // and $HOME (see plugins/fs).
 type PluginSection struct {
-	FS           FSConfig           `json:"fs"`
-	Shell        ShellConfig        `json:"shell"`
-	Dialog       DialogConfig       `json:"dialog"`
-	Clipboard    ClipboardConfig    `json:"clipboard"`
-	Updater      UpdaterConfig      `json:"updater"`
-	Notification NotificationConfig `json:"notification"`
+	FS             FSConfig           `json:"fs"`
+	Shell          ShellConfig        `json:"shell"`
+	Dialog         DialogConfig       `json:"dialog"`
+	Clipboard      ClipboardConfig    `json:"clipboard"`
+	Updater        UpdaterConfig      `json:"updater"`
+	Notification   NotificationConfig `json:"notification"`
+	GlobalShortcut ShortcutConfig     `json:"global-shortcut"`
 }
 
 // UpdaterConfig points at a directory or https URL that serves update.json.
@@ -66,6 +67,12 @@ type DialogConfig struct {
 type NotificationConfig struct {
 	Allow []string `json:"allow"`
 	Deny  []string `json:"deny"`
+}
+
+// ShortcutConfig lists accelerators the page may register.
+// An empty allow list rejects every shortcut.
+type ShortcutConfig struct {
+	Allow []string `json:"allow"`
 }
 
 // ClipboardConfig selects the text store. Mode is "memory" (default) or "system".

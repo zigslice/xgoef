@@ -272,6 +272,20 @@
           return global.__XGOEF__.invoke("notification:show", opts || {});
         },
       },
+      "global-shortcut": {
+        register: function (shortcut) {
+          return global.__XGOEF__.invoke("global-shortcut:register", { shortcut: shortcut });
+        },
+        unregister: function (shortcut) {
+          return global.__XGOEF__.invoke("global-shortcut:unregister", { shortcut: shortcut });
+        },
+        unregisterAll: function () {
+          return global.__XGOEF__.invoke("global-shortcut:unregister_all", {});
+        },
+        isRegistered: function (shortcut) {
+          return global.__XGOEF__.invoke("global-shortcut:is_registered", { shortcut: shortcut });
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});

@@ -137,6 +137,28 @@ async function main() {
     assert.deepEqual(posted[1].args, { title: "hello" });
     assert.deepEqual(posted[2].args, { title: "xgoef", body: "hi", icon: "icon.png" });
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const shortcut = sandbox.__XGOEF__.plugins["global-shortcut"];
+    shortcut.register("Control+Shift+X");
+    shortcut.isRegistered("Control+Shift+X");
+    shortcut.unregister("Control+Shift+X");
+    shortcut.unregisterAll();
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      [
+        "global-shortcut:register",
+        "global-shortcut:is_registered",
+        "global-shortcut:unregister",
+        "global-shortcut:unregister_all",
+      ]
+    );
+    assert.deepEqual(posted[0].args, { shortcut: "Control+Shift+X" });
+    assert.deepEqual(posted[3].args, {});
+  }
 }
 
 main().catch((err) => {

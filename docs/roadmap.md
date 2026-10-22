@@ -33,6 +33,7 @@
 | 7l | **P2** 结构化错误码 | 完成 |
 | 7m | **P3** `process` 插件 | 完成 |
 | 7n | **P3** `notification` 插件 | 完成 |
-| 7o | **P3** `global-shortcut` 插件 | 待做 |
+| 7o | **P3** `global-shortcut` 插件 | 完成 |
+| 7p | **P3** 窗口主题、装饰与透明 | 待做 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

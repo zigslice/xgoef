@@ -62,6 +62,12 @@ var builtinPlugins = map[string][]Command{
 			Result: "null",
 		},
 	},
+	"global-shortcut": {
+		{Name: "global-shortcut:register", Args: []Arg{{Name: "shortcut", Type: "string"}}, Result: "null"},
+		{Name: "global-shortcut:unregister", Args: []Arg{{Name: "shortcut", Type: "string"}}, Result: "null"},
+		{Name: "global-shortcut:unregister_all", Result: "null"},
+		{Name: "global-shortcut:is_registered", Args: []Arg{{Name: "shortcut", Type: "string"}}, Result: "boolean"},
+	},
 }
 
 var chromeCommands = []Command{
@@ -76,4 +82,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "deeplink"}
