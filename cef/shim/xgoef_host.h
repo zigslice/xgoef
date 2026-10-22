@@ -62,11 +62,14 @@ int xgoef_ipc_emit_all(const char* json_utf8);
 
 /* Window label registry (P1). Pending label binds the next OnAfterCreated. */
 void xgoef_window_set_pending_label(const char* label);
+/* chrome is decorations,theme,transparent from cef.WindowChrome.Encode.
+ * NULL or "" is decorated, system theme, opaque. A bad string is ignored. */
 int xgoef_window_create(const char* label,
                         const char* title,
                         const char* url,
                         int width,
-                        int height);
+                        int height,
+                        const char* chrome);
 int xgoef_window_close(const char* label);
 int xgoef_window_focus(const char* label);
 

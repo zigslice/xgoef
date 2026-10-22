@@ -31,12 +31,19 @@ class SizedWindowDelegate : public CefWindowDelegate {
                       cef_runtime_style_t runtime_style,
                       int width,
                       int height,
-                      const std::string& title)
+                      const std::string& title,
+                      const WindowChrome& chrome)
       : browser_view_(browser_view),
         runtime_style_(runtime_style),
         width_(width > 0 ? width : 960),
         height_(height > 0 ? height : 640),
-        title_(title) {}
+        title_(title),
+        chrome_(chrome) {}
+
+  bool IsFrameless(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    return !chrome_.decorations;
+  }
 
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
     window->AddChildView(WrapWithAppMenu(window, browser_view_));
@@ -100,13 +107,14 @@ class SizedWindowDelegate : public CefWindowDelegate {
   const int width_;
   const int height_;
   const std::string title_;
+  const WindowChrome chrome_;
   IMPLEMENT_REFCOUNTING(SizedWindowDelegate);
 };
 
 class StyleBrowserViewDelegate : public CefBrowserViewDelegate {
  public:
-  explicit StyleBrowserViewDelegate(cef_runtime_style_t runtime_style)
-      : runtime_style_(runtime_style) {}
+  StyleBrowserViewDelegate(cef_runtime_style_t runtime_style, const WindowChrome& chrome)
+      : runtime_style_(runtime_style), chrome_(chrome) {}
 
   bool OnPopupBrowserViewCreated(CefRefPtr<CefBrowserView> browser_view,
                                  CefRefPtr<CefBrowserView> popup_browser_view,
@@ -114,7 +122,7 @@ class StyleBrowserViewDelegate : public CefBrowserViewDelegate {
     (void)browser_view;
     (void)is_devtools;
     CefWindow::CreateTopLevelWindow(new SizedWindowDelegate(
-        popup_browser_view, runtime_style_, 960, 640, ""));
+        popup_browser_view, runtime_style_, 960, 640, "", chrome_));
     return true;
   }
 
@@ -124,6 +132,7 @@ class StyleBrowserViewDelegate : public CefBrowserViewDelegate {
 
  private:
   const cef_runtime_style_t runtime_style_;
+  const WindowChrome chrome_;
   IMPLEMENT_REFCOUNTING(StyleBrowserViewDelegate);
 };
 
@@ -310,11 +319,60 @@ void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> v
   WindowStateNote(label, bounds.x, bounds.y, bounds.width, bounds.height, 0);
 }
 
+WindowChrome ChromeOrDefault(const std::string& text) {
+  WindowChrome chrome;
+  std::string err;
+  if (!ParseWindowChrome(text, &chrome, &err)) {
+    std::fprintf(stderr, "xgoef: %s\n", err.c_str());
+    return WindowChrome();
+  }
+  return chrome;
+}
+
+CefRefPtr<CefRequestContext> ChromeContext(const WindowChrome& chrome) {
+  if (chrome.theme != "light" && chrome.theme != "dark") {
+    return nullptr;
+  }
+  // A separate context so SetChromeColorScheme does not flip other windows.
+  // Storage stays shared with the global context.
+  CefRefPtr<CefRequestContext> shared = CefRequestContext::GetGlobalContext();
+  if (!shared) {
+    return nullptr;
+  }
+  CefRefPtr<CefRequestContext> ctx = CefRequestContext::CreateContext(shared, nullptr);
+  if (!ctx) {
+    return nullptr;
+  }
+  cef_color_variant_t variant = CEF_COLOR_VARIANT_LIGHT;
+  if (chrome.theme == "dark") {
+    variant = CEF_COLOR_VARIANT_DARK;
+  }
+  ctx->SetChromeColorScheme(variant, 0);
+  return ctx;
+}
+
+void ApplyBrowserBackground(CefBrowserSettings* settings, const WindowChrome& chrome) {
+  if (!settings) {
+    return;
+  }
+  if (chrome.transparent) {
+    // Alpha 0 asks for a transparent page. Windowed CEF paints that opaque white.
+    settings->background_color = 0;
+    return;
+  }
+  if (chrome.theme == "dark") {
+    settings->background_color = static_cast<cef_color_t>(0xFF1E1E1E);
+  } else if (chrome.theme == "light") {
+    settings->background_color = static_cast<cef_color_t>(0xFFFFFFFF);
+  }
+}
+
 void DoWindowCreate(std::string lab,
                     std::string tit,
                     std::string u,
                     int width,
-                    int height) {
+                    int height,
+                    WindowChrome chrome) {
   CEF_REQUIRE_UI_THREAD();
   ClientHandler* raw = ClientHandler::GetInstance();
   if (!raw) {
@@ -331,11 +389,12 @@ void DoWindowCreate(std::string lab,
   }
 
   CefBrowserSettings browser_settings;
+  ApplyBrowserBackground(&browser_settings, chrome);
   CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(
-      handler, u, browser_settings, nullptr, nullptr,
-      new StyleBrowserViewDelegate(runtime_style));
+      handler, u, browser_settings, nullptr, ChromeContext(chrome),
+      new StyleBrowserViewDelegate(runtime_style, chrome));
   CefWindow::CreateTopLevelWindow(
-      new SizedWindowDelegate(browser_view, runtime_style, width, height, tit));
+      new SizedWindowDelegate(browser_view, runtime_style, width, height, tit, chrome));
 }
 
 void DoWindowClose(std::string lab) {
@@ -395,15 +454,16 @@ int WindowCreate(const char* label,
                  const char* title,
                  const char* url,
                  int width,
-                 int height) {
+                 int height,
+                 const char* chrome_text) {
   std::string lab = label ? label : "main";
   std::string tit = title ? title : "";
   std::string u = url && url[0] ? url : "about:blank";
+  WindowChrome chrome = ChromeOrDefault(chrome_text ? chrome_text : "");
   if (CefCurrentlyOn(TID_UI)) {
-    DoWindowCreate(lab, tit, u, width, height);
+    DoWindowCreate(lab, tit, u, width, height, chrome);
   } else {
-    CefPostTask(TID_UI, base::BindOnce(&DoWindowCreate, lab, tit, u, width,
-                                       height));
+    CefPostTask(TID_UI, base::BindOnce(&DoWindowCreate, lab, tit, u, width, height, chrome));
   }
   return 0;
 }
@@ -465,8 +525,9 @@ extern "C" int xgoef_window_create(const char* label,
                                    const char* title,
                                    const char* url,
                                    int width,
-                                   int height) {
-  return xgoef::WindowCreate(label, title, url, width, height);
+                                   int height,
+                                   const char* chrome) {
+  return xgoef::WindowCreate(label, title, url, width, height, chrome);
 }
 
 extern "C" int xgoef_window_close(const char* label) {

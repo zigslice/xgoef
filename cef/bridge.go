@@ -6,12 +6,14 @@ package cef
 type QueryHandler func(queryID int64, windowLabel, requestJSON string)
 
 // WindowSpec describes a window to create at runtime.
+// Chrome's zero value keeps the title bar, the system theme, and an opaque page.
 type WindowSpec struct {
 	Label  string
 	Title  string
 	URL    string
 	Width  int
 	Height int
+	Chrome WindowChrome
 }
 
 // Bridge wires the C MessageRouter shim to Go IPC and window control.

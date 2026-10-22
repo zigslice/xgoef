@@ -88,3 +88,43 @@ func TestLoadMissingProductName(t *testing.T) {
 		t.Fatal("expected error")
 	}
 }
+
+func TestLoadWindowChrome(t *testing.T) {
+	dir := t.TempDir()
+	okPath := filepath.Join(dir, "ok.json")
+	body := `{
+	  "productName":"t",
+	  "app":{"windows":[
+	    {"title":"plain","width":1,"height":1},
+	    {"label":"aux","title":"aux","width":2,"height":2,"decorations":false,"theme":"Dark","transparent":true}
+	  ]}
+	}`
+	if err := os.WriteFile(okPath, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Load(okPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plain, err := f.App.Windows[0].Chrome().Encode()
+	if err != nil || plain != "1,system,0" {
+		t.Fatalf("%q %v", plain, err)
+	}
+	aux, err := f.App.Windows[1].Chrome().Encode()
+	if err != nil || aux != "0,dark,1" || f.App.Windows[1].Theme != "dark" {
+		t.Fatalf("%q theme %q %v", aux, f.App.Windows[1].Theme, err)
+	}
+
+	badPath := filepath.Join(dir, "bad.json")
+	bad := `{
+	  "productName":"t",
+	  "app":{"windows":[{"title":"t","width":1,"height":1,"theme":"blue"}]}
+	}`
+	if err := os.WriteFile(badPath, []byte(bad), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Load(badPath)
+	if err == nil || err.Error() != `conf: window main theme "blue"` {
+		t.Fatal(err)
+	}
+}

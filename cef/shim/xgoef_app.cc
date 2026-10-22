@@ -24,10 +24,17 @@ class WindowDelegate : public CefWindowDelegate {
  public:
   WindowDelegate(CefRefPtr<CefBrowserView> browser_view,
                  cef_runtime_style_t runtime_style,
-                 cef_show_state_t initial_show_state)
+                 cef_show_state_t initial_show_state,
+                 const WindowChrome& chrome)
       : browser_view_(browser_view),
         runtime_style_(runtime_style),
-        initial_show_state_(initial_show_state) {}
+        initial_show_state_(initial_show_state),
+        chrome_(chrome) {}
+
+  bool IsFrameless(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    return !chrome_.decorations;
+  }
 
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
     window->AddChildView(WrapWithAppMenu(window, browser_view_));
@@ -89,13 +96,14 @@ class WindowDelegate : public CefWindowDelegate {
   CefRefPtr<CefBrowserView> browser_view_;
   const cef_runtime_style_t runtime_style_;
   const cef_show_state_t initial_show_state_;
+  const WindowChrome chrome_;
   IMPLEMENT_REFCOUNTING(WindowDelegate);
 };
 
 class BrowserViewDelegate : public CefBrowserViewDelegate {
  public:
-  explicit BrowserViewDelegate(cef_runtime_style_t runtime_style)
-      : runtime_style_(runtime_style) {}
+  BrowserViewDelegate(cef_runtime_style_t runtime_style, const WindowChrome& chrome)
+      : runtime_style_(runtime_style), chrome_(chrome) {}
 
   bool OnPopupBrowserViewCreated(CefRefPtr<CefBrowserView> browser_view,
                                  CefRefPtr<CefBrowserView> popup_browser_view,
@@ -103,7 +111,7 @@ class BrowserViewDelegate : public CefBrowserViewDelegate {
     (void)browser_view;
     (void)is_devtools;
     CefWindow::CreateTopLevelWindow(new WindowDelegate(
-        popup_browser_view, runtime_style_, CEF_SHOW_STATE_NORMAL));
+        popup_browser_view, runtime_style_, CEF_SHOW_STATE_NORMAL, chrome_));
     return true;
   }
 
@@ -113,6 +121,7 @@ class BrowserViewDelegate : public CefBrowserViewDelegate {
 
  private:
   const cef_runtime_style_t runtime_style_;
+  const WindowChrome chrome_;
   IMPLEMENT_REFCOUNTING(BrowserViewDelegate);
 };
 
@@ -149,6 +158,10 @@ void App::OnContextInitialized() {
 
   CefRefPtr<ClientHandler> handler(new ClientHandler(use_alloy_style));
   CefBrowserSettings browser_settings;
+  WindowChrome chrome =
+      ChromeOrDefault(command_line->GetSwitchValue("xgoef-chrome").ToString());
+  ApplyBrowserBackground(&browser_settings, chrome);
+  CefRefPtr<CefRequestContext> request_context = ChromeContext(chrome);
 
   std::string url = command_line->GetSwitchValue("url");
   if (url.empty()) {
@@ -165,8 +178,8 @@ void App::OnContextInitialized() {
 
   if (use_views) {
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(
-        handler, url, browser_settings, nullptr, nullptr,
-        new BrowserViewDelegate(runtime_style));
+        handler, url, browser_settings, nullptr, request_context,
+        new BrowserViewDelegate(runtime_style, chrome));
 
     cef_show_state_t initial_show_state = CEF_SHOW_STATE_NORMAL;
     const std::string& show_state_value =
@@ -178,12 +191,13 @@ void App::OnContextInitialized() {
     }
 
     CefWindow::CreateTopLevelWindow(
-        new WindowDelegate(browser_view, runtime_style, initial_show_state));
+        new WindowDelegate(browser_view, runtime_style, initial_show_state, chrome));
   } else {
+    // Native windows have no Views delegate, so IsFrameless does not apply.
     CefWindowInfo window_info;
     window_info.runtime_style = runtime_style;
     CefBrowserHost::CreateBrowser(window_info, handler, url, browser_settings,
-                                  nullptr, nullptr);
+                                  nullptr, request_context);
   }
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/zigslice/xgoef/acl"
 	"github.com/zigslice/xgoef/binding"
+	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/deeplink"
 )
 
@@ -158,12 +159,29 @@ type TrayConfig struct {
 }
 
 // Window is one browser window.
+// Decorations nil keeps the frame. Theme empty follows the system.
+// Transparent nil keeps an opaque page background.
 type Window struct {
-	Label  string `json:"label"`
-	Title  string `json:"title"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	URL    string `json:"url"`
+	Label       string `json:"label"`
+	Title       string `json:"title"`
+	Width       int    `json:"width"`
+	Height      int    `json:"height"`
+	URL         string `json:"url"`
+	Decorations *bool  `json:"decorations,omitempty"`
+	Theme       string `json:"theme,omitempty"`
+	Transparent *bool  `json:"transparent,omitempty"`
+}
+
+// Chrome maps this window onto the text passed to the CEF shim.
+func (w Window) Chrome() cef.WindowChrome {
+	ch := cef.WindowChrome{Theme: w.Theme}
+	if w.Decorations != nil && !*w.Decorations {
+		ch.Frameless = true
+	}
+	if w.Transparent != nil && *w.Transparent {
+		ch.Transparent = true
+	}
+	return ch
 }
 
 // CEFSection points at the binary distribution.
@@ -239,8 +257,23 @@ func Load(path string) (File, error) {
 		if f.App.Windows[i].Label == "" {
 			f.App.Windows[i].Label = "main"
 		}
+		if err := normalizeWindowTheme(&f.App.Windows[i]); err != nil {
+			return f, err
+		}
 	}
 	return f, nil
+}
+
+func normalizeWindowTheme(w *Window) error {
+	raw := w.Theme
+	theme := strings.ToLower(strings.TrimSpace(raw))
+	switch theme {
+	case "", "system", "light", "dark":
+		w.Theme = theme
+		return nil
+	default:
+		return fmt.Errorf("conf: window %s theme %q", w.Label, raw)
+	}
 }
 
 func parseCapabilities(raw json.RawMessage) ([]acl.Capability, error) {
