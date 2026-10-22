@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "include/base/cef_callback.h"
 #include "include/cef_menu_model.h"
 #include "include/cef_menu_model_delegate.h"
 #include "include/views/cef_box_layout.h"
@@ -261,7 +262,7 @@ std::vector<MenuEntry> LoadFlat(const std::string& flat) {
   return entries;
 }
 
-void PopupOnUI(std::string label, std::string flat, MenuController* controller) {
+void PopupOnUI(std::string label, std::string flat, CefRefPtr<MenuController> controller) {
   CEF_REQUIRE_UI_THREAD();
   CefRefPtr<CefBrowser> browser = WindowBrowser(label);
   if (!browser || !controller) {
@@ -305,7 +306,7 @@ int Popup(const char* window_label, bool tray) {
     return -1;
   }
   std::string label = window_label && window_label[0] ? window_label : "main";
-  MenuController* controller = tray ? TrayController() : MenuPopupController();
+  CefRefPtr<MenuController> controller = tray ? TrayController() : MenuPopupController();
   if (CefCurrentlyOn(TID_UI)) {
     PopupOnUI(label, flat, controller);
   } else {
