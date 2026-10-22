@@ -31,7 +31,23 @@
               "title": { "type": "string" },
               "width": { "type": "integer", "minimum": 1 },
               "height": { "type": "integer", "minimum": 1 },
-              "url": { "type": "string" }
+              "url": { "type": "string" },
+              "decorations": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, a Views window hides its title bar and borders. Native (--use-native) windows ignore this."
+              },
+              "theme": {
+                "type": "string",
+                "enum": ["system", "light", "dark"],
+                "default": "system",
+                "description": "system follows the OS. light and dark set that window's Chrome color scheme. The first window also sets the process-wide native frame with --force-light-mode or --force-dark-mode."
+              },
+              "transparent": {
+                "type": "boolean",
+                "default": false,
+                "description": "Requests a fully transparent browser background. Windowed CEF paints that as opaque white, so the desktop does not show through."
+              }
             },
             "required": ["title", "width", "height"]
           }

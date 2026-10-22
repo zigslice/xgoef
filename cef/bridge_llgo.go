@@ -117,12 +117,17 @@ func (b *NativeBridge) CreateWindow(spec WindowSpec) error {
 	if spec.Height <= 0 {
 		spec.Height = 640
 	}
+	chrome, err := spec.Chrome.Encode()
+	if err != nil {
+		return err
+	}
 	rc := xgoefWindowCreate(
 		c.AllocaCStr(spec.Label),
 		c.AllocaCStr(spec.Title),
 		c.AllocaCStr(spec.URL),
 		c.Int(spec.Width),
 		c.Int(spec.Height),
+		c.AllocaCStr(chrome),
 	)
 	if rc != 0 {
 		return fmt.Errorf("cef: create window %q failed (%d)", spec.Label, int(rc))
@@ -239,7 +244,7 @@ func xgoefIPCEmitAll(json *c.Char) c.Int
 func xgoefWindowSetPendingLabel(label *c.Char)
 
 //go:linkname xgoefWindowCreate C.xgoef_window_create
-func xgoefWindowCreate(label, title, url *c.Char, width, height c.Int) c.Int
+func xgoefWindowCreate(label, title, url *c.Char, width, height c.Int, chrome *c.Char) c.Int
 
 //go:linkname xgoefWindowClose C.xgoef_window_close
 func xgoefWindowClose(label *c.Char) c.Int

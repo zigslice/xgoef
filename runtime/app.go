@@ -427,6 +427,20 @@ func (a *App) buildArgs(url string) []string {
 	if w, h := a.launchSize(label, win.Width, win.Height); w > 0 && h > 0 {
 		args = append(args, fmt.Sprintf("--xgoef-size=%d,%d", w, h))
 	}
+	chrome := win.Chrome()
+	encoded, err := chrome.Encode()
+	if err != nil {
+		// Load already rejects an unknown theme. Keep the process launchable.
+		encoded = "1,system,0"
+		chrome.Theme = ""
+	}
+	args = append(args, "--xgoef-chrome="+encoded)
+	switch chrome.Theme {
+	case "dark":
+		args = append(args, "--force-dark-mode")
+	case "light":
+		args = append(args, "--force-light-mode")
+	}
 	if a.assets != nil && a.assets.Dir() != "" {
 		args = append(args, "--xgoef-asset-root="+a.assets.Dir())
 	}

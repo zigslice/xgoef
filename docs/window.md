@@ -15,7 +15,7 @@ App
 | `FocusWindow(label)` | Shows / activates the window |
 | `EmitTo` / `Emit` | See [events.md](events.md) |
 
-`WindowSpec`: `Label`, `Title`, `URL`, `Width`, `Height`.
+`WindowSpec`: `Label`, `Title`, `URL`, `Width`, `Height`, `Chrome`。`Chrome` 的零值是有装饰、跟随系统、不透明。
 
 ## Conf
 
@@ -37,3 +37,21 @@ Capabilities should list each label that may invoke commands.
 这份状态只走 Views 窗口。`--use-native` 那条路径不读它。
 
 传给 shim 的文本每个窗口一行，六列用制表符分开：`label`、`x`、`y`、`width`、`height`、`flags`。`p` 表示坐标和尺寸都要套用，`m` 表示最大化。两项都在时写成 `pm`。`cef/shim/xgoef_window_state.cc` 按同一规则解析，且不依赖 CEF 头文件。
+
+## 主题、装饰与透明
+
+每个窗口可以写这三项。省略时分别是有装饰、跟随系统、不透明。
+
+| 字段 | 含义 |
+| --- | --- |
+| `decorations` | `false` 时 Views 窗口走 `IsFrameless`，标题栏和边框隐藏，窗口仍可缩放。`--use-native` 没有 Views delegate，这条不生效。 |
+| `theme` | `system`、`light`、`dark`。大小写不敏感，读入后记成小写。别的值让 `conf.Load` 失败，错误形如 `conf: window main theme "blue"`。 |
+| `transparent` | `true` 把浏览器背景设成全透明（`background_color` 为 0）。窗口化 CEF 会把它画成不透明白，桌面不会透出来。没有做离屏渲染。 |
+
+第一扇窗口把这三项编成 `--xgoef-chrome=装饰,主题,透明`，例如 `1,system,0` 或 `0,dark,1`。`dark` 再加进程级的 `--force-dark-mode`，`light` 再加 `--force-light-mode`，用来定原生边框的初始主题。这两个开关只跟第一扇窗口走，后面窗口的原生边框仍跟着它。`system` 不加。
+
+`light` 和 `dark` 还会给这扇窗口单独的 `CefRequestContext`（与全局 context 共享存储），调用 `SetChromeColorScheme`，所以不会把别的窗口一起换色。`system` 不调用它，request context 仍是空。`window.open` 弹出的窗口沿用父窗口的装饰，配色则跟父窗口的 request context。
+
+再 `CreateWindow` 时，`WindowSpec.Chrome` 用同一段文本作为 `xgoef_window_create` 的最后一项。`cef/shim/xgoef_window_chrome.cc` 按同一规则解析，且不依赖 CEF 头文件。坏文本打印到 stderr 并退回默认，C ABI 仍返回 0。
+
+页面背景：透明为 0；`dark` 为 `0xFF1E1E1E`；`light` 为 `0xFFFFFFFF`；`system` 留给 CEF 默认。

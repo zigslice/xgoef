@@ -33,6 +33,9 @@ func (b *NativeBridge) EmitAll(jsonUTF8 string) error { return nil }
 func (b *NativeBridge) SetPendingLabel(label string) {}
 
 func (b *NativeBridge) CreateWindow(spec WindowSpec) error {
+	if _, err := spec.Chrome.Encode(); err != nil {
+		return err
+	}
 	b.lastCreate = spec
 	return nil
 }
