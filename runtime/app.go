@@ -153,6 +153,7 @@ func (a *App) OpenPlugins() error {
 		DialogDeny:      a.Config.Plugin.Dialog.Deny,
 		NotifyAllow:     a.Config.Plugin.Notification.Allow,
 		NotifyDeny:      a.Config.Plugin.Notification.Deny,
+		ShortcutAllow:   a.Config.Plugin.GlobalShortcut.Allow,
 		AppName:         a.Config.ProductName,
 		ClipboardMode:   a.Config.Plugin.Clipboard.Mode,
 		Version:         a.Config.Version,
@@ -161,6 +162,7 @@ func (a *App) OpenPlugins() error {
 		Executable:      a.executable(),
 		Args:            a.programArgs(),
 		Release:         a.closeInstance,
+		Emit:            a.Emit,
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {

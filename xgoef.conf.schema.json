@@ -116,7 +116,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -169,6 +169,14 @@
           "properties": {
             "allow": { "type": "array", "items": { "type": "string" } },
             "deny": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "global-shortcut": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Accelerators the page may register. An empty allow list rejects every shortcut.",
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" } }
           }
         },
         "updater": {

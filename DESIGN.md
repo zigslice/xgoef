@@ -34,7 +34,7 @@
 | `runtime/` | 进程入口、初始化、消息循环、窗口/浏览器 |
 | `ipc/` | Command 注册与调用、Event 总线 |
 | `plugin/` | 插件契约（命令 + permission） |
-| `plugins/fs` `plugins/os` `plugins/shell` `plugins/clipboard` `plugins/dialog` `plugins/process` `plugins/notification` | 内置插件 |
+| `plugins/fs` `plugins/os` `plugins/shell` `plugins/clipboard` `plugins/dialog` `plugins/process` `plugins/notification` `plugins/globalshortcut` | 内置插件 |
 | `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径 |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `deeplink/` | 自定义 URL scheme 的参数接收入口和当前用户 XDG 关联 |

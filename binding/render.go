@@ -90,7 +90,7 @@ func renderPlugins(cmds []Command) string {
 		if len(methods) == 0 {
 			continue
 		}
-		b.WriteString("    " + ns + ": {\n")
+		b.WriteString("    " + tsKey(ns) + ": {\n")
 		for _, c := range methods {
 			params, _ := helperMethod(c)
 			_, method, _ := strings.Cut(c.Name, ":")
@@ -117,6 +117,7 @@ func helperMethod(c Command) (string, bool) {
 		"updater:check", "updater:install",
 		"process:exit", "process:relaunch",
 		"notification:is_permission_granted", "notification:request_permission",
+		"global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

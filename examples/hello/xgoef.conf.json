@@ -39,7 +39,7 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": ["fs", "os", "clipboard", "process", "notification"],
+  "plugins": ["fs", "os", "clipboard", "process", "notification", "global-shortcut"],
   "commands": [
     {
       "name": "greet",
@@ -61,13 +61,16 @@
     },
     "notification": {
       "allow": ["$APP"]
+    },
+    "global-shortcut": {
+      "allow": ["Control+Shift+X"]
     }
   },
   "capabilities": [
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "notification:is_permission_granted", "notification:request_permission", "notification:show", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "notification:is_permission_granted", "notification:request_permission", "notification:show", "global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered", "core:default"]
     },
     {
       "identifier": "aux",

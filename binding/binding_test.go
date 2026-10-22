@@ -25,7 +25,7 @@ func TestRenderAppAndOS(t *testing.T) {
 }
 
 func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
-	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification"}, true)
+	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,6 +52,13 @@ func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
 		"isPermissionGranted(): XgoefInvokeResult<boolean>",
 		"requestPermission(): XgoefInvokeResult<string>",
 		"show(opts: { title: string; body?: string; icon?: string } | string): XgoefInvokeResult<null>",
+		`"global-shortcut:register": { args: { shortcut: string }; result: null }`,
+		`"global-shortcut:is_registered": { args: { shortcut: string }; result: boolean }`,
+		`"global-shortcut": {`,
+		"register(shortcut: string): XgoefInvokeResult<null>",
+		"unregister(shortcut: string): XgoefInvokeResult<null>",
+		"unregisterAll(): XgoefInvokeResult<null>",
+		"isRegistered(shortcut: string): XgoefInvokeResult<boolean>",
 		`"deeplink:get_current": { args: Record<string, never>; result: { urls: string[] } }`,
 		"getCurrent(): XgoefInvokeResult<{ urls: string[] }>",
 		`"menu:popup"`,

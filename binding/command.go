@@ -3,6 +3,8 @@ package binding
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 // Arg is one field of a command argument object.
@@ -64,11 +66,31 @@ func commandName(name string) bool {
 		return false
 	}
 	for _, p := range parts {
-		if !ident(p) {
+		if !commandPart(p) {
 			return false
 		}
 	}
 	return true
+}
+
+// commandPart is an identifier that may contain a hyphen, so plugin ids
+// such as global-shortcut can be command prefixes. A hyphen cannot sit
+// at either end or next to another hyphen.
+func commandPart(s string) bool {
+	if s == "" || strings.HasPrefix(s, "-") || strings.HasSuffix(s, "-") || strings.Contains(s, "--") {
+		return false
+	}
+	for i, r := range s {
+		if r == '_' || r == '-' || unicode.IsLetter(r) {
+			continue
+		}
+		if i > 0 && unicode.IsDigit(r) {
+			continue
+		}
+		return false
+	}
+	r, _ := utf8.DecodeRuneInString(s)
+	return r != utf8.RuneError
 }
 
 // Assemble merges app commands with the builtins selected by plugins.

@@ -82,6 +82,7 @@
         <button id="btn-exit" class="secondary" type="button">exit</button>
         <button id="btn-relaunch" class="secondary" type="button">relaunch</button>
         <button id="btn-notify" class="secondary" type="button">notify</button>
+        <button id="btn-shortcut" class="secondary" type="button">shortcut</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -103,6 +104,9 @@
       });
       window.__XGOEF__.listen("tray", function (payload) {
         evt.textContent = "tray: " + JSON.stringify(payload);
+      });
+      window.__XGOEF__.listen("global-shortcut", function (payload) {
+        evt.textContent = "shortcut: " + JSON.stringify(payload);
       });
       document.getElementById("btn").onclick = async () => {
         try {
@@ -195,6 +199,18 @@
           }
           await window.__XGOEF__.plugins.notification.show({ title: "xgoef", body: "hello" });
           out.textContent = "notified";
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-shortcut").onclick = async () => {
+        try {
+          const shortcut = window.__XGOEF__.plugins["global-shortcut"];
+          const on = await shortcut.isRegistered("Control+Shift+X");
+          if (!on) {
+            await shortcut.register("Control+Shift+X");
+          }
+          out.textContent = "registered";
         } catch (e) {
           show(e);
         }
