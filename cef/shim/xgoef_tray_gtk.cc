@@ -5,7 +5,6 @@
 #include "xgoef_menu_model.h"
 
 #include <dlfcn.h>
-#include <pthread.h>
 
 #include <list>
 #include <mutex>
@@ -45,6 +44,7 @@ std::string g_tip;
 std::string g_icon;
 xgoef_menu_click_fn g_click = nullptr;
 bool g_started = false;
+bool g_cef_ready = false;
 std::list<std::string> g_ids;
 
 void Click(const char* id) {
@@ -145,7 +145,13 @@ bool LoadGtk() {
          g_gtk.signal_connect && g_gtk.menu_popup && g_gtk.icon_set_visible;
 }
 
-void TrayThread() {
+// Create the icon on the thread that already initialized GTK. CEF 152 does that
+// during CefInitialize and then reads the theme; calling gtk_init earlier, or
+// running gtk_main on a side thread, crashes that read.
+void RealizeTray() {
+  if (!LoadGtk()) {
+    return;
+  }
   int argc = 0;
   char** argv = nullptr;
   if (!g_gtk.init_check(&argc, &argv)) {
@@ -173,15 +179,21 @@ void TrayThread() {
   g_gtk.icon_set_visible(icon, 1);
   g_gtk.signal_connect(icon, "activate", reinterpret_cast<void (*)()>(OnActivate), nullptr, nullptr, 0);
   g_gtk.signal_connect(icon, "popup-menu", reinterpret_cast<void (*)()>(OnPopup), nullptr, nullptr, 0);
-  g_gtk.main_loop();
-}
-
-void* ThreadMain(void*) {
-  TrayThread();
-  return nullptr;
 }
 
 }  // namespace
+
+extern "C" void xgoef_tray_after_cef_init(void) {
+  {
+    std::lock_guard<std::mutex> lock(g_mu);
+    g_cef_ready = true;
+    if (g_started || (g_flat.empty() && g_tip.empty() && g_icon.empty())) {
+      return;
+    }
+    g_started = true;
+  }
+  RealizeTray();
+}
 
 extern "C" void xgoef_tray_note_click(xgoef_menu_click_fn fn) {
   std::lock_guard<std::mutex> lock(g_mu);
@@ -194,21 +206,10 @@ extern "C" void xgoef_tray_apply(const char* tooltip, const char* icon, const ch
     g_tip = tooltip ? tooltip : "";
     g_icon = icon ? icon : "";
     g_flat = flat ? flat : "";
-    if (g_started || (g_flat.empty() && g_tip.empty())) {
+    if (!g_cef_ready || g_started || (g_flat.empty() && g_tip.empty() && g_icon.empty())) {
       return;
     }
     g_started = true;
   }
-  if (!LoadGtk()) {
-    std::lock_guard<std::mutex> lock(g_mu);
-    g_started = false;
-    return;
-  }
-  pthread_t thread;
-  if (pthread_create(&thread, nullptr, ThreadMain, nullptr) != 0) {
-    std::lock_guard<std::mutex> lock(g_mu);
-    g_started = false;
-    return;
-  }
-  pthread_detach(thread);
+  RealizeTray();
 }

@@ -6,6 +6,7 @@
 
 #include "include/base/cef_callback.h"
 #include "include/cef_command_line.h"
+#include "include/cef_request_context_handler.h"
 #include "include/views/cef_browser_view.h"
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_closure_task.h"
