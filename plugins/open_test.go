@@ -28,3 +28,16 @@ func TestOpenAutostart(t *testing.T) {
 		t.Fatalf("%T %v", p, got)
 	}
 }
+
+func TestOpenLog(t *testing.T) {
+	if _, err := Open("log", Options{}); err == nil || !strings.Contains(err.Error(), "identifier is required") {
+		t.Fatal(err)
+	}
+	p, err := Open("log", Options{Identifier: "com.example.hello", LogLevel: "debug"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Name() != "log" || len(p.Permissions()) != 1 || p.Permissions()[0] != "log:write" {
+		t.Fatalf("%s %v", p.Name(), p.Permissions())
+	}
+}

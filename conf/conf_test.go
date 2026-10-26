@@ -39,15 +39,19 @@ func TestLoadHelloConfig(t *testing.T) {
 		t.Fatalf("mark %#v", f.Plugin.Eval.Scripts)
 	}
 	foundAuto := false
+	foundLog := false
 	for _, name := range f.Plugins {
 		if name == "autostart" {
 			foundAuto = true
 		}
+		if name == "log" {
+			foundLog = true
+		}
 	}
-	if !foundAuto {
+	if !foundAuto || !foundLog {
 		t.Fatalf("plugins %v", f.Plugins)
 	}
-	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled"} {
+	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled", "log:write"} {
 		ok := false
 		for _, c := range f.Capabilities {
 			for _, p := range c.Permissions {
@@ -248,6 +252,32 @@ func TestLoadRejectsAutostartArgs(t *testing.T) {
 		if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "autostart:") {
 			t.Fatalf("%s %v", args, err)
 		}
+	}
+}
+
+func TestLoadRejectsLogLevel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "ok.json")
+	body := `{
+	  "productName":"t",
+	  "plugin":{"log":{"level":"debug"}}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Load(path)
+	if err != nil || f.Plugin.Log.Level != "debug" || len(f.Plugins) != 0 {
+		t.Fatalf("%q %v %v", f.Plugin.Log.Level, f.Plugins, err)
+	}
+	body = `{
+	  "productName":"t",
+	  "plugin":{"log":{"level":"verbose"}}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "level is invalid") {
+		t.Fatal(err)
 	}
 }
 

@@ -122,6 +122,7 @@ func helperMethod(c Command) (string, bool) {
 		"webview:print", "webview:open_dev_tools", "webview:close_dev_tools", "webview:is_dev_tools_open",
 		"eval:run",
 		"autostart:enable", "autostart:disable", "autostart:is_enabled",
+		"log:write",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

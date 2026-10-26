@@ -18,6 +18,7 @@ const maxInvokeTimeout = 24 * time.Hour
 type invokeGate struct {
 	mu      sync.Mutex
 	def     time.Duration
+	onPanic func(any)
 	byMsg   map[string]*invokeSlot
 	byQuery map[int64]*invokeSlot
 }
@@ -56,6 +57,29 @@ func (g *invokeGate) setDefault(d time.Duration) {
 	g.mu.Unlock()
 }
 
+func (g *invokeGate) setPanicHook(fn func(any)) {
+	if g == nil {
+		return
+	}
+	g.mu.Lock()
+	g.onPanic = fn
+	g.mu.Unlock()
+}
+
+func (g *invokeGate) recordPanic(rec any) {
+	if g == nil {
+		return
+	}
+	g.mu.Lock()
+	hook := g.onPanic
+	g.mu.Unlock()
+	if hook == nil {
+		return
+	}
+	defer func() { _ = recover() }()
+	hook(rec)
+}
+
 func (g *invokeGate) run(window string, id int, queryID int64, perCall time.Duration, respond func(string), work func(context.Context) string) {
 	ctx, cancel := g.context(perCall)
 	sl := &invokeSlot{
@@ -77,6 +101,7 @@ func (g *invokeGate) run(window string, id int, queryID int64, perCall time.Dura
 		}()
 		defer func() {
 			if rec := recover(); rec != nil {
+				g.recordPanic(rec)
 				sl.send(failResponse(id, ipc.Fail(ipc.CodePanic, "ipc: panic: %v", rec)))
 			}
 		}()

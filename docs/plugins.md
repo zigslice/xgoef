@@ -37,8 +37,9 @@ type Plugin interface {
 | `webview` | `webview:print` `webview:open_dev_tools` `webview:close_dev_tools` `webview:is_dev_tools_open` | 与命令名相同 |
 | `eval` | `eval:run` | 与命令名相同 |
 | `autostart` | `autostart:enable` `autostart:disable` `autostart:is_enabled` | 与命令名相同 |
+| `log` | `log:write` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`、`plugins.log.trace(message)` / `debug` / `info` / `warn` / `error`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -138,6 +139,12 @@ Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没�
 `autostart:enable` 在当前用户的 XDG autostart 目录写入 `xgoef-<identifier>.desktop`。`autostart:disable` 删除这个文件。`autostart:is_enabled` 返回布尔值。进程启动时不会自己写入。
 
 `Exec` 使用宿主绝对路径和 `plugin.autostart.args`。页面不能改可执行文件，也不能附加参数；带了字段就是 `autostart.invalid`。Linux 以外是 `autostart.unavailable`。目标若是符号链接，`autostart.denied`，不会跟着链接去写。细节见 [autostart.md](autostart.md)。hello 的 *autostart* 按钮在打开和关闭之间切换。
+
+## log
+
+`log:write` 接受 `{level, message}`。`level` 可以省略，省略是 `info`。低于 `plugin.log.level` 的调用成功，但不写文件。消息必须是一行，不能含有控制字符，最长 4096 字节。多出来的字段是 `log.denied`。页面不能选择目录或文件名，也不能提交崩溃记录。
+
+Linux 上日志在 `$XDG_STATE_HOME/xgoef/xgoef-<identifier>.log`，没有这个变量时在 `~/.local/state/xgoef`。宿主 panic 另写 `xgoef-<identifier>.crash`，只留最近一次，并在日志里追加一行 `CRASH`。启用插件后，浏览器进程带上 `--xgoef-crash-dumps`，再转成 Chromium 的 crashpad 开关。dump 本身要有 `chrome_crashpad_handler`。细节见 [log.md](log.md)。hello 的 *log* 按钮写一条 info。
 
 ## 应用侧还要做的
 

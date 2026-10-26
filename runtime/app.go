@@ -16,6 +16,7 @@ import (
 	"github.com/zigslice/xgoef/eval"
 	"github.com/zigslice/xgoef/instance"
 	"github.com/zigslice/xgoef/ipc"
+	"github.com/zigslice/xgoef/log"
 	"github.com/zigslice/xgoef/menu"
 	"github.com/zigslice/xgoef/plugin"
 	"github.com/zigslice/xgoef/plugins"
@@ -177,6 +178,7 @@ func (a *App) OpenPlugins() error {
 		RunEval:         a.Eval,
 		Identifier:      a.Config.Identifier,
 		AutostartArgs:   copyArgs(a.Config.Plugin.Autostart.Args),
+		LogLevel:        a.Config.Plugin.Log.Level,
 	}
 	if err := a.installEval(); err != nil {
 		return err
@@ -193,6 +195,7 @@ func (a *App) OpenPlugins() error {
 			return err
 		}
 	}
+	a.attachCrashLog()
 	return nil
 }
 
@@ -406,6 +409,7 @@ func (a *App) Run() error {
 	if err := a.Plugins.Setup(a); err != nil {
 		return fmt.Errorf("plugin setup: %w", err)
 	}
+	a.attachCrashLog()
 
 	a.wireIPC()
 
@@ -593,7 +597,79 @@ func (a *App) buildArgs(url string) []string {
 	if os.Getenv("XGOEF_ENABLE_GPU") != "1" {
 		args = append(args, "--disable-gpu", "--in-process-gpu")
 	}
+	if dir := a.crashDumpsDir(); dir != "" {
+		args = append(args, "--xgoef-crash-dumps="+dir)
+	}
 	return args
+}
+
+// crashDumpsDir is the absolute state directory handed to CEF as
+// --xgoef-crash-dumps. The browser process turns that into crashpad switches.
+// A relative path is omitted. The page cannot choose this directory.
+func (a *App) crashDumpsDir() string {
+	if a == nil {
+		return ""
+	}
+	if a.Plugins != nil {
+		for _, p := range a.Plugins.Plugins() {
+			if p.Name() != "log" {
+				continue
+			}
+			type dirSource interface{ Dir() string }
+			src, ok := p.(dirSource)
+			if !ok {
+				return ""
+			}
+			return cleanCrashDir(src.Dir())
+		}
+	}
+	for _, name := range a.Config.Plugins {
+		if name != "log" {
+			continue
+		}
+		dir, err := log.UserDir()
+		if err != nil {
+			return ""
+		}
+		return cleanCrashDir(dir)
+	}
+	return ""
+}
+
+func cleanCrashDir(dir string) string {
+	if !filepath.IsAbs(dir) || strings.IndexByte(dir, 0) >= 0 {
+		return ""
+	}
+	for _, r := range dir {
+		if r < 0x20 {
+			return ""
+		}
+	}
+	return filepath.Clean(dir)
+}
+
+// attachCrashLog records invoke panics through the log plugin.
+// The summary is the recovered value. The page does not supply it.
+func (a *App) attachCrashLog() {
+	if a == nil || a.invokes == nil || a.Plugins == nil {
+		return
+	}
+	var target interface{ Crash(string) error }
+	for _, p := range a.Plugins.Plugins() {
+		if p.Name() != "log" {
+			continue
+		}
+		if c, ok := p.(interface{ Crash(string) error }); ok {
+			target = c
+		}
+	}
+	if target == nil {
+		a.invokes.setPanicHook(nil)
+		return
+	}
+	a.invokes.setPanicHook(func(rec any) {
+		_ = target.Crash(fmt.Sprint(rec))
+	})
 }
 
 func resolveSubprocess() string {

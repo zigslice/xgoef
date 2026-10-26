@@ -11,6 +11,7 @@ import (
 	"github.com/zigslice/xgoef/plugins/eval"
 	"github.com/zigslice/xgoef/plugins/fs"
 	"github.com/zigslice/xgoef/plugins/globalshortcut"
+	applog "github.com/zigslice/xgoef/plugins/log"
 	"github.com/zigslice/xgoef/plugins/monitor"
 	"github.com/zigslice/xgoef/plugins/notification"
 	osinfo "github.com/zigslice/xgoef/plugins/os"
@@ -56,9 +57,10 @@ type Options struct {
 	RunEval         func(window, source string) error
 	Identifier      string
 	AutostartArgs   []string
+	LogLevel        string
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -98,6 +100,8 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 		return eval.New(opt.EvalScripts, opt.RunEval), nil
 	case "autostart":
 		return autostart.New(opt.Identifier, opt.AppName, opt.Executable, opt.AutostartArgs)
+	case "log":
+		return applog.New(opt.Identifier, opt.LogLevel)
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

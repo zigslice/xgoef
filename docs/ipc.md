@@ -107,6 +107,10 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `autostart.unavailable` | 当前系统没有用户级 autostart 目录，或配置的目录不是绝对路径 |
 | `autostart.denied` | 目标是符号链接、目录，或路径离开了 autostart 目录 |
 | `autostart.write` | 写入或删除开机启动项失败 |
+| `log.invalid` | 日志级别或消息不合法，或参数不是带消息的对象 |
+| `log.denied` | 参数里有级别和消息以外的字段，或目标是符号链接、目录，或路径离开了日志目录 |
+| `log.unavailable` | 没有可写的日志文件，也没有标准错误 |
+| `log.write` | 追加日志或替换崩溃记录失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## 自动注入
