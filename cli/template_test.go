@@ -76,7 +76,43 @@ func TestCreateTemplates(t *testing.T) {
 		t.Fatalf("%s %v", rconf, err)
 	}
 
-	if code := Run([]string{"create", "nope", "--template", "vue"}); code == 0 {
+	if code := Run([]string{"create", "--template", "vue", "panel"}); code != 0 {
+		t.Fatalf("vue exit %d", code)
+	}
+	vue := filepath.Join(root, "panel")
+	assertHas(t, vue, "src/App.vue", "src/main.js", "vite.config.js")
+	vueApp, err := os.ReadFile(filepath.Join(vue, "src", "App.vue"))
+	if err != nil || !strings.Contains(string(vueApp), "__XGOEF__") || !strings.Contains(string(vueApp), "panel") || strings.Contains(string(vueApp), "__NAME__") {
+		t.Fatalf("%s %v", vueApp, err)
+	}
+	vueConf, err := os.ReadFile(filepath.Join(vue, "vite.config.js"))
+	if err != nil || !strings.Contains(string(vueConf), "@vitejs/plugin-vue") || !strings.Contains(string(vueConf), "vue()") {
+		t.Fatalf("%s %v", vueConf, err)
+	}
+	vueCfg, err := conf.Load(filepath.Join(vue, "xgoef.conf.json"))
+	if err != nil || vueCfg.Build.DevURL != "http://127.0.0.1:5173" || vueCfg.Build.BeforeDevCommand != "npm run dev" {
+		t.Fatalf("%+v %v", vueCfg.Build, err)
+	}
+
+	if code := Run([]string{"create", "Desk", "--template", "svelte"}); code != 0 {
+		t.Fatalf("svelte exit %d", code)
+	}
+	svelte := filepath.Join(root, "Desk")
+	assertHas(t, svelte, "src/App.svelte", "src/main.js", "svelte.config.js", ".gitignore")
+	svelteApp, err := os.ReadFile(filepath.Join(svelte, "src", "App.svelte"))
+	if err != nil || !strings.Contains(string(svelteApp), "__XGOEF__") || !strings.Contains(string(svelteApp), "Desk") || strings.Contains(string(svelteApp), "__NAME__") {
+		t.Fatalf("%s %v", svelteApp, err)
+	}
+	sveltePkg, err := os.ReadFile(filepath.Join(svelte, "package.json"))
+	if err != nil || !strings.Contains(string(sveltePkg), `"name": "desk"`) {
+		t.Fatalf("%s %v", sveltePkg, err)
+	}
+	svelteConf, err := os.ReadFile(filepath.Join(svelte, "vite.config.js"))
+	if err != nil || !strings.Contains(string(svelteConf), "@sveltejs/vite-plugin-svelte") || !strings.Contains(string(svelteConf), "svelte()") {
+		t.Fatalf("%s %v", svelteConf, err)
+	}
+
+	if code := Run([]string{"create", "nope", "--template", "angular"}); code == 0 {
 		t.Fatal("unknown template")
 	}
 	if _, err := os.Stat(filepath.Join(root, "nope")); !os.IsNotExist(err) {
