@@ -92,6 +92,14 @@ int xgoef_devtools_close(const char* label);
  * does not answer. */
 int xgoef_devtools_is_open(const char* label);
 
+/* Replace init scripts for |label|. |text| is the length-prefixed table.
+ * |allowed_url| is the origin those scripts may run on. Empty text clears.
+ * Returns 0, or -1 when the table or the URL is rejected. */
+int xgoef_eval_set_init(const char* label, const char* allowed_url, const char* text);
+/* Run one trusted script now. 0 ran, -1 unavailable, -2 origin denied,
+ * -3 script rejected. -2 and -3 do not call ExecuteJavaScript. */
+int xgoef_eval_run(const char* label, const char* allowed_url, const char* script);
+
 #ifdef __cplusplus
 }
 #endif

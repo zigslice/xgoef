@@ -100,6 +100,9 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `monitor.unavailable` | 读不到显示器，或这个 label 没有 Views 窗口可移动 |
 | `webview.denied` | `plugin.webview.devtools` 不是 true，开发者工具命令不会调用 CEF |
 | `webview.unavailable` | 这个 label 没有浏览器，或打印 / 开发者工具调用失败 |
+| `eval.invalid` | `eval:run` 没有合法的 `name`，或脚本正文被宿主拒绝 |
+| `eval.denied` | 参数里除了名字还有别的字段，名字没有登记，或窗口已经离开钉住的源站。这种失败不会执行脚本 |
+| `eval.unavailable` | 这个 label 没有浏览器，或执行调用没有完成 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

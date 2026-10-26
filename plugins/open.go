@@ -7,6 +7,7 @@ import (
 	"github.com/zigslice/xgoef/plugin"
 	"github.com/zigslice/xgoef/plugins/clipboard"
 	"github.com/zigslice/xgoef/plugins/dialog"
+	"github.com/zigslice/xgoef/plugins/eval"
 	"github.com/zigslice/xgoef/plugins/fs"
 	"github.com/zigslice/xgoef/plugins/globalshortcut"
 	"github.com/zigslice/xgoef/plugins/monitor"
@@ -50,9 +51,11 @@ type Options struct {
 	OpenDevTools    func(window string) error
 	CloseDevTools   func(window string) error
 	DevToolsOpen    func(window string) (bool, error)
+	EvalScripts     map[string]string
+	RunEval         func(window, source string) error
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -88,6 +91,8 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 		return monitor.New(opt.Displays, opt.MoveWindow), nil
 	case "webview":
 		return webview.New(opt.DevTools, opt.Print, opt.OpenDevTools, opt.CloseDevTools, opt.DevToolsOpen), nil
+	case "eval":
+		return eval.New(opt.EvalScripts, opt.RunEval), nil
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

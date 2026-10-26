@@ -37,6 +37,7 @@
 | 7p | **P3** 窗口主题、装饰与透明 | 完成（窗口化透明仍是 CEF 限制，见 [window.md](window.md)） |
 | 7q | **P3** 多显示器与 DPI | 完成（DIP 坐标，Views 窗口可移动，见 [window.md](window.md)） |
 | 7r | **P3** 打印与开发者工具 | 完成（系统打印对话框；开发者工具默认关闭，见 [window.md](window.md)） |
-| 7s | **P3** `eval` / 注入脚本 | 待做 |
+| 7s | **P3** `eval` / 注入脚本 | 完成（页面只按名字运行已登记脚本；注入只留在钉住的源站，见 [window.md](window.md)） |
+| 7t | **P3** 自动注入前端桥 | 待做 |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

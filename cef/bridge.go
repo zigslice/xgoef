@@ -14,6 +14,10 @@ type WindowSpec struct {
 	Width  int
 	Height int
 	Chrome WindowChrome
+	// InitScripts are trusted host sources injected on each main-frame load
+	// that is still on this window's URL origin. The page cannot set them.
+	// Empty leaves scripts already registered for the label unchanged.
+	InitScripts []string
 }
 
 // Bridge wires the C MessageRouter shim to Go IPC and window control.
@@ -61,4 +65,12 @@ type Bridge interface {
 	CloseDevTools(windowLabel string) error
 	// DevToolsOpen reports whether developer tools are open for a window.
 	DevToolsOpen(windowLabel string) (bool, error)
+
+	// SetInitScripts replaces the init scripts for a label.
+	// encoded is eval.Encode. allowedURL is the pinned origin.
+	// An encoded empty table clears that label.
+	SetInitScripts(label, allowedURL, encoded string) error
+	// Eval runs source in the main frame when its live URL is still allowedURL.
+	// source is trusted host text, never renderer input.
+	Eval(label, allowedURL, source string) error
 }

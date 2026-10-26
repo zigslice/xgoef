@@ -29,6 +29,12 @@ func TestLoadHelloConfig(t *testing.T) {
 	if !f.Plugin.WebView.DevTools {
 		t.Fatal("hello enables devtools")
 	}
+	if len(f.App.Windows[0].InitScripts) != 1 || !strings.Contains(f.App.Windows[0].InitScripts[0], "__xgoefInjected") {
+		t.Fatalf("init %#v", f.App.Windows[0].InitScripts)
+	}
+	if f.Plugin.Eval.Scripts["mark"] == "" || strings.Contains(f.Plugin.Eval.Scripts["mark"], "alert") {
+		t.Fatalf("mark %#v", f.Plugin.Eval.Scripts)
+	}
 	if len(f.Capabilities) == 0 {
 		t.Fatal("expected capabilities")
 	}
@@ -128,6 +134,31 @@ func TestLoadWindowChrome(t *testing.T) {
 	}
 	_, err = Load(badPath)
 	if err == nil || err.Error() != `conf: window main theme "blue"` {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadRejectsEvalScript(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.json")
+	body := `{
+	  "productName":"t",
+	  "app":{"windows":[{"title":"t","width":1,"height":1,"initScripts":["   "]}]}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "window main") {
+		t.Fatal(err)
+	}
+	body = `{
+	  "productName":"t",
+	  "plugin":{"eval":{"scripts":{"Alert":"window.ok = 1;"}}}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "name is invalid") {
 		t.Fatal(err)
 	}
 }
