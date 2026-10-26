@@ -89,7 +89,7 @@
         "windowState": {
           "type": "boolean",
           "default": true,
-          "description": "Remember each window's position, size, and maximized flag in .xgoef/window-state.json."
+          "description": "Remember each window's position, size, and maximized and minimized flags in .xgoef/window-state.json."
         },
         "singleInstance": {
           "type": "boolean",

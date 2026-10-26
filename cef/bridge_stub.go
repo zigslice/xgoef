@@ -11,7 +11,7 @@ type NativeBridge struct {
 	tray        string
 	onMenu      func(windowLabel, kind, id string)
 	winState    string
-	onState     func(label string, x, y, width, height int, maximized bool)
+	onState     func(label string, x, y, width, height int, maximized, minimized bool)
 	lastCreate  WindowSpec
 	displays    string
 	moved       bool
@@ -97,7 +97,7 @@ func (b *NativeBridge) SetWindowState(encoded string) { b.winState = encoded }
 // WindowState is the encoded table last published to the stub.
 func (b *NativeBridge) WindowState() string { return b.winState }
 
-func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
+func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized, minimized bool)) {
 	b.onState = fn
 }
 

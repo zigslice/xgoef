@@ -40,16 +40,16 @@ func (a *App) publishWindowState() {
 		a.Bridge.SetWindowStateNote(nil)
 		return
 	}
-	a.Bridge.SetWindowStateNote(func(label string, x, y, width, height int, maximized bool) {
-		_ = a.noteWindow(label, x, y, width, height, maximized)
+	a.Bridge.SetWindowStateNote(func(label string, x, y, width, height int, maximized, minimized bool) {
+		_ = a.noteWindow(label, x, y, width, height, maximized, minimized)
 	})
 }
 
-func (a *App) noteWindow(label string, x, y, width, height int, maximized bool) error {
+func (a *App) noteWindow(label string, x, y, width, height int, maximized, minimized bool) error {
 	if a.winState == nil {
 		return fmt.Errorf("runtime: window state is off")
 	}
-	if err := a.winState.Note(label, x, y, width, height, maximized); err != nil {
+	if err := a.winState.Note(label, x, y, width, height, maximized, minimized); err != nil {
 		return err
 	}
 	if a.Bridge != nil {

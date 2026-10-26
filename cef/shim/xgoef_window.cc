@@ -92,10 +92,7 @@ class SizedWindowDelegate : public CefWindowDelegate {
 
   cef_show_state_t GetInitialShowState(CefRefPtr<CefWindow> window) override {
     (void)window;
-    if (SavedMaximized(WindowCreatingLabel(browser_view_))) {
-      return CEF_SHOW_STATE_MAXIMIZED;
-    }
-    return CEF_SHOW_STATE_NORMAL;
+    return InitialShowState(WindowCreatingLabel(browser_view_), CEF_SHOW_STATE_NORMAL);
   }
 
   cef_runtime_style_t GetWindowRuntimeStyle() override {
@@ -285,6 +282,28 @@ bool SavedMaximized(const std::string& label) {
   return !label.empty() && WindowStateFind(label, &place) && place.maximized;
 }
 
+bool SavedMinimized(const std::string& label) {
+  WindowPlace place;
+  return !label.empty() && WindowStateFind(label, &place) && place.minimized;
+}
+
+cef_show_state_t InitialShowState(const std::string& label, cef_show_state_t fallback) {
+  int code = 0;
+  if (fallback == CEF_SHOW_STATE_MAXIMIZED) {
+    code = 1;
+  } else if (fallback == CEF_SHOW_STATE_MINIMIZED) {
+    code = 2;
+  }
+  switch (ShowRestore(SavedMinimized(label), SavedMaximized(label), code)) {
+    case 2:
+      return CEF_SHOW_STATE_MINIMIZED;
+    case 1:
+      return CEF_SHOW_STATE_MAXIMIZED;
+    default:
+      return fallback;
+  }
+}
+
 void ApplySavedPlace(CefRefPtr<CefWindow> window, const std::string& label) {
   if (!window || label.empty()) {
     return;
@@ -299,6 +318,10 @@ void ApplySavedPlace(CefRefPtr<CefWindow> window, const std::string& label) {
   if (place.maximized) {
     window->Maximize();
   }
+  // After Maximize, so a previously maximized window stays maximized underneath.
+  if (place.minimized) {
+    window->Minimize();
+  }
 }
 
 void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> view) {
@@ -310,14 +333,15 @@ void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> v
     return;
   }
   if (window->IsMinimized()) {
+    WindowStateNote(label, 0, 0, 0, 0, 0, 1);
     return;
   }
   if (window->IsMaximized()) {
-    WindowStateNote(label, 0, 0, 0, 0, 1);
+    WindowStateNote(label, 0, 0, 0, 0, 1, 0);
     return;
   }
   const CefRect bounds = window->GetBoundsInScreen();
-  WindowStateNote(label, bounds.x, bounds.y, bounds.width, bounds.height, 0);
+  WindowStateNote(label, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0);
 }
 
 WindowChrome ChromeOrDefault(const std::string& text) {

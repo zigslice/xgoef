@@ -16,6 +16,7 @@ struct WindowPlace {
   int height = 0;
   bool positioned = false;
   bool maximized = false;
+  bool minimized = false;
 };
 
 // Parse the text produced by windowstate.Store.Encode.
@@ -28,8 +29,29 @@ bool ParseWindowState(const std::string& flat,
 void WindowStateSet(const std::string& flat);
 bool WindowStateFind(const std::string& label, WindowPlace* out);
 
+// 2 = minimized, 1 = maximized, otherwise fallback clamped to 0..2.
+// Callers map 2 and 1 onto their show-state enum and treat 0 as the fallback.
+inline int ShowRestore(bool minimized, bool maximized, int fallback) {
+  if (minimized) {
+    return 2;
+  }
+  if (maximized) {
+    return 1;
+  }
+  if (fallback < 0 || fallback > 2) {
+    return 0;
+  }
+  return fallback;
+}
+
 // Invoke the note callback without holding the table lock.
-void WindowStateNote(const std::string& label, int x, int y, int width, int height, int maximized);
+void WindowStateNote(const std::string& label,
+                     int x,
+                     int y,
+                     int width,
+                     int height,
+                     int maximized,
+                     int minimized);
 
 }  // namespace xgoef
 
@@ -42,7 +64,8 @@ typedef void (*xgoef_window_state_fn)(const char* label,
                                       int y,
                                       int width,
                                       int height,
-                                      int maximized);
+                                      int maximized,
+                                      int minimized);
 
 void xgoef_window_state_set(const char* encoded);
 void xgoef_window_state_set_note(xgoef_window_state_fn fn);

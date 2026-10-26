@@ -46,14 +46,17 @@ bool ParseNumber(const std::string& text, int* out) {
   return true;
 }
 
-bool FlagsOK(const std::string& flags, bool* positioned, bool* maximized) {
+bool FlagsOK(const std::string& flags, bool* positioned, bool* maximized, bool* minimized) {
   *positioned = false;
   *maximized = false;
+  *minimized = false;
   for (char c : flags) {
     if (c == 'p') {
       *positioned = true;
     } else if (c == 'm') {
       *maximized = true;
+    } else if (c == 'n') {
+      *minimized = true;
     } else {
       return false;
     }
@@ -70,7 +73,7 @@ bool InRange(const WindowPlace& p) {
       return false;
     }
   }
-  return p.positioned || p.maximized;
+  return p.positioned || p.maximized || p.minimized;
 }
 
 }  // namespace
@@ -100,7 +103,7 @@ bool ParseWindowState(const std::string& flat, std::vector<WindowPlace>* out, st
     p.label = cols[0];
     if (!ParseNumber(cols[1], &p.x) || !ParseNumber(cols[2], &p.y) ||
         !ParseNumber(cols[3], &p.width) || !ParseNumber(cols[4], &p.height) ||
-        !FlagsOK(cols[5], &p.positioned, &p.maximized) || !InRange(p)) {
+        !FlagsOK(cols[5], &p.positioned, &p.maximized, &p.minimized) || !InRange(p)) {
       if (err) {
         *err = "window state line " + std::to_string(n);
       }
@@ -149,7 +152,13 @@ void WindowStateSetNote(xgoef_window_state_fn fn) {
   g_note = fn;
 }
 
-void WindowStateNote(const std::string& label, int x, int y, int width, int height, int maximized) {
+void WindowStateNote(const std::string& label,
+                     int x,
+                     int y,
+                     int width,
+                     int height,
+                     int maximized,
+                     int minimized) {
   if (label.empty()) {
     return;
   }
@@ -159,7 +168,7 @@ void WindowStateNote(const std::string& label, int x, int y, int width, int heig
     fn = g_note;
   }
   if (fn) {
-    fn(label.c_str(), x, y, width, height, maximized);
+    fn(label.c_str(), x, y, width, height, maximized, minimized);
   }
 }
 
