@@ -2,6 +2,8 @@
 
 package cef
 
+import "fmt"
+
 // NativeBridge is a no-op stub for gc builds / unit tests.
 type NativeBridge struct {
 	handler     QueryHandler
@@ -18,6 +20,7 @@ type NativeBridge struct {
 	moveLabel   string
 	moveX       int
 	moveY       int
+	taskbar     []string
 	printed     bool
 	printLabel  string
 	devAction   string
@@ -118,6 +121,40 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 	b.moveX = x
 	b.moveY = y
 	return nil
+}
+
+func (b *NativeBridge) ExpectSkipTaskbar(label string, skip bool) error {
+	b.noteTaskbar("expect", label, skip, 0)
+	return nil
+}
+
+func (b *NativeBridge) SetSkipTaskbar(label string, skip bool) error {
+	b.noteTaskbar("skip", label, skip, 0)
+	return nil
+}
+
+func (b *NativeBridge) SetTaskbarProgress(label string, progress int) error {
+	b.noteTaskbar("progress", label, false, progress)
+	return nil
+}
+
+func (b *NativeBridge) noteTaskbar(kind, label string, skip bool, progress int) {
+	flag := "0"
+	if skip {
+		flag = "1"
+	}
+	if kind == "progress" {
+		b.taskbar = append(b.taskbar, fmt.Sprintf("progress\t%s\t%d", label, progress))
+		return
+	}
+	b.taskbar = append(b.taskbar, kind+"\t"+label+"\t"+flag)
+}
+
+// TaskbarLog is the taskbar calls recorded by the stub, oldest first.
+func (b *NativeBridge) TaskbarLog() []string {
+	out := make([]string, len(b.taskbar))
+	copy(out, b.taskbar)
+	return out
 }
 
 // LastMove is the most recent MoveWindow argument.

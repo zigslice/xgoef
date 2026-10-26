@@ -134,7 +134,7 @@ func TestLoadWindowChrome(t *testing.T) {
 	  "productName":"t",
 	  "app":{"windows":[
 	    {"title":"plain","width":1,"height":1},
-	    {"label":"aux","title":"aux","width":2,"height":2,"decorations":false,"theme":"Dark","transparent":true}
+	    {"label":"aux","title":"aux","width":2,"height":2,"decorations":false,"theme":"Dark","transparent":true,"skipTaskbar":true}
 	  ]}
 	}`
 	if err := os.WriteFile(okPath, []byte(body), 0o644); err != nil {
@@ -149,8 +149,8 @@ func TestLoadWindowChrome(t *testing.T) {
 		t.Fatalf("%q %v", plain, err)
 	}
 	aux, err := f.App.Windows[1].Chrome().Encode()
-	if err != nil || aux != "0,dark,1" || f.App.Windows[1].Theme != "dark" {
-		t.Fatalf("%q theme %q %v", aux, f.App.Windows[1].Theme, err)
+	if err != nil || aux != "0,dark,1" || f.App.Windows[1].Theme != "dark" || !f.App.Windows[1].SkipTaskbar || f.App.Windows[0].SkipTaskbar {
+		t.Fatalf("%q theme %q skip %v %v %v", aux, f.App.Windows[1].Theme, f.App.Windows[1].SkipTaskbar, f.App.Windows[0].SkipTaskbar, err)
 	}
 
 	badPath := filepath.Join(dir, "bad.json")

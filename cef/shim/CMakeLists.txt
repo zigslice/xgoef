@@ -31,6 +31,9 @@ set(XGOEF_CEF_SRCS
   xgoef_window.cc
   xgoef_window_chrome.cc
   xgoef_window_state.cc
+  xgoef_taskbar.cc
+  xgoef_taskbar_x11.cc
+  xgoef_taskbar_window.cc
   xgoef_lifecycle.cc
   xgoef_display.cc
   xgoef_display_query.cc

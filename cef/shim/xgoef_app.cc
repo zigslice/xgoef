@@ -45,6 +45,7 @@ class WindowDelegate : public CefWindowDelegate {
     if (initial_show_state_ != CEF_SHOW_STATE_HIDDEN) {
       window->Show();
     }
+    ApplyTaskbarHint(window, WindowCreatingLabel(browser_view_));
   }
 
   void OnWindowDestroyed(CefRefPtr<CefWindow> window) override {

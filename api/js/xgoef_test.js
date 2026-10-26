@@ -237,6 +237,24 @@ async function main() {
     assert.equal(posted[2].args.crash, undefined);
     assert.deepEqual(posted.map((msg) => msg.args.level), ["trace", "debug", "info", "warn", "error"]);
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const bar = sandbox.__XGOEF__.plugins.taskbar;
+    bar.skip(true);
+    bar.progress(40);
+    bar.progress(null);
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      ["taskbar:skip", "taskbar:progress", "taskbar:progress"]
+    );
+    assert.deepEqual(posted[0].args, { skip: true });
+    assert.deepEqual(posted[1].args, { progress: 40 });
+    assert.deepEqual(posted[2].args, { progress: null });
+    assert.equal(posted[0].args.label, undefined);
+  }
 }
 
 main().catch((err) => {

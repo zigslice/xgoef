@@ -90,6 +90,7 @@
         <button id="btn-eval" class="secondary" type="button">eval</button>
         <button id="btn-autostart" class="secondary" type="button">autostart</button>
         <button id="btn-log" class="secondary" type="button">log</button>
+        <button id="btn-taskbar" class="secondary" type="button">taskbar</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -275,6 +276,14 @@
             await auto.enable();
             out.textContent = "autostart on";
           }
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-taskbar").onclick = async () => {
+        try {
+          await window.__XGOEF__.plugins.taskbar.progress(40);
+          out.textContent = "taskbar 40";
         } catch (e) {
           show(e);
         }

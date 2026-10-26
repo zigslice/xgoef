@@ -41,6 +41,9 @@ bool SavedMinimized(const std::string& label);
 cef_show_state_t InitialShowState(const std::string& label, cef_show_state_t fallback);
 void ApplySavedPlace(CefRefPtr<CefWindow> window, const std::string& label);
 void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> view);
+// Apply a pending taskbar hint, or the launch --xgoef-skip-taskbar switch
+// on the first Views window.
+void ApplyTaskbarHint(CefRefPtr<CefWindow> window, const std::string& label);
 
 // Empty text is the default. A bad string is logged and replaced with the default.
 WindowChrome ChromeOrDefault(const std::string& text);

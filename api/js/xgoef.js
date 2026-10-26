@@ -337,6 +337,14 @@
           return global.__XGOEF__.invoke("autostart:is_enabled", {});
         },
       },
+      taskbar: {
+        skip: function (skip) {
+          return global.__XGOEF__.invoke("taskbar:skip", { skip: skip });
+        },
+        progress: function (progress) {
+          return global.__XGOEF__.invoke("taskbar:progress", { progress: progress });
+        },
+      },
       log: {
         write: function (level, message) {
           var args = { message: message };

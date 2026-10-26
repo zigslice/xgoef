@@ -92,6 +92,10 @@ var builtinPlugins = map[string][]Command{
 	"log": {
 		{Name: "log:write", Args: []Arg{{Name: "level", Type: "string", Optional: true}, {Name: "message", Type: "string"}}, Result: "null"},
 	},
+	"taskbar": {
+		{Name: "taskbar:skip", Args: []Arg{{Name: "skip", Type: "boolean"}}, Result: "null"},
+		{Name: "taskbar:progress", Args: []Arg{{Name: "progress", Type: "number | null"}}, Result: "null"},
+	},
 }
 
 // displayType is one monitor. DIP fields match window-state; pixel fields are physical.
@@ -109,4 +113,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "taskbar", "deeplink"}
