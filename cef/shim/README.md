@@ -11,6 +11,7 @@ CEF C++ host pad（MessageRouter + Views），供 **LLGo**（`go:linkname`，无
 | `xgoef_helper_main.cc` | 原生 `xgoef-helper`（渲染侧注入 `window.cefQuery`） |
 | `xgoef_window_state.*` | 窗口位置扁平文本（无 CEF 头）；Views 窗口按它恢复并在移动时回调 |
 | `xgoef_window_chrome.*` | 装饰、主题、透明的一行文本（无 CEF 头）；Views 按它决定无边框和配色 |
+| `xgoef_display.*` | 显示器表（无 CEF 头的解析）；`xgoef_display_query.cc` 在 UI 线程读 `CefDisplay` 并移动 Views 窗口 |
 | `xgoef_menu_model.*` | 菜单扁平文本解析（无 CEF 头） |
 | `xgoef_menu.*` | CEF 菜单栏与 `ShowMenu` |
 | `xgoef_tray_gtk.cc` | `dlopen("libgtk-3.so.0")` 状态图标；加载失败时仍可用 `tray:popup` |

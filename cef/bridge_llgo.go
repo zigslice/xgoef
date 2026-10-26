@@ -184,6 +184,22 @@ func (b *NativeBridge) SetWindowState(encoded string) {
 	xgoefWindowStateSet(c.AllocaCStr(encoded))
 }
 
+func (b *NativeBridge) Displays(windowLabel string) (string, error) {
+	text := xgoefDisplays(c.AllocaCStr(windowLabel))
+	if text == nil {
+		return "", fmt.Errorf("cef: displays unavailable")
+	}
+	defer xgoefDisplaysFree(text)
+	return c.GoString(text), nil
+}
+
+func (b *NativeBridge) MoveWindow(label string, x, y int) error {
+	if rc := xgoefWindowMove(c.AllocaCStr(label), c.Int(x), c.Int(y)); rc != 0 {
+		return fmt.Errorf("cef: move window %q failed", label)
+	}
+	return nil
+}
+
 func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
 	windowStateNote = fn
 	if fn == nil {
@@ -278,3 +294,12 @@ func xgoefWindowStateSet(encoded *c.Char)
 
 //go:linkname xgoefWindowStateSetNote C.xgoef_window_state_set_note
 func xgoefWindowStateSetNote(fn windowStateFn)
+
+//go:linkname xgoefDisplays C.xgoef_displays
+func xgoefDisplays(windowLabel *c.Char) *c.Char
+
+//go:linkname xgoefDisplaysFree C.xgoef_displays_free
+func xgoefDisplaysFree(text *c.Char)
+
+//go:linkname xgoefWindowMove C.xgoef_window_move
+func xgoefWindowMove(label *c.Char, x, y c.Int) c.Int

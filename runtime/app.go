@@ -163,6 +163,8 @@ func (a *App) OpenPlugins() error {
 		Args:            a.programArgs(),
 		Release:         a.closeInstance,
 		Emit:            a.Emit,
+		Displays:        a.Bridge.Displays,
+		MoveWindow:      a.Bridge.MoveWindow,
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {

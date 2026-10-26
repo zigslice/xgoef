@@ -55,3 +55,19 @@ Capabilities should list each label that may invoke commands.
 再 `CreateWindow` 时，`WindowSpec.Chrome` 用同一段文本作为 `xgoef_window_create` 的最后一项。`cef/shim/xgoef_window_chrome.cc` 按同一规则解析，且不依赖 CEF 头文件。坏文本打印到 stderr 并退回默认，C ABI 仍返回 0。
 
 页面背景：透明为 0；`dark` 为 `0xFF1E1E1E`；`light` 为 `0xFFFFFFFF`；`system` 留给 CEF 默认。
+
+## 多显示器与 DPI
+
+`monitor` 插件列出 CEF 看见的显示器，并可以移动当前 Views 窗口。坐标 `x` / `y` / `width` / `height` 和 `workX` / `workY` / `workWidth` / `workHeight` 是 DIP，和 window-state 里记住的屏幕坐标是同一套。`scaleFactor` 是这块屏的 device scale。`pixelX` 这一组是 CEF `ConvertPointToPixels` 算出来的物理像素。`rotation` 是 0、90、180 或 270。CEF 不提供显示器的名字。
+
+| 命令 | 返回 |
+| --- | --- |
+| `monitor:list` | 每块屏一条 |
+| `monitor:primary` | 主屏，没有显示器时是 `null` |
+| `monitor:current` | 调用窗口所在的屏。这个 label 没有 Views 窗口时是 `null` |
+| `monitor:scale` | 调用窗口所在屏的 `scaleFactor`。窗口还没有屏时用主屏的。一块屏都没有是 `monitor.unavailable` |
+| `monitor:move` | 把调用窗口的左上角移到 DIP `x`, `y`，宽高不变 |
+
+`--use-native` 没有 Views 窗口，`monitor:current` 是 `null`，`monitor:move` 是 `monitor.unavailable`。`x` 和 `y` 必须是整数，范围是 -100000 到 100000，否则是 `monitor.invalid`。
+
+启用方式、前端方法和 hello 的 *monitors* 按钮见 [plugins.md](plugins.md)。

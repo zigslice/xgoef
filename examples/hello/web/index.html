@@ -83,6 +83,7 @@
         <button id="btn-relaunch" class="secondary" type="button">relaunch</button>
         <button id="btn-notify" class="secondary" type="button">notify</button>
         <button id="btn-shortcut" class="secondary" type="button">shortcut</button>
+        <button id="btn-monitor" class="secondary" type="button">monitors</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -211,6 +212,15 @@
             await shortcut.register("Control+Shift+X");
           }
           out.textContent = "registered";
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-monitor").onclick = async () => {
+        try {
+          const list = await window.__XGOEF__.plugins.monitor.list();
+          const scale = await window.__XGOEF__.plugins.monitor.scale();
+          out.textContent = "displays: " + list.length + " scale " + scale;
         } catch (e) {
           show(e);
         }
