@@ -73,4 +73,9 @@ type Bridge interface {
 	// Eval runs source in the main frame when its live URL is still allowedURL.
 	// source is trusted host text, never renderer input.
 	Eval(label, allowedURL, source string) error
+
+	// SetPageLoad registers the callback for a finished main-frame load.
+	// The callback runs on the CEF UI thread. Nil clears it.
+	// The label and URL come from the browser. The page cannot set them.
+	SetPageLoad(fn func(label, url string))
 }

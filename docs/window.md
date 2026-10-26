@@ -14,6 +14,7 @@ App
 | `CloseWindow(label)` | Closes the browser for that label |
 | `FocusWindow(label)` | Shows / activates the window |
 | `EmitTo` / `Emit` | See [events.md](events.md) |
+| `OnLifecycle` | `ready`、`exit`、`page-load`，见 [lifecycle.md](lifecycle.md) |
 
 `WindowSpec`: `Label`, `Title`, `URL`, `Width`, `Height`, `Chrome`。`Chrome` 的零值是有装饰、跟随系统、不透明。
 

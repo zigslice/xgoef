@@ -13,6 +13,7 @@
 #include "include/wrapper/cef_helpers.h"
 
 #include "xgoef_eval_run.h"
+#include "xgoef_lifecycle.h"
 #include "xgoef_webview.h"
 #include "xgoef_window.h"
 
@@ -169,17 +170,18 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
                               int httpStatusCode) {
   CEF_REQUIRE_UI_THREAD();
   (void)httpStatusCode;
-  if (!frame || !frame->IsMain() || !browser) {
+  if (!frame || !browser) {
     return;
   }
-  if (DevToolsIs(browser->GetIdentifier())) {
-    return;
-  }
+  const bool main = frame->IsMain();
+  const bool devtools = DevToolsIs(browser->GetIdentifier());
   std::string label;
-  if (!WindowBoundLabel(browser, &label)) {
-    return;
+  WindowBoundLabel(browser, &label);
+  const std::string url = frame->GetURL().ToString();
+  if (main && !devtools && !label.empty()) {
+    EvalRunInit(label, frame);
   }
-  EvalRunInit(label, frame);
+  xgoef_page_load_note(main ? 1 : 0, devtools ? 1 : 0, label.c_str(), url.c_str());
 }
 
 void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,

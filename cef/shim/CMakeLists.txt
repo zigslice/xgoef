@@ -31,6 +31,7 @@ set(XGOEF_CEF_SRCS
   xgoef_window.cc
   xgoef_window_chrome.cc
   xgoef_window_state.cc
+  xgoef_lifecycle.cc
   xgoef_display.cc
   xgoef_display_query.cc
   xgoef_webview_state.cc

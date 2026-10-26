@@ -55,6 +55,8 @@ type App struct {
 	invokes    *invokeGate
 	pinMu      sync.Mutex
 	pins       map[string]string
+	lifeMu     sync.Mutex
+	life       []func(Lifecycle)
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -424,12 +426,15 @@ func (a *App) Run() error {
 	win := a.Config.FirstWindow()
 	url := navURL
 	bounds := cef.WindowBounds{Width: win.Width, Height: win.Height}
+	a.watchPageLoad()
 	if err := a.Host.CreateBrowser(url, bounds); err != nil {
 		a.Host.Shutdown()
 		return err
 	}
 
+	a.emitLifecycle(Lifecycle{Event: LifecycleReady})
 	a.Host.RunLoop()
+	a.emitLifecycle(Lifecycle{Event: LifecycleExit})
 	a.Plugins.Teardown(a)
 	a.Host.Shutdown()
 	return nil
