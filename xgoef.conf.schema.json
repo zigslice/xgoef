@@ -64,7 +64,39 @@
                 "type": "boolean",
                 "default": false,
                 "description": "Requests a fully transparent browser background. Windowed CEF paints that as opaque white, so the desktop does not show through."
-              }
+              },
+              "resizable": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, a Views window does not resize. Omitted means allowed. Native (--use-native) windows ignore this."
+              },
+              "minimizable": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, a Views window does not minimize. Omitted means allowed."
+              },
+              "maximizable": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, a Views window does not maximize. Omitted means allowed."
+              },
+              "closable": {
+                "type": "boolean",
+                "default": true,
+                "description": "When false, a Views window does not close from the frame or CefWindow::Close. Omitted means allowed."
+              },
+              "minWidth": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Minimum width in DIP. Set together with minHeight. 0 with minHeight 0 means no minimum."
+              },
+              "minHeight": { "type": "integer", "minimum": 0 },
+              "maxWidth": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum width in DIP. Set together with maxHeight. 0 with maxHeight 0 means no maximum. A set minimum cannot exceed a set maximum."
+              },
+              "maxHeight": { "type": "integer", "minimum": 0 }
             },
             "required": ["title", "width", "height"]
           }

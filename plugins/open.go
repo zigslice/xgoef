@@ -26,41 +26,43 @@ import (
 // Resource is the frontend dist directory ($RESOURCE). Allow and Deny apply
 // to the fs plugin. Shell and dialog have their own scope lists.
 type Options struct {
-	Base            string
-	Resource        string
-	Allow           []string
-	Deny            []string
-	ShellSchemes    []string
-	ShellAllow      []string
-	ShellDeny       []string
-	DialogAllow     []string
-	DialogDeny      []string
-	NotifyAllow     []string
-	NotifyDeny      []string
-	ShortcutAllow   []string
-	AppName         string
-	ClipboardMode   string
-	Version         string
-	UpdaterEndpoint string
-	UpdaterPub      string
-	Executable      string
-	Args            []string
-	Release         func()
-	Emit            func(name string, payload any) error
-	Displays        func(window string) (string, error)
-	MoveWindow      func(window string, x, y int) error
-	DevTools        bool
-	Print           func(window string) error
-	OpenDevTools    func(window string) error
-	CloseDevTools   func(window string) error
-	DevToolsOpen    func(window string) (bool, error)
-	EvalScripts     map[string]string
-	RunEval         func(window, source string) error
-	Identifier      string
-	AutostartArgs   []string
-	LogLevel        string
-	WindowOp        func(window string, op, a, b int, text string) error
-	WindowQuery     func(window string, query int) (bool, error)
+	Base             string
+	Resource         string
+	Allow            []string
+	Deny             []string
+	ShellSchemes     []string
+	ShellAllow       []string
+	ShellDeny        []string
+	DialogAllow      []string
+	DialogDeny       []string
+	NotifyAllow      []string
+	NotifyDeny       []string
+	ShortcutAllow    []string
+	AppName          string
+	ClipboardMode    string
+	Version          string
+	UpdaterEndpoint  string
+	UpdaterPub       string
+	Executable       string
+	Args             []string
+	Release          func()
+	Emit             func(name string, payload any) error
+	Displays         func(window string) (string, error)
+	MoveWindow       func(window string, x, y int) error
+	DevTools         bool
+	Print            func(window string) error
+	OpenDevTools     func(window string) error
+	CloseDevTools    func(window string) error
+	DevToolsOpen     func(window string) (bool, error)
+	EvalScripts      map[string]string
+	RunEval          func(window, source string) error
+	Identifier       string
+	AutostartArgs    []string
+	LogLevel         string
+	WindowOp         func(window string, op, a, b int, text string) error
+	WindowQuery      func(window string, query int) (bool, error)
+	WindowLimit      func(window string, field, a, b int) error
+	WindowLimitQuery func(window string, field int) (int, int, error)
 }
 
 // Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "window").
@@ -106,7 +108,7 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 	case "log":
 		return applog.New(opt.Identifier, opt.LogLevel)
 	case "window":
-		return window.New(opt.WindowOp, opt.WindowQuery), nil
+		return window.New(opt.WindowOp, opt.WindowQuery, opt.WindowLimit, opt.WindowLimitQuery), nil
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

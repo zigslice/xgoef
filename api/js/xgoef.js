@@ -413,6 +413,42 @@
         isVisible: function () {
           return global.__XGOEF__.invoke("window:is_visible", {});
         },
+        setResizable: function (resizable) {
+          return global.__XGOEF__.invoke("window:set_resizable", { resizable: resizable });
+        },
+        isResizable: function () {
+          return global.__XGOEF__.invoke("window:is_resizable", {});
+        },
+        setMinimizable: function (minimizable) {
+          return global.__XGOEF__.invoke("window:set_minimizable", { minimizable: minimizable });
+        },
+        isMinimizable: function () {
+          return global.__XGOEF__.invoke("window:is_minimizable", {});
+        },
+        setMaximizable: function (maximizable) {
+          return global.__XGOEF__.invoke("window:set_maximizable", { maximizable: maximizable });
+        },
+        isMaximizable: function () {
+          return global.__XGOEF__.invoke("window:is_maximizable", {});
+        },
+        setClosable: function (closable) {
+          return global.__XGOEF__.invoke("window:set_closable", { closable: closable });
+        },
+        isClosable: function () {
+          return global.__XGOEF__.invoke("window:is_closable", {});
+        },
+        setMinSize: function (width, height) {
+          return global.__XGOEF__.invoke("window:set_min_size", { width: width, height: height });
+        },
+        setMaxSize: function (width, height) {
+          return global.__XGOEF__.invoke("window:set_max_size", { width: width, height: height });
+        },
+        minSize: function () {
+          return global.__XGOEF__.invoke("window:min_size", {});
+        },
+        maxSize: function () {
+          return global.__XGOEF__.invoke("window:max_size", {});
+        },
       },
       deeplink: {
         getCurrent: function () {

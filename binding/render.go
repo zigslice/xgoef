@@ -127,6 +127,9 @@ func helperMethod(c Command) (string, bool) {
 		"window:show", "window:hide", "window:center",
 		"window:set_title", "window:set_always_on_top", "window:set_fullscreen", "window:set_size",
 		"window:is_minimized", "window:is_maximized", "window:is_fullscreen", "window:is_always_on_top", "window:is_visible",
+		"window:set_resizable", "window:is_resizable", "window:set_minimizable", "window:is_minimizable",
+		"window:set_maximizable", "window:is_maximizable", "window:set_closable", "window:is_closable",
+		"window:set_min_size", "window:set_max_size", "window:min_size", "window:max_size",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

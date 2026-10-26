@@ -149,41 +149,43 @@ func (a *App) OpenPlugins() error {
 		return err
 	}
 	opt := plugins.Options{
-		Base:            base,
-		Resource:        resource,
-		Allow:           a.Config.Plugin.FS.Allow,
-		Deny:            a.Config.Plugin.FS.Deny,
-		ShellSchemes:    a.Config.Plugin.Shell.Schemes,
-		ShellAllow:      a.Config.Plugin.Shell.Allow,
-		ShellDeny:       a.Config.Plugin.Shell.Deny,
-		DialogAllow:     a.Config.Plugin.Dialog.Allow,
-		DialogDeny:      a.Config.Plugin.Dialog.Deny,
-		NotifyAllow:     a.Config.Plugin.Notification.Allow,
-		NotifyDeny:      a.Config.Plugin.Notification.Deny,
-		ShortcutAllow:   a.Config.Plugin.GlobalShortcut.Allow,
-		AppName:         a.Config.ProductName,
-		ClipboardMode:   a.Config.Plugin.Clipboard.Mode,
-		Version:         a.Config.Version,
-		UpdaterEndpoint: a.Config.Plugin.Updater.Endpoint,
-		UpdaterPub:      a.Config.Build.AssetPublicKey,
-		Executable:      a.executable(),
-		Args:            a.programArgs(),
-		Release:         a.closeInstance,
-		Emit:            a.Emit,
-		Displays:        a.Bridge.Displays,
-		MoveWindow:      a.Bridge.MoveWindow,
-		DevTools:        a.Config.Plugin.WebView.DevTools,
-		Print:           a.Bridge.Print,
-		OpenDevTools:    a.Bridge.OpenDevTools,
-		CloseDevTools:   a.Bridge.CloseDevTools,
-		DevToolsOpen:    a.Bridge.DevToolsOpen,
-		EvalScripts:     copyScripts(a.Config.Plugin.Eval.Scripts),
-		RunEval:         a.Eval,
-		Identifier:      a.Config.Identifier,
-		AutostartArgs:   copyArgs(a.Config.Plugin.Autostart.Args),
-		LogLevel:        a.Config.Plugin.Log.Level,
-		WindowOp:        a.Bridge.WindowOp,
-		WindowQuery:     a.Bridge.WindowQuery,
+		Base:             base,
+		Resource:         resource,
+		Allow:            a.Config.Plugin.FS.Allow,
+		Deny:             a.Config.Plugin.FS.Deny,
+		ShellSchemes:     a.Config.Plugin.Shell.Schemes,
+		ShellAllow:       a.Config.Plugin.Shell.Allow,
+		ShellDeny:        a.Config.Plugin.Shell.Deny,
+		DialogAllow:      a.Config.Plugin.Dialog.Allow,
+		DialogDeny:       a.Config.Plugin.Dialog.Deny,
+		NotifyAllow:      a.Config.Plugin.Notification.Allow,
+		NotifyDeny:       a.Config.Plugin.Notification.Deny,
+		ShortcutAllow:    a.Config.Plugin.GlobalShortcut.Allow,
+		AppName:          a.Config.ProductName,
+		ClipboardMode:    a.Config.Plugin.Clipboard.Mode,
+		Version:          a.Config.Version,
+		UpdaterEndpoint:  a.Config.Plugin.Updater.Endpoint,
+		UpdaterPub:       a.Config.Build.AssetPublicKey,
+		Executable:       a.executable(),
+		Args:             a.programArgs(),
+		Release:          a.closeInstance,
+		Emit:             a.Emit,
+		Displays:         a.Bridge.Displays,
+		MoveWindow:       a.Bridge.MoveWindow,
+		DevTools:         a.Config.Plugin.WebView.DevTools,
+		Print:            a.Bridge.Print,
+		OpenDevTools:     a.Bridge.OpenDevTools,
+		CloseDevTools:    a.Bridge.CloseDevTools,
+		DevToolsOpen:     a.Bridge.DevToolsOpen,
+		EvalScripts:      copyScripts(a.Config.Plugin.Eval.Scripts),
+		RunEval:          a.Eval,
+		Identifier:       a.Config.Identifier,
+		AutostartArgs:    copyArgs(a.Config.Plugin.Autostart.Args),
+		LogLevel:         a.Config.Plugin.Log.Level,
+		WindowOp:         a.Bridge.WindowOp,
+		WindowQuery:      a.Bridge.WindowQuery,
+		WindowLimit:      a.Bridge.WindowLimit,
+		WindowLimitQuery: a.Bridge.WindowLimitQuery,
 	}
 	if err := a.installEval(); err != nil {
 		return err
@@ -253,6 +255,17 @@ func (a *App) CreateWindow(spec cef.WindowSpec) error {
 		}
 	}
 	a.applySavedSize(&spec)
+	lim := cef.DefaultWindowLimits()
+	if spec.HasLimits {
+		lim = spec.Limits
+	}
+	encodedLimits, err := lim.Encode()
+	if err != nil {
+		return err
+	}
+	if err := a.Bridge.SetWindowLimits(label, encodedLimits); err != nil {
+		return err
+	}
 	return a.Bridge.CreateWindow(spec)
 }
 
@@ -587,6 +600,11 @@ func (a *App) buildArgs(url string) []string {
 		chrome.Theme = ""
 	}
 	args = append(args, "--xgoef-chrome="+encoded)
+	if lim, err := win.Limits(); err == nil {
+		if text, err := lim.Encode(); err == nil {
+			args = append(args, "--xgoef-limits="+text)
+		}
+	}
 	switch chrome.Theme {
 	case "dark":
 		args = append(args, "--force-dark-mode")

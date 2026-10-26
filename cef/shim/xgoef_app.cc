@@ -15,6 +15,9 @@
 #include "xgoef_handler.h"
 #include "xgoef_menu_views.h"
 #include "xgoef_window.h"
+#include "xgoef_window_limits.h"
+
+#include <cstdio>
 
 namespace xgoef {
 void RegisterAssetScheme(const std::string& root, bool csp_disabled, const std::string& csp);
@@ -39,6 +42,33 @@ class WindowDelegate : public CefWindowDelegate {
     return !chrome_.decorations;
   }
 
+  bool CanResize(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    return LimitsForDelegate(WindowCreatingLabel(browser_view_)).resizable;
+  }
+
+  bool CanMinimize(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    return LimitsForDelegate(WindowCreatingLabel(browser_view_)).minimizable;
+  }
+
+  bool CanMaximize(CefRefPtr<CefWindow> window) override {
+    (void)window;
+    return LimitsForDelegate(WindowCreatingLabel(browser_view_)).maximizable;
+  }
+
+  CefSize GetMinimumSize(CefRefPtr<CefView> view) override {
+    (void)view;
+    WindowLimits limits = LimitsForDelegate(WindowCreatingLabel(browser_view_));
+    return CefSize(limits.min_width, limits.min_height);
+  }
+
+  CefSize GetMaximumSize(CefRefPtr<CefView> view) override {
+    (void)view;
+    WindowLimits limits = LimitsForDelegate(WindowCreatingLabel(browser_view_));
+    return CefSize(limits.max_width, limits.max_height);
+  }
+
   void OnWindowCreated(CefRefPtr<CefWindow> window) override {
     window->AddChildView(WrapWithAppMenu(window, browser_view_));
     ApplySavedPlace(window, WindowCreatingLabel(browser_view_));
@@ -58,6 +88,9 @@ class WindowDelegate : public CefWindowDelegate {
   }
 
   bool CanClose(CefRefPtr<CefWindow> window) override {
+    if (browser_view_ && !LimitsForDelegate(WindowCreatingLabel(browser_view_)).closable) {
+      return false;
+    }
     NoteWindowGeometry(window, browser_view_);
     if (!browser_view_) {
       return true;
@@ -216,6 +249,16 @@ void App::OnContextInitialized() {
   WindowSetPendingLabel(label);
 
   const bool use_views = !command_line->HasSwitch("use-native");
+  const std::string limits_text = command_line->GetSwitchValue("xgoef-limits").ToString();
+  if (use_views && !limits_text.empty()) {
+    WindowLimits limits;
+    std::string err;
+    if (!ParseWindowLimits(limits_text, &limits, &err)) {
+      std::fprintf(stderr, "xgoef: %s\n", err.c_str());
+    } else {
+      WindowLimitsSet(label, limits);
+    }
+  }
 
   if (use_views) {
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(

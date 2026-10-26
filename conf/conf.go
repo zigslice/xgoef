@@ -249,6 +249,42 @@ type Window struct {
 	Decorations *bool    `json:"decorations,omitempty"`
 	Theme       string   `json:"theme,omitempty"`
 	Transparent *bool    `json:"transparent,omitempty"`
+	// Resizable, Minimizable, Maximizable, and Closable nil mean allowed.
+	Resizable   *bool `json:"resizable,omitempty"`
+	Minimizable *bool `json:"minimizable,omitempty"`
+	Maximizable *bool `json:"maximizable,omitempty"`
+	Closable    *bool `json:"closable,omitempty"`
+	// MinWidth and MinHeight are both 0 when unset. The same rule applies to the maximum.
+	MinWidth  int `json:"minWidth,omitempty"`
+	MinHeight int `json:"minHeight,omitempty"`
+	MaxWidth  int `json:"maxWidth,omitempty"`
+	MaxHeight int `json:"maxHeight,omitempty"`
+}
+
+// Limits maps this window onto the text passed to the CEF shim.
+// Omitted flags stay allowed. A size bound is set only when both sides are present.
+func (w Window) Limits() (cef.WindowLimits, error) {
+	lim := cef.WindowLimits{
+		Resizable:   flagOr(w.Resizable, true),
+		Minimizable: flagOr(w.Minimizable, true),
+		Maximizable: flagOr(w.Maximizable, true),
+		Closable:    flagOr(w.Closable, true),
+		MinWidth:    w.MinWidth,
+		MinHeight:   w.MinHeight,
+		MaxWidth:    w.MaxWidth,
+		MaxHeight:   w.MaxHeight,
+	}
+	if err := lim.Validate(); err != nil {
+		return cef.WindowLimits{}, fmt.Errorf("conf: window %s %w", w.Label, err)
+	}
+	return lim, nil
+}
+
+func flagOr(v *bool, fallback bool) bool {
+	if v == nil {
+		return fallback
+	}
+	return *v
 }
 
 // Chrome maps this window onto the text passed to the CEF shim.
@@ -337,6 +373,9 @@ func Load(path string) (File, error) {
 			f.App.Windows[i].Label = "main"
 		}
 		if err := normalizeWindowTheme(&f.App.Windows[i]); err != nil {
+			return f, err
+		}
+		if _, err := f.App.Windows[i].Limits(); err != nil {
 			return f, err
 		}
 		if err := eval.ValidateSources(f.App.Windows[i].InitScripts, eval.MaxInitScripts); err != nil {

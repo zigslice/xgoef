@@ -35,6 +35,17 @@ type NativeBridge struct {
 	winOps      []WindowOpRecord
 	winFlags    WindowFlags
 	winDown     bool
+	limits      map[string]WindowLimits
+	limitSets   []WindowLimitRecord
+}
+
+// WindowLimitRecord is one successful WindowLimit or SetWindowLimits call.
+type WindowLimitRecord struct {
+	Label   string
+	Field   int
+	A       int
+	B       int
+	Encoded string
 }
 
 // WindowOpRecord is one successful WindowOp. Tests use it.
@@ -178,6 +189,89 @@ func (b *NativeBridge) SetWindowFlags(flags WindowFlags) { b.winFlags = flags }
 
 // SetWindowUnavailable makes later window verbs and queries fail.
 func (b *NativeBridge) SetWindowUnavailable(down bool) { b.winDown = down }
+
+func (b *NativeBridge) SetWindowLimits(label, encoded string) error {
+	lim, err := ParseWindowLimits(encoded)
+	if err != nil {
+		return err
+	}
+	if label == "" {
+		label = "main"
+	}
+	if b.limits == nil {
+		b.limits = map[string]WindowLimits{}
+	}
+	b.limits[label] = lim
+	b.limitSets = append(b.limitSets, WindowLimitRecord{Label: label, Encoded: encoded})
+	return nil
+}
+
+func (b *NativeBridge) WindowLimit(label string, field, argA, argB int) error {
+	if b.winDown {
+		return errBindings("cef: window unavailable")
+	}
+	if label == "" {
+		label = "main"
+	}
+	lim, ok := b.limits[label]
+	if !ok {
+		lim = DefaultWindowLimits()
+	}
+	next, err := lim.Apply(field, argA, argB)
+	if err != nil {
+		return ErrWindowRejected
+	}
+	if b.limits == nil {
+		b.limits = map[string]WindowLimits{}
+	}
+	b.limits[label] = next
+	b.limitSets = append(b.limitSets, WindowLimitRecord{Label: label, Field: field, A: argA, B: argB})
+	return nil
+}
+
+// LastWindowLimit is the most recent SetWindowLimits or WindowLimit call.
+func (b *NativeBridge) LastWindowLimit() (WindowLimitRecord, bool) {
+	if len(b.limitSets) == 0 {
+		return WindowLimitRecord{}, false
+	}
+	return b.limitSets[len(b.limitSets)-1], true
+}
+
+func (b *NativeBridge) WindowLimitQuery(label string, field int) (int, int, error) {
+	if b.winDown {
+		return 0, 0, errBindings("cef: window unavailable")
+	}
+	if label == "" {
+		label = "main"
+	}
+	lim, ok := b.limits[label]
+	if !ok {
+		lim = DefaultWindowLimits()
+	}
+	switch field {
+	case WindowLimitResizable:
+		return limitBit(lim.Resizable), 0, nil
+	case WindowLimitMinimizable:
+		return limitBit(lim.Minimizable), 0, nil
+	case WindowLimitMaximizable:
+		return limitBit(lim.Maximizable), 0, nil
+	case WindowLimitClosable:
+		return limitBit(lim.Closable), 0, nil
+	case WindowLimitMinSize:
+		return lim.MinWidth, lim.MinHeight, nil
+	case WindowLimitMaxSize:
+		return lim.MaxWidth, lim.MaxHeight, nil
+	default:
+		return 0, 0, ErrWindowRejected
+	}
+}
+
+func limitBit(on bool) int {
+	if on {
+		return 1
+	}
+	return 0
+}
 
 func (b *NativeBridge) WindowQuery(label string, query int) (bool, error) {
 	_ = label
