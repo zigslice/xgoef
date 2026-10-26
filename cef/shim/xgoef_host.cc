@@ -48,6 +48,8 @@ extern "C" int xgoef_cef_execute_process(int argc, char** argv) {
   return -1;
 }
 
+extern "C" void xgoef_tray_after_cef_init(void);
+
 extern "C" int xgoef_cef_initialize(int argc,
                                     char** argv,
                                     const char* root_cache_path,
@@ -79,6 +81,8 @@ extern "C" int xgoef_cef_initialize(int argc,
 
   // initialize retains a reference; clear our holder.
   g_app = nullptr;
+  // GTK is initialized now. A status icon created before this crashes CEF.
+  xgoef_tray_after_cef_init();
   return 0;
 }
 
