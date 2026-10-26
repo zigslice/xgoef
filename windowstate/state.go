@@ -20,14 +20,15 @@ const (
 )
 
 // Place is one window's last geometry. Width and height are the restored
-// size. Maximized is remembered separately so a maximized frame does not
-// replace that size.
+// size. Maximized and Minimized are remembered separately so those frames
+// do not replace that size. Minimized keeps the previous Maximized flag.
 type Place struct {
 	X         int  `json:"x"`
 	Y         int  `json:"y"`
 	Width     int  `json:"width"`
 	Height    int  `json:"height"`
 	Maximized bool `json:"maximized"`
+	Minimized bool `json:"minimized"`
 }
 
 // Positioned reports whether x, y, width, and height should be applied.
@@ -87,8 +88,10 @@ func (s *Store) Get(label string) (Place, bool) {
 }
 
 // Note records a live geometry change and writes the file.
-// maximized with a non-positive size keeps the previous restored size.
-func (s *Store) Note(label string, x, y, width, height int, maximized bool) error {
+// minimized keeps the previous restored size and the previous maximized flag.
+// maximized with a non-positive size keeps the previous restored size and
+// clears minimized. A normal note replaces the bounds and clears both flags.
+func (s *Store) Note(label string, x, y, width, height int, maximized, minimized bool) error {
 	if s == nil {
 		return fmt.Errorf("windowstate: not configured")
 	}
@@ -99,8 +102,14 @@ func (s *Store) Note(label string, x, y, width, height int, maximized bool) erro
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	cur := s.windows[label]
+	if minimized {
+		cur.Minimized = true
+		s.windows[label] = cur
+		return s.writeLocked()
+	}
 	if maximized {
 		cur.Maximized = true
+		cur.Minimized = false
 		s.windows[label] = cur
 		return s.writeLocked()
 	}
@@ -113,8 +122,8 @@ func (s *Store) Note(label string, x, y, width, height int, maximized bool) erro
 }
 
 // Encode writes one line per label: label, x, y, width, height, flags.
-// flags contains p when the place has a size, and m when maximized.
-// Labels are sorted so the text is stable.
+// flags contains p when the place has a size, m when maximized, and n when
+// minimized. Labels are sorted so the text is stable.
 func (s *Store) Encode() string {
 	if s == nil {
 		return ""
@@ -135,6 +144,9 @@ func (s *Store) Encode() string {
 		}
 		if p.Maximized {
 			flags += "m"
+		}
+		if p.Minimized {
+			flags += "n"
 		}
 		if flags == "" {
 			continue
@@ -173,7 +185,7 @@ func validLabel(label string) bool {
 
 func validPlace(p Place) bool {
 	if p.Width == 0 && p.Height == 0 && p.X == 0 && p.Y == 0 {
-		return p.Maximized
+		return p.Maximized || p.Minimized
 	}
 	if p.Width < minSize || p.Height < minSize || p.Width > maxSize || p.Height > maxSize {
 		return false

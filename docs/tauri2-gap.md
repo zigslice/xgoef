@@ -63,7 +63,7 @@
 | --- | --- | --- |
 | App / Builder 生命周期 | ✅ | `OnLifecycle` 提供 `ready`、`exit`、`page-load`（见 `docs/lifecycle.md`）。`page-load` 来自主框架加载结束；这台环境没有在 CEF 里跑出这次回调 |
 | Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；托盘见 `docs/menu.md` |
-| Window 状态（位置/尺寸/最大化） | 🟡 | 位置、尺寸、最大化写入 `.xgoef/window-state.json`（见 `docs/window.md`）；最小化不恢复 |
+| Window 状态（位置/尺寸/最大化/最小化） | ✅ | 位置、尺寸、最大化、最小化写入 `.xgoef/window-state.json`（见 `docs/window.md`）。最小化保留恢复前的尺寸和最大化标记，下次启动以最小化出现 |
 | 菜单 / 托盘 / 任务栏 | 🟡 | 窗口菜单栏和托盘菜单已封装（`docs/menu.md`）；任务栏未做。常驻图标在 `libgtk-3.so.0` 能加载时出现 |
 | 主题 / 装饰 / 透明 | 🟡 | Views 可关装饰；`theme` 为 system / light / dark。窗口化透明背景被 CEF 画成不透明白（见 `docs/window.md`） |
 | 多显示器 / DPI | ✅ | 列出 DIP 边界、工作区、物理像素和 `scaleFactor`，并可移动 Views 窗口（见 `docs/window.md`）。CEF 不提供显示器名字 |
@@ -167,7 +167,7 @@
 
 10. Channels、异步 command、超时/取消。 ✅（Channels 见 `docs/channels.md`，异步与取消见 `docs/ipc.md`）
 11. 首批系统插件：fs（scoped）、dialog、clipboard、os、shell。 ✅（见 `docs/plugins.md`）
-12. 菜单 / 托盘 ✅（见 `docs/menu.md`）；window-state ✅（见 `docs/window.md`）。
+12. 菜单 / 托盘 ✅（见 `docs/menu.md`）；window-state ✅（见 `docs/window.md`，含最小化）。
 13. TS 类型与 `invoke` 声明生成。 ✅（见 `docs/binding.md`）
 
 ### P3 — 发行与生态
@@ -307,7 +307,7 @@ App
 
 - Channels 落地。 ✅（见 `docs/channels.md`）
 - 菜单和托盘落地。 ✅（见 `docs/menu.md`）
-- window-state 落地。 ✅（见 `docs/window.md`）
+- window-state 落地。 ✅（见 `docs/window.md`；最小化同样写入，下次以最小化启动）
 - 签过名的前端更新落地。 ✅（见 `docs/updater.md`）
 - 单实例落地。 ✅（见 `docs/instance.md`）
 - deep link 落地。 ✅（见 `docs/deeplink.md`）

@@ -85,10 +85,7 @@ class WindowDelegate : public CefWindowDelegate {
 
   cef_show_state_t GetInitialShowState(CefRefPtr<CefWindow> window) override {
     (void)window;
-    if (SavedMaximized(WindowCreatingLabel(browser_view_))) {
-      return CEF_SHOW_STATE_MAXIMIZED;
-    }
-    return initial_show_state_;
+    return InitialShowState(WindowCreatingLabel(browser_view_), initial_show_state_);
   }
 
   cef_runtime_style_t GetWindowRuntimeStyle() override {

@@ -36,6 +36,9 @@ std::string WindowCreatingLabel(CefRefPtr<CefBrowserView> view);
 void DefaultWindowSize(int* width, int* height);
 bool SavedSize(const std::string& label, int* width, int* height);
 bool SavedMaximized(const std::string& label);
+bool SavedMinimized(const std::string& label);
+// Saved minimized wins, then saved maximized, otherwise fallback.
+cef_show_state_t InitialShowState(const std::string& label, cef_show_state_t fallback);
 void ApplySavedPlace(CefRefPtr<CefWindow> window, const std::string& label);
 void NoteWindowGeometry(CefRefPtr<CefWindow> window, CefRefPtr<CefBrowserView> view);
 

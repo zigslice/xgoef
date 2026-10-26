@@ -273,7 +273,7 @@ func nativePageLoad(label, url *c.Char) {
 	fn(goStr(label), goStr(url))
 }
 
-func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
+func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized, minimized bool)) {
 	windowStateNote = fn
 	if fn == nil {
 		xgoefWindowStateSetNote(nil)
@@ -282,15 +282,15 @@ func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, hei
 	xgoefWindowStateSetNote(nativeWindowState)
 }
 
-var windowStateNote func(label string, x, y, width, height int, maximized bool)
+var windowStateNote func(label string, x, y, width, height int, maximized, minimized bool)
 
 //llgo:cdecl
-func nativeWindowState(label *c.Char, x, y, width, height, maximized c.Int) {
+func nativeWindowState(label *c.Char, x, y, width, height, maximized, minimized c.Int) {
 	fn := windowStateNote
 	if fn == nil {
 		return
 	}
-	fn(goStr(label), int(x), int(y), int(width), int(height), maximized != 0)
+	fn(goStr(label), int(x), int(y), int(width), int(height), maximized != 0, minimized != 0)
 }
 
 var menuClick func(windowLabel, kind, id string)
@@ -360,7 +360,7 @@ func xgoefTrayPopup(windowLabel *c.Char) c.Int
 func xgoefMenuSetClick(fn menuClickFn)
 
 //llgo:cdecl
-type windowStateFn func(label *c.Char, x, y, width, height, maximized c.Int)
+type windowStateFn func(label *c.Char, x, y, width, height, maximized, minimized c.Int)
 
 //go:linkname xgoefWindowStateSet C.xgoef_window_state_set
 func xgoefWindowStateSet(encoded *c.Char)

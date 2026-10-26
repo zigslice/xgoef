@@ -47,9 +47,9 @@ type Bridge interface {
 	SetMenuClick(fn func(windowLabel, kind, id string))
 
 	// Window state (P2). Encoded text is windowstate.Store.Encode.
-	// Note runs on the UI thread when a labeled window moves or closes.
+	// Note runs on the UI thread when a labeled window moves, minimizes, or closes.
 	SetWindowState(encoded string)
-	SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool))
+	SetWindowStateNote(fn func(label string, x, y, width, height int, maximized, minimized bool))
 
 	// Displays returns the monitor table for a window label.
 	// The text is ParseDisplayTable. DIP coordinates match window-state.
