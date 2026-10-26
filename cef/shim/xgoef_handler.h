@@ -63,11 +63,13 @@ class ClientHandler : public CefClient,
  private:
   void PlatformTitleChange(CefRefPtr<CefBrowser> browser,
                            const CefString& title);
+  int CountAppBrowsers() const;
 
   const bool is_alloy_style_;
   typedef std::list<CefRefPtr<CefBrowser>> BrowserList;
   BrowserList browser_list_;
   bool is_closing_ = false;
+  bool quit_posted_ = false;
 
   CefRefPtr<CefMessageRouterBrowserSide> message_router_;
   IpcHandler ipc_handler_;

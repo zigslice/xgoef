@@ -71,3 +71,22 @@ Capabilities should list each label that may invoke commands.
 `--use-native` 没有 Views 窗口，`monitor:current` 是 `null`，`monitor:move` 是 `monitor.unavailable`。`x` 和 `y` 必须是整数，范围是 -100000 到 100000，否则是 `monitor.invalid`。
 
 启用方式、前端方法和 hello 的 *monitors* 按钮见 [plugins.md](plugins.md)。
+
+## 打印与开发者工具
+
+`webview` 插件对调用窗口做两件事：打开系统打印对话框，以及开关开发者工具。空的窗口 label 按 `main`。
+
+| 命令 | 返回 |
+| --- | --- |
+| `webview:print` | `null`。CEF `Print()` 弹出系统打印对话框。不写 PDF 文件 |
+| `webview:open_dev_tools` | `null`。已经打开时也成功，不会再开一扇 |
+| `webview:close_dev_tools` | `null`。已经关闭时也成功 |
+| `webview:is_dev_tools_open` | 布尔值 |
+
+开发者工具还要 `plugin.webview.devtools` 为 true。省略时是 false。这时打开、关闭和查询返回 `webview.denied`，不会调用 CEF。打印不看这个开关，用户仍要在系统对话框里确认。
+
+capability 里没有对应命令名时是 `acl.denied`，发生在插件之前。这个 label 没有浏览器，或 CEF 没有在两秒内回答，是 `webview.unavailable`。
+
+`ShowDevTools` 会在 UI 线程上再进入 `OnAfterCreated`。这次创建的浏览器只记在开发者工具集合里，不调用 `WindowBind`，所以不会抢走待绑定的 label，也不会出现在 `EmitAll` 里。来自这扇浏览器的 `cefQuery` 直接失败。最后一扇应用窗口关闭时，宿主先关掉还开着的开发者工具，再退出消息循环。
+
+启用方式、前端方法和 hello 的 *print*、*devtools* 按钮见 [plugins.md](plugins.md)。

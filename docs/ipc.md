@@ -98,6 +98,8 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `shortcut.grab` | 向系统注册或取消抓键失败 |
 | `monitor.invalid` | 移动坐标不是范围内的整数 |
 | `monitor.unavailable` | 读不到显示器，或这个 label 没有 Views 窗口可移动 |
+| `webview.denied` | `plugin.webview.devtools` 不是 true，开发者工具命令不会调用 CEF |
+| `webview.unavailable` | 这个 label 没有浏览器，或打印 / 开发者工具调用失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

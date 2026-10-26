@@ -8,6 +8,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include "xgoef_webview.h"
 #include "xgoef_window.h"
 
 namespace xgoef {
@@ -51,6 +52,11 @@ bool IpcHandler::OnQuery(CefRefPtr<CefBrowser> browser,
   CEF_REQUIRE_UI_THREAD();
   (void)frame;
   (void)persistent;
+
+  if (browser && DevToolsIs(browser->GetIdentifier())) {
+    callback->Failure(-1, "xgoef devtools browser");
+    return true;
+  }
 
   xgoef_ipc_query_fn handler = nullptr;
   {

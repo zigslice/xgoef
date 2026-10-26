@@ -119,6 +119,7 @@ func helperMethod(c Command) (string, bool) {
 		"notification:is_permission_granted", "notification:request_permission",
 		"global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered",
 		"monitor:list", "monitor:primary", "monitor:current", "monitor:scale", "monitor:move",
+		"webview:print", "webview:open_dev_tools", "webview:close_dev_tools", "webview:is_dev_tools_open",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

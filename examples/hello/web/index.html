@@ -84,6 +84,8 @@
         <button id="btn-notify" class="secondary" type="button">notify</button>
         <button id="btn-shortcut" class="secondary" type="button">shortcut</button>
         <button id="btn-monitor" class="secondary" type="button">monitors</button>
+        <button id="btn-print" class="secondary" type="button">print</button>
+        <button id="btn-devtools" class="secondary" type="button">devtools</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -221,6 +223,29 @@
           const list = await window.__XGOEF__.plugins.monitor.list();
           const scale = await window.__XGOEF__.plugins.monitor.scale();
           out.textContent = "displays: " + list.length + " scale " + scale;
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-print").onclick = async () => {
+        try {
+          await window.__XGOEF__.plugins.webview.print();
+          out.textContent = "printing";
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-devtools").onclick = async () => {
+        try {
+          const view = window.__XGOEF__.plugins.webview;
+          const open = await view.isDevToolsOpen();
+          if (open) {
+            await view.closeDevTools();
+            out.textContent = "devtools closed";
+          } else {
+            await view.openDevTools();
+            out.textContent = "devtools open";
+          }
         } catch (e) {
           show(e);
         }

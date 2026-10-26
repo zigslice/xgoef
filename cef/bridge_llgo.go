@@ -200,6 +200,38 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 	return nil
 }
 
+func (b *NativeBridge) Print(windowLabel string) error {
+	if rc := xgoefWindowPrint(c.AllocaCStr(windowLabel)); rc != 0 {
+		return fmt.Errorf("cef: print %q failed", windowLabel)
+	}
+	return nil
+}
+
+func (b *NativeBridge) OpenDevTools(windowLabel string) error {
+	if rc := xgoefDevToolsOpen(c.AllocaCStr(windowLabel)); rc != 0 {
+		return fmt.Errorf("cef: open devtools %q failed", windowLabel)
+	}
+	return nil
+}
+
+func (b *NativeBridge) CloseDevTools(windowLabel string) error {
+	if rc := xgoefDevToolsClose(c.AllocaCStr(windowLabel)); rc != 0 {
+		return fmt.Errorf("cef: close devtools %q failed", windowLabel)
+	}
+	return nil
+}
+
+func (b *NativeBridge) DevToolsOpen(windowLabel string) (bool, error) {
+	switch xgoefDevToolsIsOpen(c.AllocaCStr(windowLabel)) {
+	case 1:
+		return true, nil
+	case 0:
+		return false, nil
+	default:
+		return false, fmt.Errorf("cef: devtools query %q failed", windowLabel)
+	}
+}
+
 func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
 	windowStateNote = fn
 	if fn == nil {
@@ -303,3 +335,15 @@ func xgoefDisplaysFree(text *c.Char)
 
 //go:linkname xgoefWindowMove C.xgoef_window_move
 func xgoefWindowMove(label *c.Char, x, y c.Int) c.Int
+
+//go:linkname xgoefWindowPrint C.xgoef_window_print
+func xgoefWindowPrint(label *c.Char) c.Int
+
+//go:linkname xgoefDevToolsOpen C.xgoef_devtools_open
+func xgoefDevToolsOpen(label *c.Char) c.Int
+
+//go:linkname xgoefDevToolsClose C.xgoef_devtools_close
+func xgoefDevToolsClose(label *c.Char) c.Int
+
+//go:linkname xgoefDevToolsIsOpen C.xgoef_devtools_is_open
+func xgoefDevToolsIsOpen(label *c.Char) c.Int

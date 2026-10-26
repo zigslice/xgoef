@@ -81,6 +81,17 @@ void xgoef_displays_free(char* text);
  * label has no Views window. */
 int xgoef_window_move(const char* label, int x, int y);
 
+/* System print dialog for |label|. Returns 0, or -1 when that label has no
+ * browser or the UI thread does not answer. */
+int xgoef_window_print(const char* label);
+/* Open or close developer tools. Already open / already closed is 0.
+ * Returns -1 when that label has no browser or the UI thread does not answer. */
+int xgoef_devtools_open(const char* label);
+int xgoef_devtools_close(const char* label);
+/* 1 open, 0 closed, -1 when that label has no browser or the UI thread
+ * does not answer. */
+int xgoef_devtools_is_open(const char* label);
+
 #ifdef __cplusplus
 }
 #endif

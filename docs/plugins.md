@@ -34,8 +34,9 @@ type Plugin interface {
 | `notification` | `notification:is_permission_granted` `notification:request_permission` `notification:show` | 与命令名相同 |
 | `global-shortcut` | `global-shortcut:register` `global-shortcut:unregister` `global-shortcut:unregister_all` `global-shortcut:is_registered` | 与命令名相同 |
 | `monitor` | `monitor:list` `monitor:primary` `monitor:current` `monitor:scale` `monitor:move` | 与命令名相同 |
+| `webview` | `webview:print` `webview:open_dev_tools` `webview:close_dev_tools` `webview:is_dev_tools_open` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -111,6 +112,14 @@ Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没�
 ## monitor
 
 `monitor:list` 返回每块显示器的 DIP 边界、工作区、物理像素、`scaleFactor` 和是否主屏。`monitor:primary` 是主屏。`monitor:current` 是发出调用的窗口所在的屏。`monitor:scale` 是这个窗口的 device scale。`monitor:move` 把这个 Views 窗口的左上角移到 DIP 坐标。坐标和 window-state 是同一套。细节和错误码见 [window.md](window.md)。hello 的 *monitors* 按钮打印显示器数量和当前 scale。
+
+## webview
+
+`webview:print` 对发出调用的窗口调用 CEF `Print()`，弹出系统打印对话框。用户在对话框里确认。这条命令不写 PDF。
+
+`webview:open_dev_tools`、`webview:close_dev_tools` 和 `webview:is_dev_tools_open` 开关并查询开发者工具。配置 `plugin.webview.devtools` 省略或为 false 时，这三条返回 `webview.denied`，不会调用 CEF。打印不看这个开关。hello 把它设为 true，*devtools* 按钮在打开和关闭之间切换。
+
+开发者工具那扇浏览器不进入窗口 label，收不到宿主事件，也不会在最后一扇应用窗口关掉之后把进程留住。细节见 [window.md](window.md)。
 
 ## 应用侧还要做的
 
