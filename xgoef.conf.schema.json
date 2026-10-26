@@ -32,6 +32,12 @@
               "width": { "type": "integer", "minimum": 1 },
               "height": { "type": "integer", "minimum": 1 },
               "url": { "type": "string" },
+              "initScripts": {
+                "type": "array",
+                "maxItems": 8,
+                "items": { "type": "string", "maxLength": 16384 },
+                "description": "Trusted scripts injected into this window's main frame on each load that is still on the window URL's origin. The page cannot set or replace them. javascript, data, file, and about are not an origin."
+              },
               "decorations": {
                 "type": "boolean",
                 "default": true,
@@ -137,7 +143,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -198,6 +204,18 @@
           "description": "Accelerators the page may register. An empty allow list rejects every shortcut.",
           "properties": {
             "allow": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "eval": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Named scripts the page may run by name. The invoke argument is only the name. Source stays in this file.",
+          "properties": {
+            "scripts": {
+              "type": "object",
+              "maxProperties": 32,
+              "additionalProperties": { "type": "string", "maxLength": 16384 }
+            }
           }
         },
         "webview": {

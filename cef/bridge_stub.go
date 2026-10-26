@@ -4,25 +4,33 @@ package cef
 
 // NativeBridge is a no-op stub for gc builds / unit tests.
 type NativeBridge struct {
-	handler    QueryHandler
-	onCancel   func(queryID int64)
-	menu       string
-	trayTip    string
-	tray       string
-	onMenu     func(windowLabel, kind, id string)
-	winState   string
-	onState    func(label string, x, y, width, height int, maximized bool)
-	lastCreate WindowSpec
-	displays   string
-	moved      bool
-	moveLabel  string
-	moveX      int
-	moveY      int
-	printed    bool
-	printLabel string
-	devAction  string
-	devLabel   string
-	devOpen    bool
+	handler     QueryHandler
+	onCancel    func(queryID int64)
+	menu        string
+	trayTip     string
+	tray        string
+	onMenu      func(windowLabel, kind, id string)
+	winState    string
+	onState     func(label string, x, y, width, height int, maximized bool)
+	lastCreate  WindowSpec
+	displays    string
+	moved       bool
+	moveLabel   string
+	moveX       int
+	moveY       int
+	printed     bool
+	printLabel  string
+	devAction   string
+	devLabel    string
+	devOpen     bool
+	initSet     bool
+	initLabel   string
+	initAllowed string
+	initEncoded string
+	evalSet     bool
+	evalLabel   string
+	evalAllowed string
+	evalSource  string
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -150,4 +158,30 @@ func (b *NativeBridge) DevToolsOpen(windowLabel string) (bool, error) {
 // LastDevTools is the most recent developer-tools call.
 func (b *NativeBridge) LastDevTools() (action, label string, open bool) {
 	return b.devAction, b.devLabel, b.devOpen
+}
+
+func (b *NativeBridge) SetInitScripts(label, allowedURL, encoded string) error {
+	b.initSet = true
+	b.initLabel = label
+	b.initAllowed = allowedURL
+	b.initEncoded = encoded
+	return nil
+}
+
+// LastInit is the most recent SetInitScripts argument.
+func (b *NativeBridge) LastInit() (label, allowed, encoded string, ok bool) {
+	return b.initLabel, b.initAllowed, b.initEncoded, b.initSet
+}
+
+func (b *NativeBridge) Eval(label, allowedURL, source string) error {
+	b.evalSet = true
+	b.evalLabel = label
+	b.evalAllowed = allowedURL
+	b.evalSource = source
+	return nil
+}
+
+// LastEval is the most recent Eval argument.
+func (b *NativeBridge) LastEval() (label, allowed, source string, ok bool) {
+	return b.evalLabel, b.evalAllowed, b.evalSource, b.evalSet
 }

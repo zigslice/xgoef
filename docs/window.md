@@ -90,3 +90,19 @@ capability 里没有对应命令名时是 `acl.denied`，发生在插件之前�
 `ShowDevTools` 会在 UI 线程上再进入 `OnAfterCreated`。这次创建的浏览器只记在开发者工具集合里，不调用 `WindowBind`，所以不会抢走待绑定的 label，也不会出现在 `EmitAll` 里。来自这扇浏览器的 `cefQuery` 直接失败。最后一扇应用窗口关闭时，宿主先关掉还开着的开发者工具，再退出消息循环。
 
 启用方式、前端方法和 hello 的 *print*、*devtools* 按钮见 [plugins.md](plugins.md)。
+
+## 注入脚本
+
+每个窗口可以带 `initScripts`。这是应用配置里的脚本，不是页面提交的。主框架每次加载结束时，如果地址还在这个窗口 URL 的源站上，宿主按顺序执行它们。
+
+源站规则：
+
+- `xgoef://app/...` 只匹配 `xgoef://app`。
+- `http` 和 `https` 只匹配相同的协议、主机和端口。省略的端口按 80 或 443。
+- 路径、查询和片段不参加比较。
+- 带用户名密码、反斜杠、空格的地址拒绝。
+- `javascript:`、`data:`、`file:`、`about:` 以及其他协议拒绝。导航到别的源站之后，这些脚本不再注入。
+
+脚本在页面的主世界里执行，页面看得到，也不能靠它藏秘密。`ExecuteJavaScript` 不受页面 CSP 限制，所以正文只能来自配置或宿主。子框架和开发者工具窗口不会注入。一条脚本最长 16 KiB，一个窗口最多 8 条，正文里不能有 NUL。
+
+hello 的主窗口注入 `window.__xgoefInjected = "hello"`。*injected* 按钮读这个值。具名脚本的命令见 [plugins.md](plugins.md)。

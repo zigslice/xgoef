@@ -190,6 +190,16 @@ async function main() {
     sandbox.__xgoefDispatch({ type: "event", event: "tick", payload: 1 });
     assert.equal(seen, 1);
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    sandbox.__XGOEF__.plugins.eval.run("mark");
+    assert.deepEqual(posted.map((msg) => msg.cmd), ["eval:run"]);
+    assert.deepEqual(posted[0].args, { name: "mark" });
+    assert.equal(posted[0].args.script, undefined);
+  }
 }
 
 main().catch((err) => {

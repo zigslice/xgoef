@@ -12,6 +12,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include "xgoef_eval_run.h"
 #include "xgoef_webview.h"
 #include "xgoef_window.h"
 
@@ -161,6 +162,24 @@ int ClientHandler::CountAppBrowsers() const {
     ++apps;
   }
   return apps;
+}
+
+void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
+                              CefRefPtr<CefFrame> frame,
+                              int httpStatusCode) {
+  CEF_REQUIRE_UI_THREAD();
+  (void)httpStatusCode;
+  if (!frame || !frame->IsMain() || !browser) {
+    return;
+  }
+  if (DevToolsIs(browser->GetIdentifier())) {
+    return;
+  }
+  std::string label;
+  if (!WindowBoundLabel(browser, &label)) {
+    return;
+  }
+  EvalRunInit(label, frame);
 }
 
 void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,

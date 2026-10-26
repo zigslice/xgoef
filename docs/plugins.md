@@ -35,8 +35,9 @@ type Plugin interface {
 | `global-shortcut` | `global-shortcut:register` `global-shortcut:unregister` `global-shortcut:unregister_all` `global-shortcut:is_registered` | 与命令名相同 |
 | `monitor` | `monitor:list` `monitor:primary` `monitor:current` `monitor:scale` `monitor:move` | 与命令名相同 |
 | `webview` | `webview:print` `webview:open_dev_tools` `webview:close_dev_tools` `webview:is_dev_tools_open` | 与命令名相同 |
+| `eval` | `eval:run` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -120,6 +121,16 @@ Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没�
 `webview:open_dev_tools`、`webview:close_dev_tools` 和 `webview:is_dev_tools_open` 开关并查询开发者工具。配置 `plugin.webview.devtools` 省略或为 false 时，这三条返回 `webview.denied`，不会调用 CEF。打印不看这个开关。hello 把它设为 true，*devtools* 按钮在打开和关闭之间切换。
 
 开发者工具那扇浏览器不进入窗口 label，收不到宿主事件，也不会在最后一扇应用窗口关掉之后把进程留住。细节见 [window.md](window.md)。
+
+## eval
+
+`eval:run` 只接受 `{name}`。名字对应 `plugin.eval.scripts` 里的一段脚本。页面不能提交脚本正文，也不能带上别的字段或窗口 label。多出来的字段是 `eval.denied`，这次调用不会执行。没登记的名字同样是 `eval.denied`。
+
+脚本只在发出调用的那个窗口的主框架里执行，而且这个框架的地址必须还在该窗口钉住的源站上。离开 `xgoef://app` 或配置里的 `http(s)` 源站之后，调用是 `eval.denied`，CEF 不会执行。`javascript:`、`data:`、`file:` 和 `about:blank` 不能当源站。同一窗口里的子框架如果能发出 invoke，权限跟这个窗口算在一起，但脚本仍然只写进主框架。不要把不受信任的页面嵌进应用窗口。
+
+宿主代码可以调用 `App.Eval(label, source)`。`source` 必须是宿主自己写的文本，不能把页面传来的字符串传进去。页面侧的入口只有名字。
+
+注入脚本写在窗口的 `initScripts` 里，不走这条命令。细节见 [window.md](window.md)。hello 的 *eval* 按钮运行名字 `mark`。
 
 ## 应用侧还要做的
 

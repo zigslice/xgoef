@@ -86,6 +86,8 @@
         <button id="btn-monitor" class="secondary" type="button">monitors</button>
         <button id="btn-print" class="secondary" type="button">print</button>
         <button id="btn-devtools" class="secondary" type="button">devtools</button>
+        <button id="btn-injected" class="secondary" type="button">injected</button>
+        <button id="btn-eval" class="secondary" type="button">eval</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -245,6 +247,17 @@
             await view.openDevTools();
             out.textContent = "devtools open";
           }
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-injected").onclick = () => {
+        out.textContent = "injected: " + (window.__xgoefInjected || "missing");
+      };
+      document.getElementById("btn-eval").onclick = async () => {
+        try {
+          await window.__XGOEF__.plugins.eval.run("mark");
+          out.textContent = "eval: mark";
         } catch (e) {
           show(e);
         }

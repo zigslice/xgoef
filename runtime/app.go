@@ -13,6 +13,7 @@ import (
 	"github.com/zigslice/xgoef/asset"
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/conf"
+	"github.com/zigslice/xgoef/eval"
 	"github.com/zigslice/xgoef/instance"
 	"github.com/zigslice/xgoef/ipc"
 	"github.com/zigslice/xgoef/menu"
@@ -51,6 +52,8 @@ type App struct {
 	deepMu     sync.Mutex
 	deepURLs   []string
 	invokes    *invokeGate
+	pinMu      sync.Mutex
+	pins       map[string]string
 }
 
 // New builds an App with defaults. Host may be nil (uses cef.Unimplemented).
@@ -170,6 +173,11 @@ func (a *App) OpenPlugins() error {
 		OpenDevTools:    a.Bridge.OpenDevTools,
 		CloseDevTools:   a.Bridge.CloseDevTools,
 		DevToolsOpen:    a.Bridge.DevToolsOpen,
+		EvalScripts:     copyScripts(a.Config.Plugin.Eval.Scripts),
+		RunEval:         a.Eval,
+	}
+	if err := a.installEval(); err != nil {
+		return err
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {
@@ -197,9 +205,20 @@ func (a *App) EmitTo(windowLabel, name string, payload any) error {
 }
 
 // CreateWindow opens another browser window with the given label.
+// Init scripts on the spec are trusted host text. They are registered
+// before the window is created, and only run while the frame stays on
+// spec.URL's origin.
 func (a *App) CreateWindow(spec cef.WindowSpec) error {
 	if a.Bridge == nil {
 		return fmt.Errorf("runtime: no bridge")
+	}
+	var encoded string
+	if len(spec.InitScripts) > 0 {
+		var err error
+		encoded, err = eval.Encode(spec.InitScripts)
+		if err != nil {
+			return err
+		}
 	}
 	if spec.URL != "" {
 		url, err := a.NavigationURL(spec.URL)
@@ -208,8 +227,111 @@ func (a *App) CreateWindow(spec cef.WindowSpec) error {
 		}
 		spec.URL = url
 	}
+	label := spec.Label
+	if label == "" {
+		label = "main"
+	}
+	if spec.URL != "" {
+		a.pin(label, spec.URL)
+	}
+	if encoded != "" {
+		if !eval.OriginAllowed(spec.URL, spec.URL) {
+			return eval.ErrOrigin
+		}
+		if err := a.Bridge.SetInitScripts(label, spec.URL, encoded); err != nil {
+			return err
+		}
+	}
 	a.applySavedSize(&spec)
 	return a.Bridge.CreateWindow(spec)
+}
+
+// Eval runs source in the labeled window's main frame.
+// source is trusted host text. Do not pass renderer input here.
+// The page uses eval:run with a config name instead.
+// Nothing runs unless the window was pinned to an http(s) or xgoef://app
+// origin. The shim also refuses when the live frame URL has left that origin.
+func (a *App) Eval(label, source string) error {
+	if label == "" {
+		label = "main"
+	}
+	if err := eval.ValidateSource(source); err != nil {
+		return eval.ErrRejected
+	}
+	allowed := a.pinned(label)
+	if allowed == "" {
+		return eval.ErrUnpinned
+	}
+	if !eval.OriginAllowed(allowed, allowed) {
+		return eval.ErrOrigin
+	}
+	if a.Bridge == nil {
+		return eval.ErrUnavailable
+	}
+	return a.Bridge.Eval(label, allowed, source)
+}
+
+func (a *App) installEval() error {
+	if a.Bridge == nil {
+		return nil
+	}
+	for _, w := range a.Config.App.Windows {
+		label := w.Label
+		if label == "" {
+			label = "main"
+		}
+		nav, err := a.NavigationURL(w.URL)
+		if err != nil {
+			return err
+		}
+		a.pin(label, nav)
+		if len(w.InitScripts) == 0 {
+			continue
+		}
+		if !eval.OriginAllowed(nav, nav) {
+			return eval.ErrOrigin
+		}
+		encoded, err := eval.Encode(w.InitScripts)
+		if err != nil {
+			return err
+		}
+		if err := a.Bridge.SetInitScripts(label, nav, encoded); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *App) pin(label, allowed string) {
+	if label == "" {
+		label = "main"
+	}
+	a.pinMu.Lock()
+	if a.pins == nil {
+		a.pins = map[string]string{}
+	}
+	a.pins[label] = allowed
+	a.pinMu.Unlock()
+}
+
+func (a *App) pinned(label string) string {
+	if label == "" {
+		label = "main"
+	}
+	a.pinMu.Lock()
+	defer a.pinMu.Unlock()
+	return a.pins[label]
+}
+
+func copyScripts(in map[string]string) map[string]string {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(in))
+	for name, source := range in {
+		out[name] = source
+	}
+	return out
 }
 
 // CloseWindow closes the window with the given label.
