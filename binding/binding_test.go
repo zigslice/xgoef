@@ -25,7 +25,7 @@ func TestRenderAppAndOS(t *testing.T) {
 }
 
 func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
-	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log"}, true)
+	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "window"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,6 +82,17 @@ func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
 		"isEnabled(): XgoefInvokeResult<boolean>",
 		`"log:write": { args: { level?: string; message: string }; result: null }`,
 		"write(level?: string, message: string): XgoefInvokeResult<null>",
+		`"window:minimize": { args: Record<string, never>; result: null }`,
+		`"window:set_title": { args: { title: string }; result: null }`,
+		`"window:set_always_on_top": { args: { alwaysOnTop: boolean }; result: null }`,
+		`"window:set_size": { args: { width: number; height: number }; result: null }`,
+		`"window:is_visible": { args: Record<string, never>; result: boolean }`,
+		"toggleMaximize(): XgoefInvokeResult<null>",
+		"setTitle(title: string): XgoefInvokeResult<null>",
+		"setAlwaysOnTop(alwaysOnTop: boolean): XgoefInvokeResult<null>",
+		"setFullscreen(fullscreen: boolean): XgoefInvokeResult<null>",
+		"setSize(width: number, height: number): XgoefInvokeResult<null>",
+		"isMaximized(): XgoefInvokeResult<boolean>",
 		`"deeplink:get_current": { args: Record<string, never>; result: { urls: string[] } }`,
 		"getCurrent(): XgoefInvokeResult<{ urls: string[] }>",
 		`"menu:popup"`,

@@ -40,6 +40,7 @@ func TestLoadHelloConfig(t *testing.T) {
 	}
 	foundAuto := false
 	foundLog := false
+	foundWindow := false
 	for _, name := range f.Plugins {
 		if name == "autostart" {
 			foundAuto = true
@@ -47,11 +48,14 @@ func TestLoadHelloConfig(t *testing.T) {
 		if name == "log" {
 			foundLog = true
 		}
+		if name == "window" {
+			foundWindow = true
+		}
 	}
-	if !foundAuto || !foundLog {
+	if !foundAuto || !foundLog || !foundWindow {
 		t.Fatalf("plugins %v", f.Plugins)
 	}
-	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled", "log:write"} {
+	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled", "log:write", "window:toggle_maximize", "window:is_maximized"} {
 		ok := false
 		for _, c := range f.Capabilities {
 			for _, p := range c.Permissions {

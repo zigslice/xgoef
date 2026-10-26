@@ -90,6 +90,7 @@
         <button id="btn-eval" class="secondary" type="button">eval</button>
         <button id="btn-autostart" class="secondary" type="button">autostart</button>
         <button id="btn-log" class="secondary" type="button">log</button>
+        <button id="btn-window" class="secondary" type="button">window</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -283,6 +284,16 @@
         try {
           await window.__XGOEF__.plugins.log.info("hello");
           out.textContent = "log: info";
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-window").onclick = async () => {
+        try {
+          const win = window.__XGOEF__.plugins.window;
+          await win.toggleMaximize();
+          const on = await win.isMaximized();
+          out.textContent = on ? "maximized" : "restored";
         } catch (e) {
           show(e);
         }

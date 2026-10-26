@@ -19,6 +19,7 @@ import (
 	"github.com/zigslice/xgoef/plugins/shell"
 	"github.com/zigslice/xgoef/plugins/updater"
 	"github.com/zigslice/xgoef/plugins/webview"
+	"github.com/zigslice/xgoef/plugins/window"
 )
 
 // Options configures builtin plugins. Base is the app directory ($APP).
@@ -58,9 +59,11 @@ type Options struct {
 	Identifier      string
 	AutostartArgs   []string
 	LogLevel        string
+	WindowOp        func(window string, op, a, b int, text string) error
+	WindowQuery     func(window string, query int) (bool, error)
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "window").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -102,6 +105,8 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 		return autostart.New(opt.Identifier, opt.AppName, opt.Executable, opt.AutostartArgs)
 	case "log":
 		return applog.New(opt.Identifier, opt.LogLevel)
+	case "window":
+		return window.New(opt.WindowOp, opt.WindowQuery), nil
 	default:
 		return nil, fmt.Errorf("plugins: unknown builtin %q", name)
 	}

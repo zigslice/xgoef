@@ -32,6 +32,27 @@ type NativeBridge struct {
 	evalAllowed string
 	evalSource  string
 	onLoad      func(label, url string)
+	winOps      []WindowOpRecord
+	winFlags    WindowFlags
+	winDown     bool
+}
+
+// WindowOpRecord is one successful WindowOp. Tests use it.
+type WindowOpRecord struct {
+	Label string
+	Op    int
+	A     int
+	B     int
+	Text  string
+}
+
+// WindowFlags are the stub's answers for WindowQuery.
+type WindowFlags struct {
+	Minimized   bool
+	Maximized   bool
+	Fullscreen  bool
+	AlwaysOnTop bool
+	Visible     bool
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -123,6 +144,98 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 // LastMove is the most recent MoveWindow argument.
 func (b *NativeBridge) LastMove() (label string, x, y int, ok bool) {
 	return b.moveLabel, b.moveX, b.moveY, b.moved
+}
+
+func (b *NativeBridge) WindowOp(label string, op, argA, argB int, text string) error {
+	if b.winDown {
+		return errBindings("cef: window unavailable")
+	}
+	if !windowOpAccept(op, argA, argB, text) {
+		return ErrWindowRejected
+	}
+	b.winOps = append(b.winOps, WindowOpRecord{Label: label, Op: op, A: argA, B: argB, Text: text})
+	b.winFlags.apply(op, argA)
+	return nil
+}
+
+// LastWindowOp is the most recent successful WindowOp.
+func (b *NativeBridge) LastWindowOp() (WindowOpRecord, bool) {
+	if len(b.winOps) == 0 {
+		return WindowOpRecord{}, false
+	}
+	return b.winOps[len(b.winOps)-1], true
+}
+
+// WindowOps is every successful WindowOp, in order.
+func (b *NativeBridge) WindowOps() []WindowOpRecord {
+	out := make([]WindowOpRecord, len(b.winOps))
+	copy(out, b.winOps)
+	return out
+}
+
+// SetWindowFlags replaces the stub query answers.
+func (b *NativeBridge) SetWindowFlags(flags WindowFlags) { b.winFlags = flags }
+
+// SetWindowUnavailable makes later window verbs and queries fail.
+func (b *NativeBridge) SetWindowUnavailable(down bool) { b.winDown = down }
+
+func (b *NativeBridge) WindowQuery(label string, query int) (bool, error) {
+	_ = label
+	if b.winDown {
+		return false, errBindings("cef: window unavailable")
+	}
+	switch query {
+	case WindowQueryMinimized:
+		return b.winFlags.Minimized, nil
+	case WindowQueryMaximized:
+		return b.winFlags.Maximized, nil
+	case WindowQueryFullscreen:
+		return b.winFlags.Fullscreen, nil
+	case WindowQueryAlwaysOnTop:
+		return b.winFlags.AlwaysOnTop, nil
+	case WindowQueryVisible:
+		return b.winFlags.Visible, nil
+	default:
+		return false, errBindings("cef: window query failed")
+	}
+}
+
+func windowOpAccept(op, a, b int, text string) bool {
+	switch op {
+	case WindowOpSetTitle:
+		return WindowTitleOK(text)
+	case WindowOpSetSize:
+		return WindowSizeOK(a, b)
+	default:
+		return WindowOpKnown(op)
+	}
+}
+
+func (f *WindowFlags) apply(op, a int) {
+	switch op {
+	case WindowOpMinimize:
+		f.Minimized = true
+	case WindowOpMaximize:
+		f.Maximized = true
+		f.Minimized = false
+	case WindowOpUnminimize:
+		f.Minimized = false
+	case WindowOpUnmaximize:
+		f.Maximized = false
+	case WindowOpToggleMaximize:
+		f.Maximized = !f.Maximized
+		if f.Maximized {
+			f.Minimized = false
+		}
+	case WindowOpShow:
+		f.Visible = true
+	case WindowOpHide:
+		f.Visible = false
+	case WindowOpSetAlwaysOnTop:
+		f.AlwaysOnTop = a != 0
+	case WindowOpSetFullscreen:
+		f.Fullscreen = a != 0
+	}
 }
 
 func (b *NativeBridge) Print(windowLabel string) error {

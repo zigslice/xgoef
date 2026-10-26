@@ -123,6 +123,10 @@ func helperMethod(c Command) (string, bool) {
 		"eval:run",
 		"autostart:enable", "autostart:disable", "autostart:is_enabled",
 		"log:write",
+		"window:minimize", "window:maximize", "window:unminimize", "window:unmaximize", "window:toggle_maximize",
+		"window:show", "window:hide", "window:center",
+		"window:set_title", "window:set_always_on_top", "window:set_fullscreen", "window:set_size",
+		"window:is_minimized", "window:is_maximized", "window:is_fullscreen", "window:is_always_on_top", "window:is_visible",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

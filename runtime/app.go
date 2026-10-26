@@ -182,6 +182,8 @@ func (a *App) OpenPlugins() error {
 		Identifier:      a.Config.Identifier,
 		AutostartArgs:   copyArgs(a.Config.Plugin.Autostart.Args),
 		LogLevel:        a.Config.Plugin.Log.Level,
+		WindowOp:        a.Bridge.WindowOp,
+		WindowQuery:     a.Bridge.WindowQuery,
 	}
 	if err := a.installEval(); err != nil {
 		return err

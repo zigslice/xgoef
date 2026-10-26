@@ -42,14 +42,14 @@
 | Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
 | Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
 | 前端 JS 桥 | ✅ | `OnContextCreated` 注入 `xgoef.js`；`window.cefQuery` |
-| Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog` / `process` / `notification` / `global-shortcut` / `monitor` / `webview` / `eval` / `autostart` / `log`；见 `docs/plugins.md` |
+| Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog` / `process` / `notification` / `global-shortcut` / `monitor` / `webview` / `eval` / `autostart` / `log` / `window`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架（`html` / `vite` / `react` / `vue` / `svelte`，见 `docs/templates.md`）、分期目录并链接 CEF 宿主；`xgoef dev` 会拉起宿主并热重载（见 `docs/dev.md`）。`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage（见 `docs/bundle.md`），并写 `web/xgoef.d.ts`（见 `docs/binding.md`） |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow`；菜单栏与托盘菜单已接（见 `docs/menu.md`）。常驻图标要能加载 `libgtk-3.so.0` |
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
-| 官方类插件（fs/dialog/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log` 已做；sql / websocket 等后置 |
+| 官方类插件（fs/dialog/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log`、`window` 已做；sql / websocket 等后置 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件、窗口主题与装饰、多显示器与 DPI、打印与开发者工具、按名字运行的 eval 和按源站注入的脚本，以及前端桥自动注入、开机自启、多前端模板（`html` / `vite` / `react` / `vue` / `svelte`）和日志与崩溃记录，以及应用生命周期（`ready` / `exit` / `page-load`，见 `docs/lifecycle.md`），以及 `xgoef://app/` 的内容安全策略（省略 `app.csp` 用默认策略，见 `docs/asset.md`；`devUrl` 仍用开发服务器自己的头），以及远程 URL 来源白名单（`build.devUrl` 与 `app.remote.urls`，见 `docs/asset.md`），都已经接上。窗口化透明仍受 CEF 限制。开发者工具默认关闭。页面不能提交脚本正文。crashpad dump 需要可执行文件旁的 `chrome_crashpad_handler`。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件、窗口主题与装饰、多显示器与 DPI、打印与开发者工具、按名字运行的 eval 和按源站注入的脚本，以及前端桥自动注入、开机自启、多前端模板（`html` / `vite` / `react` / `vue` / `svelte`）和日志与崩溃记录，以及应用生命周期（`ready` / `exit` / `page-load`，见 `docs/lifecycle.md`），以及 `xgoef://app/` 的内容安全策略（省略 `app.csp` 用默认策略，见 `docs/asset.md`；`devUrl` 仍用开发服务器自己的头），以及远程 URL 来源白名单（`build.devUrl` 与 `app.remote.urls`，见 `docs/asset.md`），以及当前窗口的最小化、最大化、显示、隐藏、居中、标题、置顶、全屏和尺寸（移动位置用 `monitor:move`，见 `docs/window.md`），都已经接上。窗口化透明仍受 CEF 限制。开发者工具默认关闭。页面不能提交脚本正文。crashpad dump 需要可执行文件旁的 `chrome_crashpad_handler`。
 
 ---
 
@@ -62,7 +62,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | App / Builder 生命周期 | ✅ | `OnLifecycle` 提供 `ready`、`exit`、`page-load`（见 `docs/lifecycle.md`）。`page-load` 来自主框架加载结束；这台环境没有在 CEF 里跑出这次回调 |
-| Window / Webview 多实例 | 🟡 | label + `CreateWindow` / `CloseWindow` / `FocusWindow`；托盘见 `docs/menu.md` |
+| Window / Webview 多实例 | ✅ | label + `CreateWindow` / `CloseWindow` / `FocusWindow`，以及当前窗口的最小化、最大化、还原、显示、隐藏、居中、标题、置顶、全屏和尺寸（见 `docs/window.md`）。移动位置用 `monitor:move`。这台环境没有在 CEF 里执行这些动词。托盘见 `docs/menu.md` |
 | Window 状态（位置/尺寸/最大化/最小化） | ✅ | 位置、尺寸、最大化、最小化写入 `.xgoef/window-state.json`（见 `docs/window.md`）。最小化保留恢复前的尺寸和最大化标记，下次启动以最小化出现 |
 | 菜单 / 托盘 / 任务栏 | 🟡 | 窗口菜单栏和托盘菜单已封装（`docs/menu.md`）；任务栏未做。常驻图标在 `libgtk-3.so.0` 能加载时出现 |
 | 主题 / 装饰 / 透明 | 🟡 | Views 可关装饰；`theme` 为 system / light / dark。窗口化透明背景被 CEF 画成不透明白（见 `docs/window.md`） |
@@ -113,10 +113,10 @@
 | --- | --- | --- |
 | Plugin = 原生逻辑 + 可选 JS API | 🟡 | `Setup` 注册命令；JS 在 `xgoef.js` 的 `plugins.fs` / `plugins.os` |
 | 插件注册 command / 权限声明 | ✅ | `Permissions()` + capabilities 精确匹配 |
-| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log` 已做；sql / websocket 等后置 |
+| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log`、`window` 已做；sql / websocket 等后置 |
 | 移动端插件（Swift/Kotlin） | ✕ | 非目标 |
 
-**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log`。`window-state` 已做在 runtime 里。其余（sql/updater/websocket…）后置。
+**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`monitor`、`webview`、`eval`、`autostart`、`log`、`window`。`window-state` 已做在 runtime 里。其余（sql/updater/websocket…）后置。
 
 ### 3.6 工具链与 DX
 
@@ -157,7 +157,7 @@
 
 ### P1 — 可做正经桌面壳
 
-5. Window API：label、多窗、关闭/聚焦、基础状态。 ✅（见 `docs/window.md`）
+5. Window API：label、多窗、关闭/聚焦、基础状态，以及当前窗口的最小化、最大化、显示、隐藏、居中、标题、置顶、全屏和尺寸。 ✅（见 `docs/window.md`；移动位置用 `monitor:move`）
 6. 自定义资源协议（或严格 `asset` 根目录）替代裸 `file://`。 ✅（见 `docs/asset.md`）
 7. Event 跨进程（含 `emit_to(label)`）。 ✅（见 `docs/events.md`）
 8. Plugin 契约：注册 commands + `fs` / `os`。 ✅（见 `docs/plugins.md`）
@@ -355,6 +355,6 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`/`monitor`/`webview`/`eval`/`autostart`/`log`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`）、多显示器与 DPI（见 `docs/window.md`）、打印与开发者工具（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`）、eval / 注入脚本（页面只按名字运行；注入只留在钉住的源站，见 `docs/window.md`），以及前端桥自动注入（`OnContextCreated` 执行 `xgoef.js`，见 `docs/ipc.md`）和开机自启（当前用户的 XDG autostart 项，见 `docs/autostart.md`），以及多前端模板（`html` / `vite` / `react` / `vue` / `svelte`，见 `docs/templates.md`），以及日志与崩溃记录（页面日志、宿主 panic、crashpad 开关，见 `docs/log.md`），以及应用生命周期（`ready` / `exit` / `page-load`，见 `docs/lifecycle.md`），以及 `xgoef://app/` 的内容安全策略（省略 `app.csp` 用默认策略，见 `docs/asset.md`；`devUrl` 仍用开发服务器自己的头），以及远程 URL 来源白名单（`build.devUrl` 与 `app.remote.urls`，见 `docs/asset.md`）**。
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`/`monitor`/`webview`/`eval`/`autostart`/`log`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`）、多显示器与 DPI（见 `docs/window.md`）、打印与开发者工具（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`）、eval / 注入脚本（页面只按名字运行；注入只留在钉住的源站，见 `docs/window.md`），以及前端桥自动注入（`OnContextCreated` 执行 `xgoef.js`，见 `docs/ipc.md`）和开机自启（当前用户的 XDG autostart 项，见 `docs/autostart.md`），以及多前端模板（`html` / `vite` / `react` / `vue` / `svelte`，见 `docs/templates.md`），以及日志与崩溃记录（页面日志、宿主 panic、crashpad 开关，见 `docs/log.md`），以及应用生命周期（`ready` / `exit` / `page-load`，见 `docs/lifecycle.md`），以及 `xgoef://app/` 的内容安全策略（省略 `app.csp` 用默认策略，见 `docs/asset.md`；`devUrl` 仍用开发服务器自己的头），以及远程 URL 来源白名单（`build.devUrl` 与 `app.remote.urls`，见 `docs/asset.md`），以及当前窗口的最小化、最大化、显示、隐藏、居中、标题、置顶、全屏和尺寸（移动位置用 `monitor:move`，见 `docs/window.md`）**。
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

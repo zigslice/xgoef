@@ -47,5 +47,6 @@
 | 7z | **P1** 远程 URL 来源白名单 | 完成（`app.remote.urls` 与 `build.devUrl`，见 [asset.md](asset.md)） |
 | 8a | **P2** Vue 与 Svelte 模板 | 完成（与 `vite` / `react` 同一形状，见 [templates.md](templates.md)） |
 | 8b | **P2** 记住并恢复最小化 | 完成（与最大化一样写入 `.xgoef/window-state.json`，见 [window.md](window.md)） |
+| 8c | **P2** Views 窗口动词 | 完成（当前窗口的最小化、最大化、显示、隐藏、居中、标题、置顶、全屏和尺寸，见 [window.md](window.md)） |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

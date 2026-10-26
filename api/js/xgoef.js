@@ -361,6 +361,59 @@
           return global.__XGOEF__.invoke("log:write", { level: "error", message: message });
         },
       },
+      window: {
+        minimize: function () {
+          return global.__XGOEF__.invoke("window:minimize", {});
+        },
+        maximize: function () {
+          return global.__XGOEF__.invoke("window:maximize", {});
+        },
+        unminimize: function () {
+          return global.__XGOEF__.invoke("window:unminimize", {});
+        },
+        unmaximize: function () {
+          return global.__XGOEF__.invoke("window:unmaximize", {});
+        },
+        toggleMaximize: function () {
+          return global.__XGOEF__.invoke("window:toggle_maximize", {});
+        },
+        show: function () {
+          return global.__XGOEF__.invoke("window:show", {});
+        },
+        hide: function () {
+          return global.__XGOEF__.invoke("window:hide", {});
+        },
+        center: function () {
+          return global.__XGOEF__.invoke("window:center", {});
+        },
+        setTitle: function (title) {
+          return global.__XGOEF__.invoke("window:set_title", { title: title });
+        },
+        setAlwaysOnTop: function (alwaysOnTop) {
+          return global.__XGOEF__.invoke("window:set_always_on_top", { alwaysOnTop: alwaysOnTop });
+        },
+        setFullscreen: function (fullscreen) {
+          return global.__XGOEF__.invoke("window:set_fullscreen", { fullscreen: fullscreen });
+        },
+        setSize: function (width, height) {
+          return global.__XGOEF__.invoke("window:set_size", { width: width, height: height });
+        },
+        isMinimized: function () {
+          return global.__XGOEF__.invoke("window:is_minimized", {});
+        },
+        isMaximized: function () {
+          return global.__XGOEF__.invoke("window:is_maximized", {});
+        },
+        isFullscreen: function () {
+          return global.__XGOEF__.invoke("window:is_fullscreen", {});
+        },
+        isAlwaysOnTop: function () {
+          return global.__XGOEF__.invoke("window:is_always_on_top", {});
+        },
+        isVisible: function () {
+          return global.__XGOEF__.invoke("window:is_visible", {});
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});
