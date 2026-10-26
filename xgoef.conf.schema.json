@@ -143,7 +143,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval, autostart).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -215,6 +215,18 @@
               "type": "object",
               "maxProperties": 32,
               "additionalProperties": { "type": "string", "maxLength": 16384 }
+            }
+          }
+        },
+        "autostart": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Launch arguments for the current-user autostart entry. The page cannot choose the executable or these arguments.",
+          "properties": {
+            "args": {
+              "type": "array",
+              "maxItems": 8,
+              "items": { "type": "string", "minLength": 1, "maxLength": 128 }
             }
           }
         },

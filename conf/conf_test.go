@@ -38,6 +38,28 @@ func TestLoadHelloConfig(t *testing.T) {
 	if f.Plugin.Eval.Scripts["mark"] == "" || strings.Contains(f.Plugin.Eval.Scripts["mark"], "alert") {
 		t.Fatalf("mark %#v", f.Plugin.Eval.Scripts)
 	}
+	foundAuto := false
+	for _, name := range f.Plugins {
+		if name == "autostart" {
+			foundAuto = true
+		}
+	}
+	if !foundAuto {
+		t.Fatalf("plugins %v", f.Plugins)
+	}
+	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled"} {
+		ok := false
+		for _, c := range f.Capabilities {
+			for _, p := range c.Permissions {
+				if p == perm {
+					ok = true
+				}
+			}
+		}
+		if !ok {
+			t.Fatalf("missing %s in %+v", perm, f.Capabilities)
+		}
+	}
 	if len(f.Capabilities) == 0 {
 		t.Fatal("expected capabilities")
 	}
@@ -191,5 +213,40 @@ func TestLoadRejectsEvalScript(t *testing.T) {
 	}
 	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "name is invalid") {
 		t.Fatal(err)
+	}
+}
+
+func TestLoadRejectsAutostartArgs(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "ok.json")
+	body := `{
+	  "productName":"t",
+	  "plugin":{"autostart":{"args":["--minimized","a b"]}}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Load(path)
+	if err != nil || len(f.Plugin.Autostart.Args) != 2 || f.Plugin.Autostart.Args[0] != "--minimized" {
+		t.Fatalf("%v %v", f.Plugin.Autostart.Args, err)
+	}
+	long := strings.Repeat("a", 129)
+	for _, args := range []string{
+		`["ok",""]`,
+		`["   "]`,
+		`["` + long + `"]`,
+		`["line\n"]`,
+		`["a","b","c","d","e","f","g","h","i"]`,
+	} {
+		body = `{
+		  "productName":"t",
+		  "plugin":{"autostart":{"args":` + args + `}}
+		}`
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "autostart:") {
+			t.Fatalf("%s %v", args, err)
+		}
 	}
 }

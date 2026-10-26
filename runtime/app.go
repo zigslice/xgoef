@@ -175,6 +175,8 @@ func (a *App) OpenPlugins() error {
 		DevToolsOpen:    a.Bridge.DevToolsOpen,
 		EvalScripts:     copyScripts(a.Config.Plugin.Eval.Scripts),
 		RunEval:         a.Eval,
+		Identifier:      a.Config.Identifier,
+		AutostartArgs:   copyArgs(a.Config.Plugin.Autostart.Args),
 	}
 	if err := a.installEval(); err != nil {
 		return err
@@ -331,6 +333,15 @@ func copyScripts(in map[string]string) map[string]string {
 	for name, source := range in {
 		out[name] = source
 	}
+	return out
+}
+
+func copyArgs(in []string) []string {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]string, len(in))
+	copy(out, in)
 	return out
 }
 

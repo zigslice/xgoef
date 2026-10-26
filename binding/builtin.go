@@ -84,6 +84,11 @@ var builtinPlugins = map[string][]Command{
 	"eval": {
 		{Name: "eval:run", Args: []Arg{{Name: "name", Type: "string"}}, Result: "null"},
 	},
+	"autostart": {
+		{Name: "autostart:enable", Result: "null"},
+		{Name: "autostart:disable", Result: "null"},
+		{Name: "autostart:is_enabled", Result: "boolean"},
+	},
 }
 
 // displayType is one monitor. DIP fields match window-state; pixel fields are physical.
@@ -101,4 +106,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "deeplink"}

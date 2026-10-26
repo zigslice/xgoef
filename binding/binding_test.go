@@ -25,7 +25,7 @@ func TestRenderAppAndOS(t *testing.T) {
 }
 
 func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
-	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval"}, true)
+	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,6 +74,12 @@ func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
 		"isDevToolsOpen(): XgoefInvokeResult<boolean>",
 		`"eval:run": { args: { name: string }; result: null }`,
 		"run(name: string): XgoefInvokeResult<null>",
+		`"autostart:enable": { args: Record<string, never>; result: null }`,
+		`"autostart:disable": { args: Record<string, never>; result: null }`,
+		`"autostart:is_enabled": { args: Record<string, never>; result: boolean }`,
+		"enable(): XgoefInvokeResult<null>",
+		"disable(): XgoefInvokeResult<null>",
+		"isEnabled(): XgoefInvokeResult<boolean>",
 		`"deeplink:get_current": { args: Record<string, never>; result: { urls: string[] } }`,
 		"getCurrent(): XgoefInvokeResult<{ urls: string[] }>",
 		`"menu:popup"`,

@@ -36,8 +36,9 @@ type Plugin interface {
 | `monitor` | `monitor:list` `monitor:primary` `monitor:current` `monitor:scale` `monitor:move` | 与命令名相同 |
 | `webview` | `webview:print` `webview:open_dev_tools` `webview:close_dev_tools` `webview:is_dev_tools_open` | 与命令名相同 |
 | `eval` | `eval:run` | 与命令名相同 |
+| `autostart` | `autostart:enable` `autostart:disable` `autostart:is_enabled` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -131,6 +132,12 @@ Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没�
 宿主代码可以调用 `App.Eval(label, source)`。`source` 必须是宿主自己写的文本，不能把页面传来的字符串传进去。页面侧的入口只有名字。
 
 注入脚本写在窗口的 `initScripts` 里，不走这条命令。细节见 [window.md](window.md)。hello 的 *eval* 按钮运行名字 `mark`。
+
+## autostart
+
+`autostart:enable` 在当前用户的 XDG autostart 目录写入 `xgoef-<identifier>.desktop`。`autostart:disable` 删除这个文件。`autostart:is_enabled` 返回布尔值。进程启动时不会自己写入。
+
+`Exec` 使用宿主绝对路径和 `plugin.autostart.args`。页面不能改可执行文件，也不能附加参数；带了字段就是 `autostart.invalid`。Linux 以外是 `autostart.unavailable`。目标若是符号链接，`autostart.denied`，不会跟着链接去写。细节见 [autostart.md](autostart.md)。hello 的 *autostart* 按钮在打开和关闭之间切换。
 
 ## 应用侧还要做的
 
