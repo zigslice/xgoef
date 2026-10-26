@@ -10,6 +10,7 @@ import (
 	"github.com/zigslice/xgoef/binding"
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/deeplink"
+	"github.com/zigslice/xgoef/eval"
 )
 
 // File is the on-disk xgoef.conf.json shape (Tauri-like).
@@ -37,6 +38,13 @@ type PluginSection struct {
 	Notification   NotificationConfig `json:"notification"`
 	GlobalShortcut ShortcutConfig     `json:"global-shortcut"`
 	WebView        WebViewConfig      `json:"webview"`
+	Eval           EvalConfig         `json:"eval"`
+}
+
+// EvalConfig is the set of named scripts the page may ask to run.
+// The page sends a name. It cannot send the source.
+type EvalConfig struct {
+	Scripts map[string]string `json:"scripts"`
 }
 
 // WebViewConfig gates developer tools. Omitted devtools is false, so a page
@@ -169,14 +177,15 @@ type TrayConfig struct {
 // Decorations nil keeps the frame. Theme empty follows the system.
 // Transparent nil keeps an opaque page background.
 type Window struct {
-	Label       string `json:"label"`
-	Title       string `json:"title"`
-	Width       int    `json:"width"`
-	Height      int    `json:"height"`
-	URL         string `json:"url"`
-	Decorations *bool  `json:"decorations,omitempty"`
-	Theme       string `json:"theme,omitempty"`
-	Transparent *bool  `json:"transparent,omitempty"`
+	Label       string   `json:"label"`
+	Title       string   `json:"title"`
+	Width       int      `json:"width"`
+	Height      int      `json:"height"`
+	URL         string   `json:"url"`
+	InitScripts []string `json:"initScripts,omitempty"`
+	Decorations *bool    `json:"decorations,omitempty"`
+	Theme       string   `json:"theme,omitempty"`
+	Transparent *bool    `json:"transparent,omitempty"`
 }
 
 // Chrome maps this window onto the text passed to the CEF shim.
@@ -267,6 +276,12 @@ func Load(path string) (File, error) {
 		if err := normalizeWindowTheme(&f.App.Windows[i]); err != nil {
 			return f, err
 		}
+		if err := eval.ValidateSources(f.App.Windows[i].InitScripts, eval.MaxInitScripts); err != nil {
+			return f, fmt.Errorf("conf: window %s: %w", f.App.Windows[i].Label, err)
+		}
+	}
+	if err := eval.ValidateNamed(f.Plugin.Eval.Scripts); err != nil {
+		return f, fmt.Errorf("conf: %w", err)
 	}
 	return f, nil
 }

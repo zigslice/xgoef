@@ -34,6 +34,8 @@ set(XGOEF_CEF_SRCS
   xgoef_display_query.cc
   xgoef_webview_state.cc
   xgoef_webview.cc
+  xgoef_eval.cc
+  xgoef_eval_run.cc
   xgoef_menu_model.cc
   xgoef_menu.cc
   xgoef_tray_gtk.cc

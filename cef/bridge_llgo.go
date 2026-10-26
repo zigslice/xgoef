@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/goplus/lib/c"
+	"github.com/zigslice/xgoef/eval"
 )
 
 var _ = unsafe.Sizeof(0)
@@ -232,6 +233,26 @@ func (b *NativeBridge) DevToolsOpen(windowLabel string) (bool, error) {
 	}
 }
 
+func (b *NativeBridge) SetInitScripts(label, allowedURL, encoded string) error {
+	if rc := xgoefEvalSetInit(c.AllocaCStr(label), c.AllocaCStr(allowedURL), c.AllocaCStr(encoded)); rc != 0 {
+		return fmt.Errorf("cef: eval init failed")
+	}
+	return nil
+}
+
+func (b *NativeBridge) Eval(label, allowedURL, source string) error {
+	switch xgoefEvalRun(c.AllocaCStr(label), c.AllocaCStr(allowedURL), c.AllocaCStr(source)) {
+	case 0:
+		return nil
+	case -2:
+		return eval.ErrOrigin
+	case -3:
+		return eval.ErrRejected
+	default:
+		return eval.ErrUnavailable
+	}
+}
+
 func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
 	windowStateNote = fn
 	if fn == nil {
@@ -347,3 +368,9 @@ func xgoefDevToolsClose(label *c.Char) c.Int
 
 //go:linkname xgoefDevToolsIsOpen C.xgoef_devtools_is_open
 func xgoefDevToolsIsOpen(label *c.Char) c.Int
+
+//go:linkname xgoefEvalSetInit C.xgoef_eval_set_init
+func xgoefEvalSetInit(label, allowedURL, encoded *c.Char) c.Int
+
+//go:linkname xgoefEvalRun C.xgoef_eval_run
+func xgoefEvalRun(label, allowedURL, source *c.Char) c.Int

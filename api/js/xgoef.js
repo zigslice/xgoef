@@ -317,6 +317,11 @@
           return global.__XGOEF__.invoke("webview:is_dev_tools_open", {});
         },
       },
+      eval: {
+        run: function (name) {
+          return global.__XGOEF__.invoke("eval:run", { name: name });
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});
