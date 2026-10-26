@@ -13,6 +13,7 @@ import (
 	"github.com/zigslice/xgoef/deeplink"
 	"github.com/zigslice/xgoef/eval"
 	"github.com/zigslice/xgoef/log"
+	"github.com/zigslice/xgoef/remote"
 )
 
 // File is the on-disk xgoef.conf.json shape (Tauri-like).
@@ -141,6 +142,7 @@ const DefaultCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style
 // before page scripts. False passes --xgoef-no-bridge. This is the
 // withGlobalTauri equivalent; the default here is on.
 // CSP nil uses DefaultCSP. An empty string disables the asset-response header.
+// Remote lists extra http(s) origins. build.devUrl's origin is added at runtime.
 type AppSection struct {
 	Windows         []Window        `json:"windows"`
 	Menu            []MenuItem      `json:"menu,omitempty"`
@@ -150,6 +152,13 @@ type AppSection struct {
 	DeepLink        *DeepLinkConfig `json:"deepLink,omitempty"`
 	WithGlobalXgoef *bool           `json:"withGlobalXgoef,omitempty"`
 	CSP             *string         `json:"csp,omitempty"`
+	Remote          RemoteConfig    `json:"remote,omitempty"`
+}
+
+// RemoteConfig is the http(s) origin allowlist.
+// Each entry is an origin. A path is not a scope. The page cannot set this.
+type RemoteConfig struct {
+	URLs []string `json:"urls,omitempty"`
 }
 
 // ContentSecurityPolicy is the header value for xgoef://app/ responses.
@@ -352,6 +361,11 @@ func Load(path string) (File, error) {
 	if err := validCSP(f.App.CSP); err != nil {
 		return f, fmt.Errorf("conf: %w", err)
 	}
+	urls, err := remote.Normalize(f.App.Remote.URLs)
+	if err != nil {
+		return f, fmt.Errorf("conf: %w", err)
+	}
+	f.App.Remote.URLs = urls
 	return f, nil
 }
 

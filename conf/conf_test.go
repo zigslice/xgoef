@@ -349,6 +349,38 @@ func TestLoadCSP(t *testing.T) {
 	}
 }
 
+func TestLoadRemoteURLs(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "remote.json")
+	write := func(body string) {
+		t.Helper()
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write(`{"productName":"t"}`)
+	f, err := Load(path)
+	if err != nil || len(f.App.Remote.URLs) != 0 {
+		t.Fatalf("%v %v", f.App.Remote.URLs, err)
+	}
+	write(`{"productName":"t","app":{"remote":{"urls":["https://Example.COM:443/","http://127.0.0.1:5173"]}}}`)
+	f, err = Load(path)
+	if err != nil || len(f.App.Remote.URLs) != 2 || f.App.Remote.URLs[0] != "https://example.com" || f.App.Remote.URLs[1] != "http://127.0.0.1:5173" {
+		t.Fatalf("%v %v", f.App.Remote.URLs, err)
+	}
+	for _, body := range []string{
+		`{"productName":"t","app":{"remote":{"urls":["https://example.com/app"]}}}`,
+		`{"productName":"t","app":{"remote":{"urls":["https://example.com","https://example.com:443/"]}}}`,
+		`{"productName":"t","app":{"remote":{"urls":["http://user@example.com"]}}}`,
+		`{"productName":"t","app":{"remote":{"urls":["https://example.com\n"]}}}`,
+	} {
+		write(body)
+		if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "remote:") {
+			t.Fatalf("%s %v", body, err)
+		}
+	}
+}
+
 func TestLoadRejectsShellCommand(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")

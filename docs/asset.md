@@ -17,7 +17,8 @@ xgoef://app/css/app.css
 - 指到根外的符号链接直接拒绝。
 - `file://` 或相对路径如果落在这个目录里，启动时改写成 `xgoef://app/...`。
 - 根以外的本地路径拒绝导航。
-- `http://` / `https://` 原样保留，给 `devUrl` 用。
+- `about:blank` 原样保留。
+- `http://` / `https://` 只在来源被允许时保留。`build.devUrl` 的来源始终允许。其它来源写在 `app.remote.urls`。
 
 宿主在启动参数里带上 `--xgoef-asset-root=<绝对路径>`。CEF 浏览器进程用它注册 scheme handler；`xgoef-helper` 只登记同名 scheme，保证渲染进程认这个 origin。
 
@@ -36,6 +37,18 @@ default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-
 `build.devUrl` 打开的是开发服务器。那些响应仍用服务器自己的头。
 
 策略和启动参数有测试。头是在资源工厂里附上的。这台环境没有安装 CEF，没有在真实响应里看到这个头。
+
+## 远程来源
+
+窗口的启动地址和 `CreateWindow` 都走 `NavigationURL`。`http` / `https` 的来源必须是 `build.devUrl` 的来源，或 `app.remote.urls` 里的一项。页面不能改这张名单。
+
+每一项是一个来源：协议、主机和端口。`https://example.com/app` 这种带路径的写法会被拒绝，避免把它当成路径范围。`https://example.com` 和 `https://example.com/` 都是来源 `https://example.com`。默认端口不写进名单。`http://127.0.0.1` 不包含 `http://127.0.0.1:5173`。`http` 和 `https` 也是两个来源。最多 16 项，每项最长 256 字节。
+
+省略 `app.remote.urls` 时，除了 `devUrl`，没有远程来源。`xgoef://app/` 和 `about:blank` 不是远程来源。
+
+页面随后打开的 `http` / `https` 地址在 `OnBeforeBrowse` 里用同一份名单取消。开发者工具窗口不套用这张名单。名单随 `--xgoef-remote=` 传给浏览器进程，并复制到渲染进程。不在名单里的 `http` / `https` 主框架不会注入 `xgoef.js`。
+
+名单和启动参数有测试。这台环境没有安装 CEF，没有在真实导航里看到取消。
 
 ## 前端桥
 
@@ -61,7 +74,9 @@ default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-
 | --- | --- |
 | `asset.Root` | Go 侧映射和拒绝规则（单测） |
 | `asset.PackDir` / `AppendSeal` | 把前端签进宿主尾部；`xgoef.assets` 是同一份封包 |
-| `runtime.App.NavigationURL` | 启动 URL / `CreateWindow` |
+| `runtime.App.NavigationURL` | 启动 URL / `CreateWindow`；`http(s)` 用来源白名单 |
+| `app.remote.urls` | 允许打开的远程来源；`build.devUrl` 的来源另外放行 |
+| `cef/shim/xgoef_bridge.cc` | 判断 `http(s)` 来源是否在名单里；`OnBeforeBrowse` 和桥注入都用它 |
 | `conf.DefaultCSP` / `app.csp` | `xgoef://app/` 响应的 Content-Security-Policy；空字符串不发送 |
 | `cef/shim/xgoef_asset.cc` | CEF `CefSchemeHandlerFactory`，成功响应可带策略头 |
 | `cef/shim/xgoef_csp.h` | 校验 `--xgoef-csp` / `--xgoef-no-csp`（不链接 CEF，可单独编译） |

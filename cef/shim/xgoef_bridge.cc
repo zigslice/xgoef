@@ -135,14 +135,73 @@ std::string OriginOf(const std::string& url) {
   return scheme + "://" + host + ":" + port;
 }
 
+bool AllowlistContains(const std::string& origin, const std::string& allowlist) {
+  if (origin.empty() || allowlist.empty()) {
+    return false;
+  }
+  for (unsigned char c : allowlist) {
+    if (c < 0x20 || c == ' ') {
+      return false;
+    }
+  }
+  bool found = false;
+  size_t i = 0;
+  while (i <= allowlist.size()) {
+    size_t j = allowlist.find(',', i);
+    if (j == std::string::npos) {
+      j = allowlist.size();
+    }
+    if (j == i) {
+      return false;
+    }
+    if (allowlist.compare(i, j - i, origin) == 0) {
+      found = true;
+    }
+    if (j == allowlist.size()) {
+      break;
+    }
+    i = j + 1;
+    if (i == allowlist.size()) {
+      return false;
+    }
+  }
+  return found;
+}
+
+bool RemoteOriginAllowed(const std::string& url, const std::string& allowlist) {
+  const std::string scheme = SchemeOf(url);
+  if (scheme != "http" && scheme != "https") {
+    return false;
+  }
+  for (unsigned char c : url) {
+    if (c < 0x20) {
+      return false;
+    }
+  }
+  return AllowlistContains(OriginOf(url), allowlist);
+}
+
+bool RemoteNavigationBlocked(const std::string& url, const std::string& allowlist) {
+  const std::string scheme = SchemeOf(url);
+  if (scheme != "http" && scheme != "https") {
+    return false;
+  }
+  return !RemoteOriginAllowed(url, allowlist);
+}
+
 bool ShouldInjectBridge(bool disabled,
                         bool is_main,
                         const std::string& url,
-                        const std::string& main_url) {
+                        const std::string& main_url,
+                        const std::string& allowlist) {
   if (disabled) {
     return false;
   }
-  if (BlockedScheme(SchemeOf(url))) {
+  const std::string scheme = SchemeOf(url);
+  if (BlockedScheme(scheme)) {
+    return false;
+  }
+  if ((scheme == "http" || scheme == "https") && !RemoteOriginAllowed(url, allowlist)) {
     return false;
   }
   if (is_main) {

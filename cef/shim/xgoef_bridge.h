@@ -11,6 +11,7 @@ namespace xgoef {
 
 inline constexpr const char kAssetRootSwitch[] = "xgoef-asset-root";
 inline constexpr const char kNoBridgeSwitch[] = "xgoef-no-bridge";
+inline constexpr const char kRemoteSwitch[] = "xgoef-remote";
 inline constexpr int kBridgeScriptMaxBytes = 1024 * 1024;
 
 // Origin of a hierarchical URL, with the default port removed.
@@ -18,14 +19,26 @@ inline constexpr int kBridgeScriptMaxBytes = 1024 * 1024;
 // file URLs share the origin "file://".
 std::string OriginOf(const std::string& url);
 
+// True when url is http(s) and its origin is one comma-separated entry of
+// allowlist. allowlist entries are canonical origins (OriginOf form).
+// An empty entry, a space, or a byte below 0x20 rejects the whole list.
+bool RemoteOriginAllowed(const std::string& url, const std::string& allowlist);
+
+// True when an http(s) navigation must be cancelled.
+// Other schemes are left to the existing navigation rules.
+bool RemoteNavigationBlocked(const std::string& url, const std::string& allowlist);
+
 // True when this frame should run the bridge script.
 // disabled is --xgoef-no-bridge. is_main is CefFrame::IsMain().
-// A main frame is included unless its scheme is an internal browser page.
-// A subframe is included only when its origin equals the main frame origin.
+// allowlist is --xgoef-remote. An http(s) frame is included only when its
+// origin is in that list. A main frame of another scheme is included unless
+// it is an internal browser page. A subframe is included only when its
+// origin equals the main frame origin.
 bool ShouldInjectBridge(bool disabled,
                         bool is_main,
                         const std::string& url,
-                        const std::string& main_url);
+                        const std::string& main_url,
+                        const std::string& allowlist);
 
 // Absolute or relative path of the bridge file inside the asset root.
 // Empty when root is empty or contains a NUL.

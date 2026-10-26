@@ -6,12 +6,14 @@
 
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
+#include "include/cef_command_line.h"
 #include "include/cef_parser.h"
 #include "include/views/cef_browser_view.h"
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include "xgoef_bridge.h"
 #include "xgoef_eval_run.h"
 #include "xgoef_lifecycle.h"
 #include "xgoef_webview.h"
@@ -213,11 +215,23 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                    bool user_gesture,
                                    bool is_redirect) {
   CEF_REQUIRE_UI_THREAD();
-  (void)request;
   (void)user_gesture;
   (void)is_redirect;
   if (message_router_) {
     message_router_->OnBeforeBrowse(browser, frame);
+  }
+  const bool devtools = browser && DevToolsIs(browser->GetIdentifier());
+  std::string url;
+  if (request) {
+    url = request->GetURL().ToString();
+  }
+  std::string allow;
+  CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
+  if (command_line) {
+    allow = command_line->GetSwitchValue(kRemoteSwitch).ToString();
+  }
+  if (!devtools && RemoteNavigationBlocked(url, allow)) {
+    return true;
   }
   return false;
 }

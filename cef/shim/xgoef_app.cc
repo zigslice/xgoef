@@ -175,6 +175,10 @@ void App::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) {
   if (browser->HasSwitch(kNoBridgeSwitch) && !command_line->HasSwitch(kNoBridgeSwitch)) {
     command_line->AppendSwitch(kNoBridgeSwitch);
   }
+  const std::string remote = browser->GetSwitchValue(kRemoteSwitch).ToString();
+  if (!remote.empty() && !command_line->HasSwitch(kRemoteSwitch)) {
+    command_line->AppendSwitchWithValue(kRemoteSwitch, CefString(remote));
+  }
 }
 
 void App::OnContextInitialized() {

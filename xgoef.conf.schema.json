@@ -106,6 +106,19 @@
           "maxLength": 2048,
           "description": "Content-Security-Policy on xgoef://app/ responses. Omitted uses the default policy. An empty string sends no policy. devUrl responses keep the dev server's headers. The page cannot set this value."
         },
+        "remote": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "http(s) origins a window may open. Omitted allows none beyond build.devUrl. xgoef://app and about:blank are not remote. The page cannot set this.",
+          "properties": {
+            "urls": {
+              "type": "array",
+              "maxItems": 16,
+              "description": "Origins only: scheme, host, and port. A path is not a scope. https://example.com and https://example.com/ are the same origin. The default port is omitted.",
+              "items": { "type": "string", "maxLength": 256 }
+            }
+          }
+        },
         "deepLink": {
           "type": "object",
           "additionalProperties": false,

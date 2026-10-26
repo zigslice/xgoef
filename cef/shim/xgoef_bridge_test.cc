@@ -59,30 +59,51 @@ int main() {
   Expect(xgoef::OriginOf("http://[::1]:/").empty(), "empty ipv6 port");
   Expect(xgoef::OriginOf("").empty(), "empty url");
 
-  Expect(xgoef::ShouldInjectBridge(false, true, "xgoef://app/index.html", ""), "main asset");
-  Expect(xgoef::ShouldInjectBridge(false, true, "http://127.0.0.1:5173/", ""), "main dev");
-  Expect(xgoef::ShouldInjectBridge(false, true, "about:blank", ""), "main blank");
-  Expect(xgoef::ShouldInjectBridge(false, true, "", ""), "main empty");
-  Expect(!xgoef::ShouldInjectBridge(true, true, "xgoef://app/index.html", ""), "disabled");
-  Expect(!xgoef::ShouldInjectBridge(false, true, "devtools://devtools/bundled/inspector.html", ""),
+  const std::string dev = "http://127.0.0.1:5173";
+  const std::string example = "https://example.com";
+  Expect(xgoef::ShouldInjectBridge(false, true, "xgoef://app/index.html", "", ""), "main asset");
+  Expect(xgoef::ShouldInjectBridge(false, true, "http://127.0.0.1:5173/", "", dev), "main dev");
+  Expect(!xgoef::ShouldInjectBridge(false, true, "http://127.0.0.1:5173/", "", ""), "main dev denied");
+  Expect(xgoef::ShouldInjectBridge(false, true, "about:blank", "", ""), "main blank");
+  Expect(xgoef::ShouldInjectBridge(false, true, "", "", ""), "main empty");
+  Expect(!xgoef::ShouldInjectBridge(true, true, "xgoef://app/index.html", "", dev), "disabled");
+  Expect(!xgoef::ShouldInjectBridge(false, true, "devtools://devtools/bundled/inspector.html", "", ""),
          "devtools main");
-  Expect(!xgoef::ShouldInjectBridge(false, true, "chrome-extension://abc/page.html", ""),
+  Expect(!xgoef::ShouldInjectBridge(false, true, "chrome-extension://abc/page.html", "", ""),
          "extension main");
-  Expect(xgoef::ShouldInjectBridge(false, false, "xgoef://app/embed.html", "xgoef://app/index.html"),
+  Expect(xgoef::ShouldInjectBridge(false, false, "xgoef://app/embed.html", "xgoef://app/index.html", ""),
          "same asset frame");
   Expect(xgoef::ShouldInjectBridge(false, false, "http://127.0.0.1:5173/child.html",
-                                   "http://127.0.0.1:5173/"),
+                                   "http://127.0.0.1:5173/", dev),
          "same dev frame");
-  Expect(xgoef::ShouldInjectBridge(false, false, "https://example.com:443/a", "https://example.com/b"),
+  Expect(xgoef::ShouldInjectBridge(false, false, "https://example.com:443/a", "https://example.com/b",
+                                   example),
          "default port frame");
-  Expect(!xgoef::ShouldInjectBridge(false, false, "https://cdn.example/a.js", "xgoef://app/index.html"),
+  Expect(!xgoef::ShouldInjectBridge(false, false, "https://cdn.example/a.js", "xgoef://app/index.html",
+                                    example),
          "foreign frame");
-  Expect(!xgoef::ShouldInjectBridge(false, false, "http://127.0.0.1:5174/", "http://127.0.0.1:5173/"),
+  Expect(!xgoef::ShouldInjectBridge(false, false, "http://127.0.0.1:5174/", "http://127.0.0.1:5173/",
+                                    dev),
          "other port");
-  Expect(!xgoef::ShouldInjectBridge(false, false, "about:blank", "xgoef://app/index.html"),
+  Expect(!xgoef::ShouldInjectBridge(false, false, "about:blank", "xgoef://app/index.html", ""),
          "blank frame");
-  Expect(!xgoef::ShouldInjectBridge(true, false, "xgoef://app/embed.html", "xgoef://app/index.html"),
+  Expect(!xgoef::ShouldInjectBridge(true, false, "xgoef://app/embed.html", "xgoef://app/index.html", ""),
          "disabled frame");
+
+  Expect(!xgoef::RemoteNavigationBlocked("xgoef://app/index.html", ""), "asset navigation");
+  Expect(!xgoef::RemoteNavigationBlocked("about:blank", ""), "blank navigation");
+  Expect(xgoef::RemoteNavigationBlocked("https://example.com/a", ""), "https denied");
+  Expect(!xgoef::RemoteNavigationBlocked("https://example.com/a", example), "https allowed");
+  Expect(xgoef::RemoteNavigationBlocked("http://example.com/a", example), "scheme mismatch");
+  Expect(!xgoef::RemoteNavigationBlocked("http://user:pass@example.com/a", "http://example.com"),
+         "userinfo origin");
+  Expect(!xgoef::RemoteNavigationBlocked("https://example.com/a", "https://evil.test,https://example.com"),
+         "second origin");
+  Expect(xgoef::RemoteNavigationBlocked("https://example.com/a", "https://example.com,"),
+         "trailing comma");
+  Expect(xgoef::RemoteNavigationBlocked("https://example.com/a", "https://example.com, "),
+         "space in list");
+  Expect(xgoef::RemoteNavigationBlocked("https://example.com/\n", example), "control in url");
 
   Expect(xgoef::BridgeScriptPath("/tmp/web") == "/tmp/web/xgoef.js", "join");
   Expect(xgoef::BridgeScriptPath("/tmp/web/") == "/tmp/web/xgoef.js", "slash");

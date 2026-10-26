@@ -117,13 +117,13 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 
 `xgoef-helper` 在 `OnContextCreated` 里先让 MessageRouter 装上 `window.cefQuery`，再读 `--xgoef-asset-root` 目录中的 `xgoef.js`，用 V8 `Eval` 执行。页面自己的脚本开始之前，`window.__XGOEF__` 已经在。这是宿主侧执行，不走页面的 `<script>`，页面 CSP 拦不住它。
 
-主框架会注入。`devtools://`、`view-source:` 和以 `chrome` 开头的内部地址不注入。子框架只在和主框架同源时注入：`xgoef://app/` 下的 iframe，以及 dev server 同一 origin 的 iframe。其它 origin 没有 `__XGOEF__`。`about:blank` 子框架不注入。
+主框架会注入。`http` / `https` 主框架还要看来源在不在 `--xgoef-remote` 里，也就是 `build.devUrl` 和 `app.remote.urls`。`devtools://`、`view-source:` 和以 `chrome` 开头的内部地址不注入。子框架只在和主框架同源时注入：`xgoef://app/` 下的 iframe，以及已允许的同一 origin 的 iframe。其它 origin 没有 `__XGOEF__`。`about:blank` 子框架不注入。
 
 `api/js/xgoef.js` 若发现 `__XGOEF__` 已经存在就返回。页面可以继续写 `<script src="xgoef.js"></script>`，第二次执行不会清掉已经注册的 `listen`。
 
 `app.withGlobalXgoef` 省略或为 `true` 时开启。设为 `false` 时，宿主带上 `--xgoef-no-bridge`，渲染进程不注入，页面必须自己引用脚本。这对应 Tauri 的 `withGlobalTauri`，这里默认开启。
 
-`xgoef build` 和 `xgoef dev` 仍把桥复制到前端根。渲染进程每次创建上下文都重新读这份文件。浏览器进程在 `OnBeforeChildProcessLaunch` 把 `--xgoef-asset-root` 和 `--xgoef-no-bridge` 传给子进程。文件缺失、不是普通文件、超过 1MiB，或执行抛错时，向 stderr 打一行 `xgoef:`，页面上就没有桥。
+`xgoef build` 和 `xgoef dev` 仍把桥复制到前端根。渲染进程每次创建上下文都重新读这份文件。浏览器进程在 `OnBeforeChildProcessLaunch` 把 `--xgoef-asset-root`、`--xgoef-no-bridge` 和 `--xgoef-remote` 传给子进程。文件缺失、不是普通文件、超过 1MiB，或执行抛错时，向 stderr 打一行 `xgoef:`，页面上就没有桥。
 
 命令仍要过 capabilities。注入只是把 API 放进页面。
 

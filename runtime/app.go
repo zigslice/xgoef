@@ -20,6 +20,7 @@ import (
 	"github.com/zigslice/xgoef/menu"
 	"github.com/zigslice/xgoef/plugin"
 	"github.com/zigslice/xgoef/plugins"
+	"github.com/zigslice/xgoef/remote"
 	"github.com/zigslice/xgoef/windowstate"
 )
 
@@ -612,7 +613,34 @@ func (a *App) buildArgs(url string) []string {
 	} else {
 		args = append(args, "--xgoef-no-csp")
 	}
+	if origins := a.remoteOrigins(); len(origins) > 0 {
+		args = append(args, "--xgoef-remote="+strings.Join(origins, ","))
+	}
 	return args
+}
+
+// remoteOrigins is the http(s) origin allowlist passed to CEF as
+// --xgoef-remote. build.devUrl's origin is included. The page cannot
+// choose this list. An empty result allows no remote navigation.
+func (a *App) remoteOrigins() []string {
+	if a == nil {
+		return nil
+	}
+	seen := map[string]bool{}
+	var out []string
+	add := func(raw string) {
+		origin, ok := remote.Origin(raw)
+		if !ok || seen[origin] {
+			return
+		}
+		seen[origin] = true
+		out = append(out, origin)
+	}
+	for _, raw := range a.Config.App.Remote.URLs {
+		add(raw)
+	}
+	add(a.Config.Build.DevURL)
+	return out
 }
 
 // crashDumpsDir is the absolute state directory handed to CEF as
@@ -703,14 +731,22 @@ func resolveSubprocess() string {
 }
 
 // NavigationURL is the URL passed to CEF.
-// http(s) and about:blank are kept for dev servers. xgoef://app/ is checked
-// against the frontend root. file:// and relative paths inside that root are
-// rewritten to xgoef://app/. Anything else on disk is refused.
+// about:blank is kept. http(s) is kept when its origin is build.devUrl or
+// app.remote.urls. xgoef://app/ is checked against the frontend root.
+// file:// and relative paths inside that root are rewritten to xgoef://app/.
+// Anything else on disk is refused.
 func (a *App) NavigationURL(u string) (string, error) {
 	if u == "" {
 		u = asset.Scheme + "://" + asset.Host + "/index.html"
 	}
-	if u == "about:blank" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+	if u == "about:blank" {
+		_, _ = a.frontend()
+		return u, nil
+	}
+	if remote.IsHTTP(u) {
+		if !remote.Allowed(u, a.remoteOrigins()) {
+			return "", fmt.Errorf("runtime: remote url is not allowed")
+		}
 		_, _ = a.frontend()
 		return u, nil
 	}
