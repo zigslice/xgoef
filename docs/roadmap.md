@@ -40,5 +40,6 @@
 | 7s | **P3** `eval` / 注入脚本 | 完成（页面只按名字运行已登记脚本；注入只留在钉住的源站，见 [window.md](window.md)） |
 | 7t | **P0** 前端桥在 `OnContextCreated` 自动注入 | 完成（见 [ipc.md](ipc.md)） |
 | 7u | **P3** 开机自启 | 完成（当前用户的 XDG autostart 项，见 [autostart.md](autostart.md)） |
+| 7v | **P2** 多前端模板 | 完成（`html` / `vite` / `react`，见 [templates.md](templates.md)） |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

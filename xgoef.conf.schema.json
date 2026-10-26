@@ -13,6 +13,16 @@
       "properties": {
         "frontendDist": { "type": "string", "default": "web" },
         "devUrl": { "type": "string" },
+        "beforeDevCommand": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Shell command xgoef dev runs before the host. The vite and react templates use npm run dev."
+        },
+        "beforeBuildCommand": {
+          "type": "string",
+          "maxLength": 1024,
+          "description": "Shell command xgoef build runs before staging the frontend. The vite and react templates use npm run build."
+        },
         "assetPublicKey": {
           "type": "string",
           "description": "Base64 Ed25519 public key. When set, the host serves the signed frontend from the binary trailer or xgoef.assets."

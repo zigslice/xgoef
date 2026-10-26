@@ -1,0 +1,47 @@
+{
+  "productName": "__NAME__",
+  "version": "0.0.1",
+  "identifier": "com.example.__NAME__",
+  "build": {
+    "frontendDist": "web",
+    "devUrl": "http://127.0.0.1:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "__NAME__",
+        "width": 960,
+        "height": 640,
+        "url": "xgoef://app/index.html"
+      }
+    ]
+  },
+  "cef": {
+    "rootEnv": "CEF_ROOT",
+    "noSandbox": true,
+    "cacheDir": "root_cache"
+  },
+  "plugins": ["fs", "os"],
+  "commands": [
+    {
+      "name": "greet",
+      "args": [{ "name": "name", "type": "string", "optional": true }],
+      "result": "string"
+    }
+  ],
+  "plugin": {
+    "fs": {
+      "allow": ["$APP", "$RESOURCE"]
+    }
+  },
+  "capabilities": [
+    {
+      "identifier": "main",
+      "windows": ["main"],
+      "permissions": ["greet", "fs:read_text", "os:platform", "core:default"]
+    }
+  ]
+}

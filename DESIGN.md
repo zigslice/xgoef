@@ -105,6 +105,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `autostart:enable` 把当前用户的 XDG autostart 项交给这个应用。页面只负责开关，启动参数写在 `plugin.autostart.args`。详见 [docs/autostart.md](docs/autostart.md)。
 
+`xgoef create --template` 可以写出静态页、Vite 或 Vite + React。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
+
 `xgoef build` 在有 `version` 时把分期目录打成 deb、msi、dmg 和 AppImage。详见 [docs/bundle.md](docs/bundle.md)。
 
 `xgoef dev` 拉起分期目录里的宿主。前端文件变化后重新复制，页面收到 `dev-reload` 再刷新。详见 [docs/dev.md](docs/dev.md)。

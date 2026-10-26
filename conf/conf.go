@@ -104,13 +104,18 @@ type ClipboardConfig struct {
 	Mode string `json:"mode"`
 }
 
-// Build holds frontend paths.
+// Build holds frontend paths and the shell commands that produce them.
 // AssetPublicKey is the Ed25519 public key that must verify the sealed
 // frontend. Empty means the loose frontendDist directory is used.
+// BeforeDevCommand runs from xgoef dev before the host starts.
+// BeforeBuildCommand runs from xgoef build before the frontend is staged.
+// Both are one-line shell commands. Empty means the step is skipped.
 type Build struct {
-	FrontendDist   string `json:"frontendDist"`
-	DevURL         string `json:"devUrl"`
-	AssetPublicKey string `json:"assetPublicKey,omitempty"`
+	FrontendDist       string `json:"frontendDist"`
+	DevURL             string `json:"devUrl"`
+	AssetPublicKey     string `json:"assetPublicKey,omitempty"`
+	BeforeDevCommand   string `json:"beforeDevCommand,omitempty"`
+	BeforeBuildCommand string `json:"beforeBuildCommand,omitempty"`
 }
 
 // AppSection holds window definitions plus the app menu and tray menu.
@@ -303,7 +308,28 @@ func Load(path string) (File, error) {
 	if err := autostart.ValidateArgs(f.Plugin.Autostart.Args); err != nil {
 		return f, fmt.Errorf("conf: %w", err)
 	}
+	if err := validShellCommand(f.Build.BeforeDevCommand); err != nil {
+		return f, fmt.Errorf("conf: beforeDevCommand: %w", err)
+	}
+	if err := validShellCommand(f.Build.BeforeBuildCommand); err != nil {
+		return f, fmt.Errorf("conf: beforeBuildCommand: %w", err)
+	}
 	return f, nil
+}
+
+func validShellCommand(command string) error {
+	if command == "" {
+		return nil
+	}
+	if len(command) > 1024 {
+		return fmt.Errorf("invalid")
+	}
+	for _, r := range command {
+		if r < 0x20 {
+			return fmt.Errorf("invalid")
+		}
+	}
+	return nil
 }
 
 func normalizeWindowTheme(w *Window) error {
