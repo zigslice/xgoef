@@ -130,7 +130,7 @@ app.Use fsplugin
 ## IPC 实现路线（P0 已落地）
 
 1. `cef/shim` 内 C++ `CefMessageRouter`（浏览器 + 渲染）经 C ABI `xgoef_ipc_*` 回调到 LLGo。
-2. 前端 `api/js/xgoef.js` 用 `window.cefQuery` 发 JSON invoke；宿主 `runtime` → `acl.Guard` → `ipc.Router`。
+2. 渲染进程在 `OnContextCreated` 执行前端根里的 `xgoef.js`。`window.__XGOEF__` 用 `window.cefQuery` 发 JSON invoke；宿主 `runtime` → `acl.Guard` → `ipc.Router`。`app.withGlobalXgoef` 省略时开启。详见 `docs/ipc.md`。
 3. Capabilities 在 `xgoef.conf.json` 声明；默认拒绝未授权 command。详见 `docs/ipc.md` / `docs/acl.md`。
 
 ## 与 cefdemo 的分工

@@ -29,6 +29,9 @@ func TestLoadHelloConfig(t *testing.T) {
 	if !f.Plugin.WebView.DevTools {
 		t.Fatal("hello enables devtools")
 	}
+	if !f.App.InjectBridge() {
+		t.Fatal("hello injects the bridge")
+	}
 	if len(f.Capabilities) == 0 {
 		t.Fatal("expected capabilities")
 	}
@@ -129,5 +132,33 @@ func TestLoadWindowChrome(t *testing.T) {
 	_, err = Load(badPath)
 	if err == nil || err.Error() != `conf: window main theme "blue"` {
 		t.Fatal(err)
+	}
+}
+
+func TestLoadWithGlobalXgoef(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "ok.json")
+	body := `{
+	  "productName":"t",
+	  "app":{"withGlobalXgoef": false, "windows":[{"title":"t","width":1,"height":1}]}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if f.App.InjectBridge() || f.App.WithGlobalXgoef == nil || *f.App.WithGlobalXgoef {
+		t.Fatalf("%v", f.App.WithGlobalXgoef)
+	}
+	on := true
+	f.App.WithGlobalXgoef = &on
+	if !f.App.InjectBridge() {
+		t.Fatal("explicit true")
+	}
+	f.App.WithGlobalXgoef = nil
+	if !f.App.InjectBridge() {
+		t.Fatal("omitted")
 	}
 }

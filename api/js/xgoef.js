@@ -1,10 +1,14 @@
 /**
  * xgoef frontend bridge (Tauri-like invoke / listen / emit / channel).
  *
- * Transport: CEF MessageRouter `window.cefQuery` (injected by the host
- * renderer shim). Falls back to `__xgoefPost` when present.
+ * The renderer evals this file in OnContextCreated, after window.cefQuery
+ * exists. A later <script src="xgoef.js"> sees __XGOEF__ and returns.
+ * Transport is cefQuery. Falls back to __xgoefPost when present.
  */
 (function (global) {
+  if (global.__XGOEF__) {
+    return;
+  }
   const pending = new Map();
   let nextId = 1;
   const listeners = new Map();

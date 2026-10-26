@@ -1,5 +1,5 @@
-// Native CEF helper (renderer/GPU/etc). Must include MessageRouter renderer
-// side so window.cefQuery is available to xgoef.js.
+// Native CEF helper (renderer/GPU/etc). The renderer side installs
+// window.cefQuery, then evals xgoef.js from the asset root.
 
 #include "include/cef_app.h"
 

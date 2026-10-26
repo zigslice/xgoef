@@ -41,7 +41,7 @@
 | 配置文件 | 🟡 | `xgoef.conf.json` + schema；窗口位置写在 `.xgoef/window-state.json` |
 | Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
 | Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
-| 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
+| 前端 JS 桥 | ✅ | `OnContextCreated` 注入 `xgoef.js`；`window.cefQuery` |
 | Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog` / `process` / `notification` / `global-shortcut` / `monitor` / `webview`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；`xgoef dev` 会拉起宿主并热重载（见 `docs/dev.md`）。`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage（见 `docs/bundle.md`），并写 `web/xgoef.d.ts`（见 `docs/binding.md`） |
@@ -49,7 +49,7 @@
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
 | 官方类插件（fs/dialog/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor`、`webview` 已做；sql / websocket 等后置 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件、窗口主题与装饰、多显示器与 DPI，以及打印与开发者工具，都已经接上。窗口化透明仍受 CEF 限制。开发者工具默认关闭。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件、窗口主题与装饰、多显示器与 DPI，以及打印与开发者工具、前端桥自动注入，都已经接上。窗口化透明仍受 CEF 限制。开发者工具默认关闭。
 
 ---
 
@@ -102,7 +102,7 @@
 | Tauri 能力 | xgoef | 差距说明 |
 | --- | --- | --- |
 | `@tauri-apps/api` 风格包 | 🟡 | 单文件 `xgoef.js`；无 npm 包、无 TS |
-| `withGlobalTauri` / 自动注入 | ⬜ | 需在 `OnContextCreated` 注入桥 |
+| `withGlobalTauri` / 自动注入 | ✅ | `OnContextCreated` 执行前端根里的 `xgoef.js`；`app.withGlobalXgoef` 默认开启（见 `docs/ipc.md`） |
 | `frontendDist` / `devUrl` 热更新 | ✅ | `xgoef dev` 拉起宿主，前端变更后复制并 `location.reload()`（见 `docs/dev.md`） |
 | 自定义协议（`asset://` / `tauri://`） | ✅ | `xgoef://app/`，见 `docs/asset.md` |
 | 图标 / 资源嵌入打包 | 🟡 | 前端已签进宿主；图标和 CEF Resources 仍随目录拷贝 |
@@ -151,7 +151,7 @@
 ### P0 — 没有就不叫 Tauri-like 应用
 
 1. **IPC 传输接通**：`xgoef.js` ↔ `ipc.Router`（CEF MessageRouter 或 process message + C shim）。
-2. **桥注入**：浏览器上下文创建时注入 `__XGOEF__` / `__xgoefPost`。
+2. **桥注入**：浏览器上下文创建时注入 `__XGOEF__`。 ✅（见 `docs/ipc.md`）
 3. **Capabilities 强制执行**：未授权 command → 拒绝；默认拒绝未声明窗口。
 4. **hello 端到端**：按钮 `invoke('greet')` 返回宿主字符串（不再 *host bridge not connected*）。
 
@@ -173,7 +173,7 @@
 ### P3 — 发行与生态
 
 14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包 ✅（deb / msi / dmg / AppImage，见 `docs/bundle.md`）；`xgoef dev` 拉起并热重载 ✅（见 `docs/dev.md`）；异步 command ✅（见 `docs/ipc.md`）；invoke 的 TypeScript 声明 ✅（见 `docs/binding.md`）；结构化错误码 ✅（见 `docs/ipc.md`）。系统安装包签名仍后置。
-15. `process` ✅、`notification` ✅、`global-shortcut` ✅、`monitor` ✅、`webview` ✅（见 `docs/plugins.md`）。窗口主题与装饰 ✅（见 `docs/window.md`）；窗口化透明仍受 CEF 限制。多显示器与 DPI ✅（见 `docs/window.md`）。打印与开发者工具 ✅（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`）。更多插件；文档站点与模板。`eval` / 注入脚本仍未做。
+15. `process` ✅、`notification` ✅、`global-shortcut` ✅、`monitor` ✅、`webview` ✅（见 `docs/plugins.md`）。窗口主题与装饰 ✅（见 `docs/window.md`）；窗口化透明仍受 CEF 限制。多显示器与 DPI ✅（见 `docs/window.md`）。打印与开发者工具 ✅（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`）。前端桥自动注入 ✅（见 `docs/ipc.md`）。更多插件；文档站点与模板。`eval` / 注入脚本仍未做。
 
 ---
 
@@ -321,6 +321,7 @@ App
 - `global-shortcut` 插件。 ✅（见 `docs/plugins.md`）
 - 窗口主题与装饰。 ✅（见 `docs/window.md`）。窗口化透明仍受 CEF 限制。
 - 多显示器与 DPI。 ✅（见 `docs/window.md`）
+- 前端桥自动注入。 ✅（见 `docs/ipc.md`）
 
 ---
 
@@ -347,7 +348,7 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`/`monitor`/`webview`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`）、多显示器与 DPI（见 `docs/window.md`），以及打印与开发者工具（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`）**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`/`monitor`/`webview`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`）、多显示器与 DPI（见 `docs/window.md`）、打印与开发者工具（系统打印对话框；开发者工具默认关闭，见 `docs/window.md`），以及前端桥自动注入（`OnContextCreated` 执行 `xgoef.js`，见 `docs/ipc.md`）**。接下来的产品差距集中在：
 
 1. **`eval` / 注入脚本**
 

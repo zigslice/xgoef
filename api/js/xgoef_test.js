@@ -175,6 +175,21 @@ async function main() {
     );
     assert.deepEqual(posted[0].args, {});
   }
+
+  {
+    const sandbox = load();
+    let seen = 0;
+    const bridge = sandbox.__XGOEF__;
+    const dispatch = sandbox.__xgoefDispatch;
+    bridge.listen("tick", function () {
+      seen += 1;
+    });
+    vm.runInContext(source, sandbox);
+    assert.strictEqual(sandbox.__XGOEF__, bridge);
+    assert.strictEqual(sandbox.__xgoefDispatch, dispatch);
+    sandbox.__xgoefDispatch({ type: "event", event: "tick", payload: 1 });
+    assert.equal(seen, 1);
+  }
 }
 
 main().catch((err) => {
