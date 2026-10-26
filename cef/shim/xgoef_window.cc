@@ -53,6 +53,7 @@ class SizedWindowDelegate : public CefWindowDelegate {
     }
     ApplySavedPlace(window, WindowCreatingLabel(browser_view_));
     window->Show();
+    ApplyTaskbarHint(window, WindowCreatingLabel(browser_view_));
   }
 
   void OnWindowDestroyed(CefRefPtr<CefWindow> window) override {

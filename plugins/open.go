@@ -17,6 +17,7 @@ import (
 	osinfo "github.com/zigslice/xgoef/plugins/os"
 	"github.com/zigslice/xgoef/plugins/process"
 	"github.com/zigslice/xgoef/plugins/shell"
+	"github.com/zigslice/xgoef/plugins/taskbar"
 	"github.com/zigslice/xgoef/plugins/updater"
 	"github.com/zigslice/xgoef/plugins/webview"
 )
@@ -48,6 +49,8 @@ type Options struct {
 	Emit            func(name string, payload any) error
 	Displays        func(window string) (string, error)
 	MoveWindow      func(window string, x, y int) error
+	SkipTaskbar     func(window string, skip bool) error
+	TaskbarProgress func(window string, progress int) error
 	DevTools        bool
 	Print           func(window string) error
 	OpenDevTools    func(window string) error
@@ -60,7 +63,7 @@ type Options struct {
 	LogLevel        string
 }
 
-// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log").
+// Open returns a builtin plugin by name ("fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "taskbar").
 func Open(name string, opt Options) (plugin.Plugin, error) {
 	switch name {
 	case "fs":
@@ -94,6 +97,8 @@ func Open(name string, opt Options) (plugin.Plugin, error) {
 		return globalshortcut.New(opt.ShortcutAllow, opt.Emit)
 	case "monitor":
 		return monitor.New(opt.Displays, opt.MoveWindow), nil
+	case "taskbar":
+		return taskbar.New(opt.SkipTaskbar, opt.TaskbarProgress), nil
 	case "webview":
 		return webview.New(opt.DevTools, opt.Print, opt.OpenDevTools, opt.CloseDevTools, opt.DevToolsOpen), nil
 	case "eval":

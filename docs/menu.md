@@ -61,4 +61,4 @@ shim 不链接 GTK。`pkg-config` 的库列表里也不加 GTK。
 
 `menu.Menu.Encode` 每个一行，五列用制表符分开：`id`、`text`、`command`、`flags`、`parent`。`flags` 里 `s` 是分隔行，`d` 是禁用。分隔行两项都有，写成 `sd`。根项的 `parent` 为空。父项写在子项前面。`cef/shim/xgoef_menu_model.cc` 按同一规则解析，且不依赖 CEF 头文件。
 
-hello 页的 *menu* / *tray* 按钮分别调用 `menu:popup` 和 `tray:popup`，并监听 `menu` 与 `tray` 事件。
+hello 页的 *menu* / *tray* 按钮分别调用 `menu:popup` 和 `tray:popup`，并监听 `menu` 与 `tray` 事件。任务栏按钮和进度见 [window.md](window.md)。

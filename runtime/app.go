@@ -172,6 +172,8 @@ func (a *App) OpenPlugins() error {
 		Emit:            a.Emit,
 		Displays:        a.Bridge.Displays,
 		MoveWindow:      a.Bridge.MoveWindow,
+		SkipTaskbar:     a.Bridge.SetSkipTaskbar,
+		TaskbarProgress: a.Bridge.SetTaskbarProgress,
 		DevTools:        a.Config.Plugin.WebView.DevTools,
 		Print:           a.Bridge.Print,
 		OpenDevTools:    a.Bridge.OpenDevTools,
@@ -251,6 +253,11 @@ func (a *App) CreateWindow(spec cef.WindowSpec) error {
 		}
 	}
 	a.applySavedSize(&spec)
+	if spec.SkipTaskbar {
+		if err := a.Bridge.ExpectSkipTaskbar(label, true); err != nil {
+			return err
+		}
+	}
 	return a.Bridge.CreateWindow(spec)
 }
 
@@ -585,6 +592,9 @@ func (a *App) buildArgs(url string) []string {
 		chrome.Theme = ""
 	}
 	args = append(args, "--xgoef-chrome="+encoded)
+	if win.SkipTaskbar {
+		args = append(args, "--xgoef-skip-taskbar")
+	}
 	switch chrome.Theme {
 	case "dark":
 		args = append(args, "--force-dark-mode")

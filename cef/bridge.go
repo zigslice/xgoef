@@ -14,6 +14,8 @@ type WindowSpec struct {
 	Width  int
 	Height int
 	Chrome WindowChrome
+	// SkipTaskbar hides this window's taskbar button when the Views window is created.
+	SkipTaskbar bool
 	// InitScripts are trusted host sources injected on each main-frame load
 	// that is still on this window's URL origin. The page cannot set them.
 	// Empty leaves scripts already registered for the label unchanged.
@@ -56,6 +58,15 @@ type Bridge interface {
 	Displays(windowLabel string) (string, error)
 	// MoveWindow moves a Views window's origin to DIP x, y.
 	MoveWindow(label string, x, y int) error
+
+	// ExpectSkipTaskbar remembers the taskbar button for the next Views window
+	// created with this label. The page cannot set it.
+	ExpectSkipTaskbar(label string, skip bool) error
+	// SetSkipTaskbar shows or hides the taskbar button of a live window.
+	SetSkipTaskbar(label string, skip bool) error
+	// SetTaskbarProgress sets the XApp progress of a live window.
+	// progress -1 clears it. 0..100 sets it.
+	SetTaskbarProgress(label string, progress int) error
 
 	// Print opens the system print dialog for a window label.
 	Print(windowLabel string) error

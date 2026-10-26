@@ -201,6 +201,32 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 	return nil
 }
 
+func (b *NativeBridge) ExpectSkipTaskbar(label string, skip bool) error {
+	xgoefTaskbarExpect(c.AllocaCStr(label), cBool(skip))
+	return nil
+}
+
+func (b *NativeBridge) SetSkipTaskbar(label string, skip bool) error {
+	if rc := xgoefTaskbarSkip(c.AllocaCStr(label), cBool(skip)); rc != 0 {
+		return fmt.Errorf("cef: taskbar skip %q failed", label)
+	}
+	return nil
+}
+
+func (b *NativeBridge) SetTaskbarProgress(label string, progress int) error {
+	if rc := xgoefTaskbarProgress(c.AllocaCStr(label), c.Int(progress)); rc != 0 {
+		return fmt.Errorf("cef: taskbar progress %q failed", label)
+	}
+	return nil
+}
+
+func cBool(v bool) c.Int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
 func (b *NativeBridge) Print(windowLabel string) error {
 	if rc := xgoefWindowPrint(c.AllocaCStr(windowLabel)); rc != 0 {
 		return fmt.Errorf("cef: print %q failed", windowLabel)
@@ -382,6 +408,15 @@ func xgoefDisplaysFree(text *c.Char)
 
 //go:linkname xgoefWindowMove C.xgoef_window_move
 func xgoefWindowMove(label *c.Char, x, y c.Int) c.Int
+
+//go:linkname xgoefTaskbarExpect C.xgoef_taskbar_expect
+func xgoefTaskbarExpect(label *c.Char, skip c.Int)
+
+//go:linkname xgoefTaskbarSkip C.xgoef_taskbar_skip
+func xgoefTaskbarSkip(label *c.Char, skip c.Int) c.Int
+
+//go:linkname xgoefTaskbarProgress C.xgoef_taskbar_progress
+func xgoefTaskbarProgress(label *c.Char, progress c.Int) c.Int
 
 //go:linkname xgoefWindowPrint C.xgoef_window_print
 func xgoefWindowPrint(label *c.Char) c.Int

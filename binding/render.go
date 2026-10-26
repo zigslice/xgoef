@@ -123,6 +123,7 @@ func helperMethod(c Command) (string, bool) {
 		"eval:run",
 		"autostart:enable", "autostart:disable", "autostart:is_enabled",
 		"log:write",
+		"taskbar:skip", "taskbar:progress",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

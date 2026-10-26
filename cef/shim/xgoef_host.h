@@ -81,6 +81,16 @@ void xgoef_displays_free(char* text);
  * label has no Views window. */
 int xgoef_window_move(const char* label, int x, int y);
 
+/* Remember the taskbar button for the next Views window with this label. */
+void xgoef_taskbar_expect(const char* label, int skip);
+/* Show or hide the taskbar button of a live window. skip!=0 hides it.
+ * Returns 0, or -1 when that label has no native window. */
+int xgoef_taskbar_skip(const char* label, int skip);
+/* Set XApp progress. progress -1 clears it. 0..100 sets it.
+ * Returns 0, -1 when that label has no native window, or -2 when progress
+ * is outside -1..100. */
+int xgoef_taskbar_progress(const char* label, int progress);
+
 /* System print dialog for |label|. Returns 0, or -1 when that label has no
  * browser or the UI thread does not answer. */
 int xgoef_window_print(const char* label);

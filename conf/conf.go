@@ -249,6 +249,8 @@ type Window struct {
 	Decorations *bool    `json:"decorations,omitempty"`
 	Theme       string   `json:"theme,omitempty"`
 	Transparent *bool    `json:"transparent,omitempty"`
+	// SkipTaskbar hides the first launch of this window from the taskbar.
+	SkipTaskbar bool `json:"skipTaskbar,omitempty"`
 }
 
 // Chrome maps this window onto the text passed to the CEF shim.

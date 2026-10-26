@@ -64,6 +64,11 @@
                 "type": "boolean",
                 "default": false,
                 "description": "Requests a fully transparent browser background. Windowed CEF paints that as opaque white, so the desktop does not show through."
+              },
+              "skipTaskbar": {
+                "type": "boolean",
+                "default": false,
+                "description": "When true, the first Views window starts without a taskbar button. Later windows use WindowSpec.SkipTaskbar. --use-native ignores this field."
               }
             },
             "required": ["title", "width", "height"]

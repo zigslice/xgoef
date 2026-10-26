@@ -39,6 +39,23 @@ Capabilities should list each label that may invoke commands.
 
 传给 shim 的文本每个窗口一行，六列用制表符分开：`label`、`x`、`y`、`width`、`height`、`flags`。`p` 表示坐标和尺寸都要套用，`m` 表示最大化，`n` 表示最小化。三项都在时写成 `pmn`。`cef/shim/xgoef_window_state.cc` 按同一规则解析，且不依赖 CEF 头文件。
 
+## 任务栏
+
+`taskbar` 插件作用在发出调用的那扇窗口上。页面不能另写一个 label。
+
+| 命令 | 参数 | 作用 |
+| --- | --- | --- |
+| `taskbar:skip` | `{ "skip": true }` 或 `{ "skip": false }` | `true` 时任务栏不列出这扇窗口 |
+| `taskbar:progress` | `{ "progress": 0 }` 到 `{ "progress": 100 }`，或 `{ "progress": null }` | 设置进度，或清掉进度 |
+
+`skip` 必须是布尔值。`progress` 必须是 0 到 100 的整数，或者 `null`。`0` 仍是一条进度，`null` 才清掉。多出来的字段、缺字段、小数和字符串都是 `taskbar.invalid`，这次调用不会发到窗口。没有原生窗口句柄，或当前构建没有 X11，是 `taskbar.unavailable`。空的窗口 label 按 `main`。
+
+第一扇窗口可以写 `skipTaskbar: true`。启动参数里会出现 `--xgoef-skip-taskbar`，Views 窗口创建后套用。再 `CreateWindow` 时，`WindowSpec.SkipTaskbar` 为 true 会在那扇窗口创建时套用。`--use-native` 不读这个启动开关。
+
+Linux X11 上，隐藏按钮是发给根窗口的 EWMH ClientMessage，原子是 `_NET_WM_STATE_SKIP_TASKBAR`。进度写在窗口属性 `_NET_WM_XAPP_PROGRESS` 上，类型是 0 到 100 的 `CARDINAL`。读这个属性的桌面会画出进度。这台环境没有 CEF，也没有在面板上看到按钮或进度。
+
+前端是 `plugins.taskbar.skip(true)`、`plugins.taskbar.progress(40)` 和 `plugins.taskbar.progress(null)`。hello 的 *taskbar* 按钮把进度设成 40。
+
 ## 主题、装饰与透明
 
 每个窗口可以写这三项。省略时分别是有装饰、跟随系统、不透明。
