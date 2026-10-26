@@ -4,10 +4,12 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -18,7 +20,24 @@ import (
 // devPoll is how often dev checks the frontend tree.
 var devPoll = 200 * time.Millisecond
 
+// devReadyTimeout is how long dev waits for devUrl to accept connections.
+var devReadyTimeout = 30 * time.Second
+
 func serveDev(appDir, outDir, bin string) error {
+	cfg, err := conf.Load(filepath.Join(appDir, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	front, err := startBeforeDev(appDir, cfg)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if front != nil {
+			front.stop()
+			_ = front.wait()
+		}
+	}()
 	src, err := frontendDir(appDir)
 	if err != nil {
 		return err
@@ -211,6 +230,142 @@ func (p *devProc) wait() error {
 		return nil
 	}
 	return <-p.done
+}
+
+func runBeforeBuild(appDir string) error {
+	cfg, err := conf.Load(filepath.Join(appDir, "xgoef.conf.json"))
+	if err != nil {
+		return err
+	}
+	return runShell(appDir, cfg.Build.BeforeBuildCommand)
+}
+
+func runShell(dir, command string) error {
+	command = strings.TrimSpace(command)
+	if command == "" {
+		return nil
+	}
+	cmd := exec.Command("sh", "-c", command)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("build: %s: %w", command, err)
+	}
+	return nil
+}
+
+type shellProc struct {
+	cmd  *exec.Cmd
+	done chan struct{}
+	err  error
+}
+
+func startShell(dir, command string) (*shellProc, error) {
+	cmd := exec.Command("sh", "-c", command)
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	p := &shellProc{cmd: cmd, done: make(chan struct{})}
+	go func() {
+		p.err = cmd.Wait()
+		close(p.done)
+	}()
+	return p, nil
+}
+
+func (p *shellProc) stop() {
+	if p == nil || p.cmd == nil || p.cmd.Process == nil {
+		return
+	}
+	_ = syscall.Kill(-p.cmd.Process.Pid, syscall.SIGTERM)
+}
+
+func (p *shellProc) wait() error {
+	if p == nil {
+		return nil
+	}
+	<-p.done
+	return p.err
+}
+
+func (p *shellProc) exited() (bool, error) {
+	if p == nil {
+		return true, nil
+	}
+	select {
+	case <-p.done:
+		return true, p.err
+	default:
+		return false, nil
+	}
+}
+
+func startBeforeDev(appDir string, cfg conf.File) (*shellProc, error) {
+	command := strings.TrimSpace(cfg.Build.BeforeDevCommand)
+	if command == "" {
+		return nil, nil
+	}
+	proc, err := startShell(appDir, command)
+	if err != nil {
+		return nil, fmt.Errorf("dev: %s: %w", command, err)
+	}
+	if err := waitDevURL(cfg.Build.DevURL, proc); err != nil {
+		proc.stop()
+		_ = proc.wait()
+		return nil, err
+	}
+	return proc, nil
+}
+
+func waitDevURL(raw string, proc *shellProc) error {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	addr, err := devAddr(raw)
+	if err != nil {
+		return err
+	}
+	deadline := time.Now().Add(devReadyTimeout)
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		conn, err := net.DialTimeout("tcp", addr, 200*time.Millisecond)
+		if err == nil {
+			_ = conn.Close()
+			return nil
+		}
+		if done, exitErr := proc.exited(); done {
+			if exitErr == nil {
+				return fmt.Errorf("dev: frontend exited before %s", raw)
+			}
+			return fmt.Errorf("dev: frontend exited before %s: %w", raw, exitErr)
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("dev: frontend did not listen on %s", addr)
+		}
+		<-ticker.C
+	}
+}
+
+func devAddr(raw string) (string, error) {
+	u, err := url.Parse(raw)
+	if err != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
+		return "", fmt.Errorf("dev: devUrl %q is not an http(s) URL", raw)
+	}
+	if u.Port() != "" {
+		return u.Host, nil
+	}
+	port := "80"
+	if u.Scheme == "https" {
+		port = "443"
+	}
+	return net.JoinHostPort(u.Hostname(), port), nil
 }
 
 type devHub struct {

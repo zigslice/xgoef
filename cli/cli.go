@@ -64,30 +64,35 @@ func usage(w io.Writer) {
 
 Usage:
   xgoef info
-  xgoef create <name>
+  xgoef create <name> [--template html|vite|react]
   xgoef dev  [--app dir] [--out dir] [--assets-only]
   xgoef build [--app dir] [--out dir] [--assets-only]
 
-create writes main.xgo, xgoef.conf.json, web/, a copy of xgoef.js, and xgoef.d.ts.
-build / dev stage the frontend and link the CEF shim plus the XGo host
-(cmake, xgoef-helper, xgo build). build also signs web/ into the host
-binary. --assets-only skips the link and the seal.
-dev rewrites the first window URL to build.devUrl when that field is set
-and does not seal, so the loose frontend stays in use. It then runs the
-host from the output directory and recopies the frontend when those files
-change. The page reloads on the dev-reload event. Stage also writes
-web/xgoef.d.ts from conf commands and the enabled plugins. --assets-only still
-returns after staging when the host binary is not in the output directory.
+create writes main.xgo, xgoef.conf.json, the frontend, a copy of xgoef.js,
+and xgoef.d.ts. html is a static page in web/. vite and react are Vite
+projects that build into web/ and open http://127.0.0.1:5173 in dev.
+build runs build.beforeBuildCommand before it stages the frontend.
+dev runs build.beforeDevCommand and, when devUrl is an http(s) URL, waits
+until that address accepts connections. dev rewrites the first window URL
+to build.devUrl when that field is set and does not seal, so the loose
+frontend stays in use. It then runs the host from the output directory and
+recopies the frontend when those files change. The page reloads on the
+dev-reload event. Stage also writes web/xgoef.d.ts from conf commands and
+the enabled plugins. --assets-only still returns after staging when the
+host binary is not in the output directory.
 `)
 }
 
 func cmdCreate(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("create: expected <name>")
+	name, template, err := parseCreateArgs(args)
+	if err != nil {
+		return err
 	}
-	name := args[0]
 	if !validName(name) {
 		return fmt.Errorf("create: name must match [A-Za-z][A-Za-z0-9_-]*")
+	}
+	if !knownTemplate(template) {
+		return fmt.Errorf("create: unknown template %q (%s)", template, templateList)
 	}
 	if _, err := os.Stat(name); err == nil {
 		return fmt.Errorf("create: %s already exists", name)
@@ -96,25 +101,19 @@ func cmdCreate(args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Join(name, "web"), 0o755); err != nil {
-		return err
-	}
 	if err := os.MkdirAll(filepath.Join(name, "api", "js"), 0o755); err != nil {
 		return err
 	}
 	if err := copyTemplate("templates/main.xgo", filepath.Join(name, "main.xgo"), name); err != nil {
 		return err
 	}
-	if err := copyTemplate("templates/xgoef.conf.json", filepath.Join(name, "xgoef.conf.json"), name); err != nil {
-		return err
-	}
-	if err := copyTemplate("templates/web/index.html", filepath.Join(name, "web", "index.html"), name); err != nil {
-		return err
-	}
-	if err := copyTemplate("templates/web/note.txt", filepath.Join(name, "web", "note.txt"), name); err != nil {
+	if err := copyTemplateTree("templates/"+template, name, name); err != nil {
 		return err
 	}
 	if err := copyFile(js, filepath.Join(name, "api", "js", "xgoef.js")); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Join(name, "web"), 0o755); err != nil {
 		return err
 	}
 	if err := copyFile(js, filepath.Join(name, "web", "xgoef.js")); err != nil {
@@ -127,9 +126,51 @@ func cmdCreate(args []string) error {
 	if err := emitBindings(cfg, name); err != nil {
 		return err
 	}
-	fmt.Printf("created %s\n", name)
-	fmt.Printf("next: xgoef build --app %s --out %s/dist\n", name, name)
+	fmt.Printf("created %s (%s)\n", name, template)
+	if template == "html" {
+		fmt.Printf("next: xgoef build --app %s --out %s/dist\n", name, name)
+		return nil
+	}
+	fmt.Printf("next: cd %s && npm install\n", name)
+	fmt.Printf("next: xgoef dev --app %s\n", name)
 	return nil
+}
+
+func parseCreateArgs(args []string) (name, template string, err error) {
+	template = "html"
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--template":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("create: missing value for --template")
+			}
+			i++
+			template = args[i]
+		default:
+			if strings.HasPrefix(args[i], "-") {
+				return "", "", fmt.Errorf("create: unknown flag %q", args[i])
+			}
+			if name != "" {
+				return "", "", fmt.Errorf("create: expected <name>")
+			}
+			name = args[i]
+		}
+	}
+	if name == "" {
+		return "", "", fmt.Errorf("create: expected <name>")
+	}
+	return name, template, nil
+}
+
+const templateList = "html, vite, react"
+
+func knownTemplate(name string) bool {
+	switch name {
+	case "html", "vite", "react":
+		return true
+	default:
+		return false
+	}
 }
 
 func cmdBuild(args []string) error {
@@ -149,6 +190,11 @@ func cmdDev(args []string) error {
 }
 
 func buildAll(appDir, outDir string, dev, assetsOnly bool) error {
+	if !dev {
+		if err := runBeforeBuild(appDir); err != nil {
+			return err
+		}
+	}
 	if !assetsOnly {
 		if _, err := linkHost(appDir, outDir); err != nil {
 			return err
@@ -372,7 +418,32 @@ func copyTemplate(src, dst, name string) error {
 		return err
 	}
 	body := strings.ReplaceAll(string(b), "__NAME__", name)
+	body = strings.ReplaceAll(body, "__PKG__", strings.ToLower(name))
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
 	return os.WriteFile(dst, []byte(body), 0o644)
+}
+
+func copyTemplateTree(root, dest, name string) error {
+	return fs.WalkDir(templates, root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel := strings.TrimPrefix(path, root)
+		rel = strings.TrimPrefix(rel, "/")
+		if rel == "" {
+			return nil
+		}
+		if rel == "gitignore" || strings.HasSuffix(rel, "/gitignore") {
+			rel = strings.TrimSuffix(rel, "gitignore") + ".gitignore"
+		}
+		target := filepath.Join(dest, filepath.FromSlash(rel))
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		return copyTemplate(path, target, name)
+	})
 }
 
 func findJS(appDir string) (string, error) {

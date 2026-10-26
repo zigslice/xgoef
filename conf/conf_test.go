@@ -250,3 +250,28 @@ func TestLoadRejectsAutostartArgs(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadRejectsShellCommand(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.json")
+	body := `{
+	  "productName":"t",
+	  "build":{"beforeDevCommand":"npm run dev\nnpm test"}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "beforeDevCommand") {
+		t.Fatal(err)
+	}
+	body = `{
+	  "productName":"t",
+	  "build":{"beforeBuildCommand":"` + strings.Repeat("a", 1025) + `"}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "beforeBuildCommand") {
+		t.Fatal(err)
+	}
+}
