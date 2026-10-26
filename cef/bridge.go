@@ -46,4 +46,10 @@ type Bridge interface {
 	// Note runs on the UI thread when a labeled window moves or closes.
 	SetWindowState(encoded string)
 	SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool))
+
+	// Displays returns the monitor table for a window label.
+	// The text is ParseDisplayTable. DIP coordinates match window-state.
+	Displays(windowLabel string) (string, error)
+	// MoveWindow moves a Views window's origin to DIP x, y.
+	MoveWindow(label string, x, y int) error
 }

@@ -33,8 +33,9 @@ type Plugin interface {
 | `process` | `process:exit` `process:relaunch` | 与命令名相同 |
 | `notification` | `notification:is_permission_granted` `notification:request_permission` `notification:show` | 与命令名相同 |
 | `global-shortcut` | `global-shortcut:register` `global-shortcut:unregister` `global-shortcut:unregister_all` `global-shortcut:is_registered` | 与命令名相同 |
+| `monitor` | `monitor:list` `monitor:primary` `monitor:current` `monitor:scale` `monitor:move` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -106,6 +107,10 @@ type Plugin interface {
 Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没有显示器是 `shortcut.unavailable`。抓键失败是 `shortcut.grab`。NumLock 或 CapsLock 打开时仍然匹配。只通过 XWayland 暴露 `DISPLAY` 的 Wayland 会话里，合成器可能把全局键留在自己这边，页面就收不到按下事件。参数不经过 shell。
 
 `unregister` 取消一条，没注册过也成功。`unregister_all` 取消这个进程注册过的全部。`is_registered` 返回布尔值。前端是 `plugins["global-shortcut"].register(shortcut)`、`unregister`、`unregisterAll`、`isRegistered`。hello 的 *shortcut* 注册 `Control+Shift+X`。
+
+## monitor
+
+`monitor:list` 返回每块显示器的 DIP 边界、工作区、物理像素、`scaleFactor` 和是否主屏。`monitor:primary` 是主屏。`monitor:current` 是发出调用的窗口所在的屏。`monitor:scale` 是这个窗口的 device scale。`monitor:move` 把这个 Views 窗口的左上角移到 DIP 坐标。坐标和 window-state 是同一套。细节和错误码见 [window.md](window.md)。hello 的 *monitors* 按钮打印显示器数量和当前 scale。
 
 ## 应用侧还要做的
 

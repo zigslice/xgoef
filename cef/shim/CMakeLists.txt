@@ -30,6 +30,8 @@ set(XGOEF_CEF_SRCS
   xgoef_window.cc
   xgoef_window_chrome.cc
   xgoef_window_state.cc
+  xgoef_display.cc
+  xgoef_display_query.cc
   xgoef_menu_model.cc
   xgoef_menu.cc
   xgoef_tray_gtk.cc

@@ -42,14 +42,14 @@
 | Command 路由（宿主侧） | ✅ | `ipc.Router` 经 MessageRouter 接到前端 |
 | Event 总线（宿主侧） | ✅ | `Emit` / `EmitTo` 跨窗口，见 `docs/events.md` |
 | 前端 JS 桥 | ✅ | `api/js/xgoef.js` + `window.cefQuery` |
-| Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog` / `process` / `notification` / `global-shortcut`；见 `docs/plugins.md` |
+| Plugin 生命周期 | ✅ | 契约 + `fs` / `os` / `shell` / `clipboard` / `dialog` / `process` / `notification` / `global-shortcut` / `monitor`；见 `docs/plugins.md` |
 | Capabilities | ✅ | `acl.Guard` 默认拒绝 |
 | CLI（create/dev/build） | 🟡 | 生成骨架、分期目录并链接 CEF 宿主；`xgoef dev` 会拉起宿主并热重载（见 `docs/dev.md`）。`xgoef build` 在有 `version` 时写 deb / msi / dmg / AppImage（见 `docs/bundle.md`），并写 `web/xgoef.d.ts`（见 `docs/binding.md`） |
 | 多窗口 / 托盘 / 菜单 | 🟡 | label / `CreateWindow`；菜单栏与托盘菜单已接（见 `docs/menu.md`）。常驻图标要能加载 `libgtk-3.so.0` |
 | 资源协议 / 资产嵌入 | ✅ | `xgoef://app/`；`xgoef build` 把 `web/` 以 Ed25519 签进宿主 |
-| 官方类插件（fs/dialog/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut` 已做；sql / websocket 等后置 |
+| 官方类插件（fs/dialog/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor` 已做；sql / websocket 等后置 |
 
-结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件，以及窗口主题与装饰，都已经接上。窗口化透明仍受 CEF 限制。
+结论：前端 invoke、ACL、多窗口事件、资源协议、这批系统插件、`xgoef build` 一次完成分期和链接、签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、`process` 插件、`notification` 插件、`global-shortcut` 插件、窗口主题与装饰，以及多显示器与 DPI，都已经接上。窗口化透明仍受 CEF 限制。
 
 ---
 
@@ -66,7 +66,7 @@
 | Window 状态（位置/尺寸/最大化） | 🟡 | 位置、尺寸、最大化写入 `.xgoef/window-state.json`（见 `docs/window.md`）；最小化不恢复 |
 | 菜单 / 托盘 / 任务栏 | 🟡 | 窗口菜单栏和托盘菜单已封装（`docs/menu.md`）；任务栏未做。常驻图标在 `libgtk-3.so.0` 能加载时出现 |
 | 主题 / 装饰 / 透明 | 🟡 | Views 可关装饰；`theme` 为 system / light / dark。窗口化透明背景被 CEF 画成不透明白（见 `docs/window.md`） |
-| 多显示器 / DPI | ⬜ | 依赖 CEF 默认 |
+| 多显示器 / DPI | ✅ | 列出 DIP 边界、工作区、物理像素和 `scaleFactor`，并可移动 Views 窗口（见 `docs/window.md`）。CEF 不提供显示器名字 |
 | 打印 / 开发者工具 API | ⬜ | CEF 支持，未暴露 XGo API |
 
 ### 3.2 IPC（Commands / Events / Channels）
@@ -113,10 +113,10 @@
 | --- | --- | --- |
 | Plugin = 原生逻辑 + 可选 JS API | 🟡 | `Setup` 注册命令；JS 在 `xgoef.js` 的 `plugins.fs` / `plugins.os` |
 | 插件注册 command / 权限声明 | ✅ | `Permissions()` + capabilities 精确匹配 |
-| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut` 已做；sql / websocket 等后置 |
+| 官方插件矩阵（fs/dialog/shell/…） | 🟡 | 首批 `fs`、`os`、`shell`、`clipboard`、`dialog`、`process`、`notification`、`global-shortcut`、`monitor` 已做；sql / websocket 等后置 |
 | 移动端插件（Swift/Kotlin） | ✕ | 非目标 |
 
-**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`。`window-state` 已做在 runtime 里。其余（sql/updater/websocket…）后置。
+**建议首批官方插件（桌面）：** `fs`（scoped）、`dialog`、`clipboard`、`shell`（受限 open）、`os`、`process`、`notification`、`global-shortcut`、`monitor`。`window-state` 已做在 runtime 里。其余（sql/updater/websocket…）后置。
 
 ### 3.6 工具链与 DX
 
@@ -173,7 +173,7 @@
 ### P3 — 发行与生态
 
 14. updater ✅（见 `docs/updater.md`）；单实例 ✅（见 `docs/instance.md`）；deep link ✅（见 `docs/deeplink.md`）；平台安装包 ✅（deb / msi / dmg / AppImage，见 `docs/bundle.md`）；`xgoef dev` 拉起并热重载 ✅（见 `docs/dev.md`）；异步 command ✅（见 `docs/ipc.md`）；invoke 的 TypeScript 声明 ✅（见 `docs/binding.md`）；结构化错误码 ✅（见 `docs/ipc.md`）。系统安装包签名仍后置。
-15. `process` ✅、`notification` ✅、`global-shortcut` ✅（见 `docs/plugins.md`）。窗口主题与装饰 ✅（见 `docs/window.md`）；窗口化透明仍受 CEF 限制。更多插件；文档站点与模板。多显示器与 DPI 仍未做。
+15. `process` ✅、`notification` ✅、`global-shortcut` ✅、`monitor` ✅（见 `docs/plugins.md`）。窗口主题与装饰 ✅（见 `docs/window.md`）；窗口化透明仍受 CEF 限制。多显示器与 DPI ✅（见 `docs/window.md`）。更多插件；文档站点与模板。打印与开发者工具仍未做。
 
 ---
 
@@ -320,6 +320,7 @@ App
 - `notification` 插件。 ✅（见 `docs/plugins.md`）
 - `global-shortcut` 插件。 ✅（见 `docs/plugins.md`）
 - 窗口主题与装饰。 ✅（见 `docs/window.md`）。窗口化透明仍受 CEF 限制。
+- 多显示器与 DPI。 ✅（见 `docs/window.md`）
 
 ---
 
@@ -346,8 +347,8 @@ App
 
 ## 10. 一句话结论
 
-相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码，以及窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`）**。接下来的产品差距集中在：
+相对 Tauri 2，xgoef 已接通 **invoke、ACL、多窗口事件、`fs`/`os`/`shell`/`clipboard`/`dialog`/`process`/`notification`/`global-shortcut`/`monitor`、`xgoef://app/`、`xgoef build` 一次完成资源分期和 CEF/LLGo 链接、Ed25519 签进宿主的前端、Channels、菜单和托盘、window-state、签过名的前端更新、单实例、deep link、deb / msi / dmg / AppImage、`xgoef dev` 的拉起和热重载、带超时和取消的异步 command、invoke 的 TypeScript 声明、结构化错误码、窗口主题与装饰（窗口化透明仍受 CEF 限制，见 `docs/window.md`），以及多显示器与 DPI（见 `docs/window.md`）**。接下来的产品差距集中在：
 
-1. **多显示器与 DPI**
+1. **打印与开发者工具**
 
 刻意保留 CEF 与桌面范围，不在体积和移动端上与 Tauri 竞赛。

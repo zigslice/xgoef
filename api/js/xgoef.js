@@ -286,6 +286,23 @@
           return global.__XGOEF__.invoke("global-shortcut:is_registered", { shortcut: shortcut });
         },
       },
+      monitor: {
+        list: function () {
+          return global.__XGOEF__.invoke("monitor:list", {});
+        },
+        primary: function () {
+          return global.__XGOEF__.invoke("monitor:primary", {});
+        },
+        current: function () {
+          return global.__XGOEF__.invoke("monitor:current", {});
+        },
+        scale: function () {
+          return global.__XGOEF__.invoke("monitor:scale", {});
+        },
+        move: function (x, y) {
+          return global.__XGOEF__.invoke("monitor:move", { x: x, y: y });
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});

@@ -68,7 +68,17 @@ var builtinPlugins = map[string][]Command{
 		{Name: "global-shortcut:unregister_all", Result: "null"},
 		{Name: "global-shortcut:is_registered", Args: []Arg{{Name: "shortcut", Type: "string"}}, Result: "boolean"},
 	},
+	"monitor": {
+		{Name: "monitor:list", Result: displayType + "[]"},
+		{Name: "monitor:primary", Result: displayType + " | null"},
+		{Name: "monitor:current", Result: displayType + " | null"},
+		{Name: "monitor:scale", Result: "number"},
+		{Name: "monitor:move", Args: []Arg{{Name: "x", Type: "number"}, {Name: "y", Type: "number"}}, Result: "null"},
+	},
 }
+
+// displayType is one monitor. DIP fields match window-state; pixel fields are physical.
+const displayType = "{ id: number; scaleFactor: number; x: number; y: number; width: number; height: number; workX: number; workY: number; workWidth: number; workHeight: number; pixelX: number; pixelY: number; pixelWidth: number; pixelHeight: number; workPixelX: number; workPixelY: number; workPixelWidth: number; workPixelHeight: number; rotation: number; primary: boolean }"
 
 var chromeCommands = []Command{
 	{Name: "menu:popup", Result: "string"},
@@ -82,4 +92,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "deeplink"}

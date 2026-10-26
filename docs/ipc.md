@@ -96,6 +96,8 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `shortcut.registered` | 这条快捷键已经注册过 |
 | `shortcut.unavailable` | 当前进程装不上全局抓键 |
 | `shortcut.grab` | 向系统注册或取消抓键失败 |
+| `monitor.invalid` | 移动坐标不是范围内的整数 |
+| `monitor.unavailable` | 读不到显示器，或这个 label 没有 Views 窗口可移动 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## C ABI

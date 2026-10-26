@@ -25,7 +25,7 @@ func TestRenderAppAndOS(t *testing.T) {
 }
 
 func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
-	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut"}, true)
+	cmds, err := Assemble(nil, []string{"fs", "shell", "dialog", "updater", "process", "notification", "global-shortcut", "monitor"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,6 +59,13 @@ func TestAssemblePluginsDeepLinkAndRejects(t *testing.T) {
 		"unregister(shortcut: string): XgoefInvokeResult<null>",
 		"unregisterAll(): XgoefInvokeResult<null>",
 		"isRegistered(shortcut: string): XgoefInvokeResult<boolean>",
+		`"monitor:list": { args: Record<string, never>; result: { id: number; scaleFactor: number; x: number; y: number; width: number; height: number; workX: number; workY: number; workWidth: number; workHeight: number; pixelX: number; pixelY: number; pixelWidth: number; pixelHeight: number; workPixelX: number; workPixelY: number; workPixelWidth: number; workPixelHeight: number; rotation: number; primary: boolean }[] }`,
+		`"monitor:primary"`,
+		`"monitor:scale": { args: Record<string, never>; result: number }`,
+		`"monitor:move": { args: { x: number; y: number }; result: null }`,
+		"list(): XgoefInvokeResult<{ id: number; scaleFactor: number;",
+		"scale(): XgoefInvokeResult<number>",
+		"move(x: number, y: number): XgoefInvokeResult<null>",
 		`"deeplink:get_current": { args: Record<string, never>; result: { urls: string[] } }`,
 		"getCurrent(): XgoefInvokeResult<{ urls: string[] }>",
 		`"menu:popup"`,

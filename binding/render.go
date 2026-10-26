@@ -118,6 +118,7 @@ func helperMethod(c Command) (string, bool) {
 		"process:exit", "process:relaunch",
 		"notification:is_permission_granted", "notification:request_permission",
 		"global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered",
+		"monitor:list", "monitor:primary", "monitor:current", "monitor:scale", "monitor:move",
 		"deeplink:get_current":
 		return formatParams(c.Args), true
 	default:

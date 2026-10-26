@@ -73,6 +73,14 @@ int xgoef_window_create(const char* label,
 int xgoef_window_close(const char* label);
 int xgoef_window_focus(const char* label);
 
+/* Monitor table for |window_label|. The text is xgoef::FormatDisplayTable.
+ * NULL when CEF does not answer. Caller frees with xgoef_displays_free. */
+char* xgoef_displays(const char* window_label);
+void xgoef_displays_free(char* text);
+/* Move a Views window's origin to DIP x, y. Returns 0, or -1 when that
+ * label has no Views window. */
+int xgoef_window_move(const char* label, int x, int y);
+
 #ifdef __cplusplus
 }
 #endif

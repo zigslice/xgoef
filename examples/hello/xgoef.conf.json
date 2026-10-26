@@ -39,7 +39,7 @@
     "noSandbox": true,
     "cacheDir": "root_cache"
   },
-  "plugins": ["fs", "os", "clipboard", "process", "notification", "global-shortcut"],
+  "plugins": ["fs", "os", "clipboard", "process", "notification", "global-shortcut", "monitor"],
   "commands": [
     {
       "name": "greet",
@@ -70,7 +70,7 @@
     {
       "identifier": "main",
       "windows": ["main"],
-      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "notification:is_permission_granted", "notification:request_permission", "notification:show", "global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered", "core:default"]
+      "permissions": ["greet", "open_aux", "progress", "wait", "menu:popup", "tray:popup", "tray:click", "fs:read_text", "os:platform", "clipboard:read_text", "clipboard:write_text", "deeplink:get_current", "process:exit", "process:relaunch", "notification:is_permission_granted", "notification:request_permission", "notification:show", "global-shortcut:register", "global-shortcut:unregister", "global-shortcut:unregister_all", "global-shortcut:is_registered", "monitor:list", "monitor:primary", "monitor:current", "monitor:scale", "monitor:move", "core:default"]
     },
     {
       "identifier": "aux",

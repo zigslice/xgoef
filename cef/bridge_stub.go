@@ -13,6 +13,11 @@ type NativeBridge struct {
 	winState   string
 	onState    func(label string, x, y, width, height int, maximized bool)
 	lastCreate WindowSpec
+	displays   string
+	moved      bool
+	moveLabel  string
+	moveX      int
+	moveY      int
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -80,4 +85,28 @@ func (b *NativeBridge) WindowState() string { return b.winState }
 
 func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
 	b.onState = fn
+}
+
+func (b *NativeBridge) Displays(windowLabel string) (string, error) {
+	_ = windowLabel
+	if b.displays != "" {
+		return b.displays, nil
+	}
+	return DefaultDisplayTable(), nil
+}
+
+// SetDisplays replaces the stub monitor table. Tests use it.
+func (b *NativeBridge) SetDisplays(text string) { b.displays = text }
+
+func (b *NativeBridge) MoveWindow(label string, x, y int) error {
+	b.moved = true
+	b.moveLabel = label
+	b.moveX = x
+	b.moveY = y
+	return nil
+}
+
+// LastMove is the most recent MoveWindow argument.
+func (b *NativeBridge) LastMove() (label string, x, y int, ok bool) {
+	return b.moveLabel, b.moveX, b.moveY, b.moved
 }
