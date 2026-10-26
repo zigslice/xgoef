@@ -43,5 +43,6 @@
 | 7v | **P2** 多前端模板 | 完成（`html` / `vite` / `react`，见 [templates.md](templates.md)） |
 | 7w | **P3** 日志与崩溃记录 | 完成（页面日志、宿主 panic 记录、crashpad 开关，见 [log.md](log.md)） |
 | 7x | **P1** 应用生命周期 | 完成（`ready` / `exit` / `page-load`，见 [lifecycle.md](lifecycle.md)） |
+| 7y | **P1** `xgoef://app/` 内容安全策略 | 完成（`app.csp`，省略用默认；`devUrl` 仍用开发服务器自己的头，见 [asset.md](asset.md)） |
 
 验收金样例：行为对齐 `src/cefdemo`（启动、本地页、关闭），API 对齐 Tauri 的 invoke 心智。

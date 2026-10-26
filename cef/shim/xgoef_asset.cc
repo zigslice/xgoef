@@ -2,6 +2,7 @@
 // factory; every process must still register the scheme name (see App).
 
 #include "xgoef_asset_path.h"
+#include "xgoef_csp.h"
 
 #include "include/cef_parser.h"
 #include "include/cef_scheme.h"
@@ -12,7 +13,8 @@ namespace {
 
 class AssetFactory : public CefSchemeHandlerFactory {
  public:
-  explicit AssetFactory(std::string root) : root_(std::move(root)) {}
+  AssetFactory(std::string root, std::string csp)
+      : root_(std::move(root)), csp_(std::move(csp)) {}
 
   CefRefPtr<CefResourceHandler> Create(CefRefPtr<CefBrowser> browser,
                                        CefRefPtr<CefFrame> frame,
@@ -38,21 +40,29 @@ class AssetFactory : public CefSchemeHandlerFactory {
     if (mime.empty()) {
       mime = "application/octet-stream";
     }
-    return new CefStreamResourceHandler(mime, stream);
+    if (csp_.empty()) {
+      return new CefStreamResourceHandler(mime, stream);
+    }
+    CefResponse::HeaderMap headers;
+    headers.insert(std::make_pair(CefString("Content-Security-Policy"), CefString(csp_)));
+    return new CefStreamResourceHandler(200, "OK", mime, headers, stream);
   }
 
  private:
   std::string root_;
+  std::string csp_;
   IMPLEMENT_REFCOUNTING(AssetFactory);
 };
 
 }  // namespace
 
-void RegisterAssetScheme(const std::string& root) {
+void RegisterAssetScheme(const std::string& root, bool csp_disabled, const std::string& csp) {
   if (root.empty()) {
     return;
   }
-  CefRegisterSchemeHandlerFactory("xgoef", "app", new AssetFactory(root));
+  std::string header;
+  CSPHeaderValue(csp_disabled, csp, &header);
+  CefRegisterSchemeHandlerFactory("xgoef", "app", new AssetFactory(root, header));
 }
 
 }  // namespace xgoef

@@ -31,6 +31,7 @@
     },
     "app": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "windows": {
           "type": "array",
@@ -99,6 +100,11 @@
           "type": "boolean",
           "default": true,
           "description": "When true (the default), the renderer evals web/xgoef.js in OnContextCreated so window.__XGOEF__ exists before page scripts. Set false to require a script tag. This is the withGlobalTauri equivalent."
+        },
+        "csp": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Content-Security-Policy on xgoef://app/ responses. Omitted uses the default policy. An empty string sends no policy. devUrl responses keep the dev server's headers. The page cannot set this value."
         },
         "deepLink": {
           "type": "object",

@@ -605,6 +605,13 @@ func (a *App) buildArgs(url string) []string {
 	if dir := a.crashDumpsDir(); dir != "" {
 		args = append(args, "--xgoef-crash-dumps="+dir)
 	}
+	// One switch, always. The browser process does not invent a second default.
+	// Spaces stay inside this argv element. An empty app.csp sends --xgoef-no-csp.
+	if policy, enabled := a.Config.App.ContentSecurityPolicy(); enabled {
+		args = append(args, "--xgoef-csp="+policy)
+	} else {
+		args = append(args, "--xgoef-no-csp")
+	}
 	return args
 }
 
