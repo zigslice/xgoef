@@ -18,6 +18,11 @@ type NativeBridge struct {
 	moveLabel  string
 	moveX      int
 	moveY      int
+	printed    bool
+	printLabel string
+	devAction  string
+	devLabel   string
+	devOpen    bool
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -109,4 +114,40 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 // LastMove is the most recent MoveWindow argument.
 func (b *NativeBridge) LastMove() (label string, x, y int, ok bool) {
 	return b.moveLabel, b.moveX, b.moveY, b.moved
+}
+
+func (b *NativeBridge) Print(windowLabel string) error {
+	b.printed = true
+	b.printLabel = windowLabel
+	return nil
+}
+
+// LastPrint is the most recent Print argument.
+func (b *NativeBridge) LastPrint() (label string, ok bool) {
+	return b.printLabel, b.printed
+}
+
+func (b *NativeBridge) OpenDevTools(windowLabel string) error {
+	b.devAction = "open"
+	b.devLabel = windowLabel
+	b.devOpen = true
+	return nil
+}
+
+func (b *NativeBridge) CloseDevTools(windowLabel string) error {
+	b.devAction = "close"
+	b.devLabel = windowLabel
+	b.devOpen = false
+	return nil
+}
+
+func (b *NativeBridge) DevToolsOpen(windowLabel string) (bool, error) {
+	b.devAction = "query"
+	b.devLabel = windowLabel
+	return b.devOpen, nil
+}
+
+// LastDevTools is the most recent developer-tools call.
+func (b *NativeBridge) LastDevTools() (action, label string, open bool) {
+	return b.devAction, b.devLabel, b.devOpen
 }

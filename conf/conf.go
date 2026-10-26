@@ -36,6 +36,13 @@ type PluginSection struct {
 	Updater        UpdaterConfig      `json:"updater"`
 	Notification   NotificationConfig `json:"notification"`
 	GlobalShortcut ShortcutConfig     `json:"global-shortcut"`
+	WebView        WebViewConfig      `json:"webview"`
+}
+
+// WebViewConfig gates developer tools. Omitted devtools is false, so a page
+// cannot open them with only the capability. Print does not read this flag.
+type WebViewConfig struct {
+	DevTools bool `json:"devtools"`
 }
 
 // UpdaterConfig points at a directory or https URL that serves update.json.

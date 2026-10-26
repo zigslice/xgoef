@@ -132,7 +132,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -193,6 +193,14 @@
           "description": "Accelerators the page may register. An empty allow list rejects every shortcut.",
           "properties": {
             "allow": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "webview": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Developer tools stay off unless devtools is true. Print does not read this flag.",
+          "properties": {
+            "devtools": { "type": "boolean" }
           }
         },
         "updater": {

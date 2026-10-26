@@ -52,4 +52,13 @@ type Bridge interface {
 	Displays(windowLabel string) (string, error)
 	// MoveWindow moves a Views window's origin to DIP x, y.
 	MoveWindow(label string, x, y int) error
+
+	// Print opens the system print dialog for a window label.
+	Print(windowLabel string) error
+	// OpenDevTools opens developer tools. Already open is success.
+	OpenDevTools(windowLabel string) error
+	// CloseDevTools closes developer tools. Already closed is success.
+	CloseDevTools(windowLabel string) error
+	// DevToolsOpen reports whether developer tools are open for a window.
+	DevToolsOpen(windowLabel string) (bool, error)
 }

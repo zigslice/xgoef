@@ -75,6 +75,12 @@ var builtinPlugins = map[string][]Command{
 		{Name: "monitor:scale", Result: "number"},
 		{Name: "monitor:move", Args: []Arg{{Name: "x", Type: "number"}, {Name: "y", Type: "number"}}, Result: "null"},
 	},
+	"webview": {
+		{Name: "webview:print", Result: "null"},
+		{Name: "webview:open_dev_tools", Result: "null"},
+		{Name: "webview:close_dev_tools", Result: "null"},
+		{Name: "webview:is_dev_tools_open", Result: "boolean"},
+	},
 }
 
 // displayType is one monitor. DIP fields match window-state; pixel fields are physical.
@@ -92,4 +98,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "deeplink"}

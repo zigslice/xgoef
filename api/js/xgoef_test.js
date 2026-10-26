@@ -159,6 +159,22 @@ async function main() {
     assert.deepEqual(posted[0].args, { shortcut: "Control+Shift+X" });
     assert.deepEqual(posted[3].args, {});
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const view = sandbox.__XGOEF__.plugins.webview;
+    view.print();
+    view.isDevToolsOpen();
+    view.openDevTools();
+    view.closeDevTools();
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      ["webview:print", "webview:is_dev_tools_open", "webview:open_dev_tools", "webview:close_dev_tools"]
+    );
+    assert.deepEqual(posted[0].args, {});
+  }
 }
 
 main().catch((err) => {

@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
@@ -11,6 +12,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include "xgoef_webview.h"
 #include "xgoef_window.h"
 
 namespace xgoef {
@@ -72,8 +74,13 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
 void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   CEF_REQUIRE_UI_THREAD();
 
-  CHECK_EQ(is_alloy_style_ ? CEF_RUNTIME_STYLE_ALLOY : CEF_RUNTIME_STYLE_CHROME,
-           browser->GetHost()->GetRuntimeStyle());
+  // ShowDevTools calls this reentrantly. That browser must not take the
+  // pending window label or keep the process alive after the last app window.
+  const bool devtools = DevToolsConsume();
+  if (!devtools) {
+    CHECK_EQ(is_alloy_style_ ? CEF_RUNTIME_STYLE_ALLOY : CEF_RUNTIME_STYLE_CHROME,
+             browser->GetHost()->GetRuntimeStyle());
+  }
 
   if (!message_router_) {
     CefMessageRouterConfig config;
@@ -82,13 +89,19 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   }
 
   browser_list_.push_back(browser);
+  if (devtools) {
+    DevToolsNote(browser->GetIdentifier());
+    return;
+  }
   WindowBind(WindowTakePendingLabel(), browser);
 }
 
 bool ClientHandler::DoClose(CefRefPtr<CefBrowser> browser) {
   CEF_REQUIRE_UI_THREAD();
-  (void)browser;
-  if (browser_list_.size() == 1) {
+  if (browser && DevToolsIs(browser->GetIdentifier())) {
+    return false;
+  }
+  if (CountAppBrowsers() <= 1) {
     is_closing_ = true;
   }
   return false;
@@ -101,7 +114,12 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
     message_router_->OnBeforeClose(browser);
   }
 
-  WindowUnbind(browser);
+  const bool devtools = browser && DevToolsIs(browser->GetIdentifier());
+  if (devtools) {
+    DevToolsForget(browser->GetIdentifier());
+  } else {
+    WindowUnbind(browser);
+  }
 
   for (auto bit = browser_list_.begin(); bit != browser_list_.end(); ++bit) {
     if ((*bit)->IsSame(browser)) {
@@ -110,13 +128,39 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
     }
   }
 
-  if (browser_list_.empty()) {
+  if (CountAppBrowsers() == 0) {
+    std::vector<CefRefPtr<CefBrowser>> tools;
+    for (const auto& item : browser_list_) {
+      if (item && DevToolsIs(item->GetIdentifier())) {
+        tools.push_back(item);
+      }
+    }
+    for (const auto& tool : tools) {
+      if (DevToolsIs(tool->GetIdentifier()) && tool->GetHost()) {
+        tool->GetHost()->CloseBrowser(true);
+      }
+    }
+  }
+
+  if (browser_list_.empty() && !quit_posted_) {
+    quit_posted_ = true;
     if (message_router_) {
       message_router_->RemoveHandler(&ipc_handler_);
       message_router_ = nullptr;
     }
     CefQuitMessageLoop();
   }
+}
+
+int ClientHandler::CountAppBrowsers() const {
+  int apps = 0;
+  for (const auto& item : browser_list_) {
+    if (!item || DevToolsIs(item->GetIdentifier())) {
+      continue;
+    }
+    ++apps;
+  }
+  return apps;
 }
 
 void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,

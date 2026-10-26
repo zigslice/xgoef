@@ -26,6 +26,9 @@ func TestLoadHelloConfig(t *testing.T) {
 	if f.CEF.RootEnv != "CEF_ROOT" {
 		t.Fatalf("rootEnv=%q", f.CEF.RootEnv)
 	}
+	if !f.Plugin.WebView.DevTools {
+		t.Fatal("hello enables devtools")
+	}
 	if len(f.Capabilities) == 0 {
 		t.Fatal("expected capabilities")
 	}

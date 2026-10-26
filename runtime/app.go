@@ -165,6 +165,11 @@ func (a *App) OpenPlugins() error {
 		Emit:            a.Emit,
 		Displays:        a.Bridge.Displays,
 		MoveWindow:      a.Bridge.MoveWindow,
+		DevTools:        a.Config.Plugin.WebView.DevTools,
+		Print:           a.Bridge.Print,
+		OpenDevTools:    a.Bridge.OpenDevTools,
+		CloseDevTools:   a.Bridge.CloseDevTools,
+		DevToolsOpen:    a.Bridge.DevToolsOpen,
 	}
 	for _, name := range a.Config.Plugins {
 		if a.Plugins.Has(name) {

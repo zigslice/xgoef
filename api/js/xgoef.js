@@ -303,6 +303,20 @@
           return global.__XGOEF__.invoke("monitor:move", { x: x, y: y });
         },
       },
+      webview: {
+        print: function () {
+          return global.__XGOEF__.invoke("webview:print", {});
+        },
+        openDevTools: function () {
+          return global.__XGOEF__.invoke("webview:open_dev_tools", {});
+        },
+        closeDevTools: function () {
+          return global.__XGOEF__.invoke("webview:close_dev_tools", {});
+        },
+        isDevToolsOpen: function () {
+          return global.__XGOEF__.invoke("webview:is_dev_tools_open", {});
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});
