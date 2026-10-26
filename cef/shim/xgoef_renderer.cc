@@ -29,17 +29,19 @@ void InjectBridge(CefRefPtr<CefBrowser> browser,
   }
   bool disabled = false;
   std::string root;
+  std::string remote;
   CefRefPtr<CefCommandLine> command_line = CefCommandLine::GetGlobalCommandLine();
   if (command_line) {
     disabled = command_line->HasSwitch(kNoBridgeSwitch);
     root = command_line->GetSwitchValue(kAssetRootSwitch).ToString();
+    remote = command_line->GetSwitchValue(kRemoteSwitch).ToString();
   }
   std::string main_url;
   if (browser && browser->GetMainFrame()) {
     main_url = browser->GetMainFrame()->GetURL().ToString();
   }
   const std::string url = frame->GetURL().ToString();
-  if (!ShouldInjectBridge(disabled, frame->IsMain(), url, main_url)) {
+  if (!ShouldInjectBridge(disabled, frame->IsMain(), url, main_url, remote)) {
     return;
   }
   const std::string path = BridgeScriptPath(root);

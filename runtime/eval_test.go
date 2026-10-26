@@ -15,14 +15,20 @@ func TestEvalFromConfig(t *testing.T) {
 	const source = `window.__xgoefMark = "marked";`
 	const init = `window.__xgoefInjected = "hello";`
 	app := New(conf.File{
-		App: conf.AppSection{Windows: []conf.Window{{
-			Label:       "main",
-			Title:       "t",
-			Width:       100,
-			Height:      100,
-			URL:         "https://example.test/index.html",
-			InitScripts: []string{init},
-		}}},
+		App: conf.AppSection{
+			Remote: conf.RemoteConfig{URLs: []string{
+				"https://example.test",
+				"https://side.test",
+			}},
+			Windows: []conf.Window{{
+				Label:       "main",
+				Title:       "t",
+				Width:       100,
+				Height:      100,
+				URL:         "https://example.test/index.html",
+				InitScripts: []string{init},
+			}},
+		},
 		Plugins: []string{"eval"},
 		Plugin: conf.PluginSection{Eval: conf.EvalConfig{Scripts: map[string]string{
 			"mark": source,
