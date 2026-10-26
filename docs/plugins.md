@@ -38,8 +38,9 @@ type Plugin interface {
 | `eval` | `eval:run` | 与命令名相同 |
 | `autostart` | `autostart:enable` `autostart:disable` `autostart:is_enabled` | 与命令名相同 |
 | `log` | `log:write` | 与命令名相同 |
+| `window` | `window:minimize` `window:maximize` `window:unminimize` `window:unmaximize` `window:toggle_maximize` `window:show` `window:hide` `window:center` `window:set_title` `window:set_always_on_top` `window:set_fullscreen` `window:set_size` `window:is_minimized` `window:is_maximized` `window:is_fullscreen` `window:is_always_on_top` `window:is_visible` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`、`plugins.log.trace(message)` / `debug` / `info` / `warn` / `error`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`、`plugins.log.trace(message)` / `debug` / `info` / `warn` / `error`、`plugins.window.minimize()` / `toggleMaximize()` / `setTitle(title)` / `setSize(width, height)` / `isMaximized()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -145,6 +146,12 @@ Linux 上用 X11 的 `XGrabKey`，需要 `DISPLAY`（X11 或 XWayland）。没�
 `log:write` 接受 `{level, message}`。`level` 可以省略，省略是 `info`。低于 `plugin.log.level` 的调用成功，但不写文件。消息必须是一行，不能含有控制字符，最长 4096 字节。多出来的字段是 `log.denied`。页面不能选择目录或文件名，也不能提交崩溃记录。
 
 Linux 上日志在 `$XDG_STATE_HOME/xgoef/xgoef-<identifier>.log`，没有这个变量时在 `~/.local/state/xgoef`。宿主 panic 另写 `xgoef-<identifier>.crash`，只留最近一次，并在日志里追加一行 `CRASH`。启用插件后，浏览器进程带上 `--xgoef-crash-dumps`，再转成 Chromium 的 crashpad 开关。dump 本身要有 `chrome_crashpad_handler`。细节见 [log.md](log.md)。hello 的 *log* 按钮写一条 info。
+
+## window
+
+`window` 的命令作用在发出调用的那一扇 Views 窗口上。页面不能在参数里指定另一个 label。最小化、最大化、还原、显示、隐藏、居中、标题、置顶、全屏、尺寸和对应的查询都在这里。把窗口左上角移走用 `monitor:move`。
+
+`set_title` 的 `title` 可以是空字符串，必须是 UTF-8，最长 256 字节，不能含有小于 `0x20` 的字节。`set_size` 的宽和高是 1 到 16384 的整数。多出来的字段是 `window.invalid`。没有 Views 窗口时是 `window.unavailable`，`--use-native` 就是这种情况。细节见 [window.md](window.md)。hello 的 *window* 按钮在最大化和还原之间切换，并显示当前是不是最大化。
 
 ## 应用侧还要做的
 

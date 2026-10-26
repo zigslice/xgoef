@@ -178,6 +178,57 @@ async function main() {
 
   {
     const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const win = sandbox.__XGOEF__.plugins.window;
+    win.minimize();
+    win.maximize();
+    win.unminimize();
+    win.unmaximize();
+    win.toggleMaximize();
+    win.show();
+    win.hide();
+    win.center();
+    win.setTitle("hello");
+    win.setAlwaysOnTop(true);
+    win.setFullscreen(false);
+    win.setSize(800, 600);
+    win.isMinimized();
+    win.isMaximized();
+    win.isFullscreen();
+    win.isAlwaysOnTop();
+    win.isVisible();
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      [
+        "window:minimize",
+        "window:maximize",
+        "window:unminimize",
+        "window:unmaximize",
+        "window:toggle_maximize",
+        "window:show",
+        "window:hide",
+        "window:center",
+        "window:set_title",
+        "window:set_always_on_top",
+        "window:set_fullscreen",
+        "window:set_size",
+        "window:is_minimized",
+        "window:is_maximized",
+        "window:is_fullscreen",
+        "window:is_always_on_top",
+        "window:is_visible",
+      ]
+    );
+    assert.deepEqual(posted[0].args, {});
+    assert.deepEqual(posted[8].args, { title: "hello" });
+    assert.deepEqual(posted[9].args, { alwaysOnTop: true });
+    assert.deepEqual(posted[10].args, { fullscreen: false });
+    assert.deepEqual(posted[11].args, { width: 800, height: 600 });
+  }
+
+  {
+    const sandbox = load();
     let seen = 0;
     const bridge = sandbox.__XGOEF__;
     const dispatch = sandbox.__xgoefDispatch;

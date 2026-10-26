@@ -39,6 +39,36 @@ Capabilities should list each label that may invoke commands.
 
 传给 shim 的文本每个窗口一行，六列用制表符分开：`label`、`x`、`y`、`width`、`height`、`flags`。`p` 表示坐标和尺寸都要套用，`m` 表示最大化，`n` 表示最小化。三项都在时写成 `pmn`。`cef/shim/xgoef_window_state.cc` 按同一规则解析，且不依赖 CEF 头文件。
 
+## 当前窗口
+
+`window` 插件作用在发出调用的那一扇 Views 窗口上。参数里不能再写一个 label。空的窗口 label 按 `main`。`--use-native` 没有 Views 窗口，命令返回 `window.unavailable`。把左上角移到另一块屏用 `monitor:move`。
+
+| 命令 | 参数 | 行为 |
+| --- | --- | --- |
+| `window:minimize` | `{}` | `Minimize` |
+| `window:maximize` | `{}` | `Maximize` |
+| `window:unminimize` | `{}` | 已经最小化时 `Restore`。没有最小化时成功，状态保持原样 |
+| `window:unmaximize` | `{}` | 已经最大化时 `Restore`。没有最大化时成功，状态保持原样 |
+| `window:toggle_maximize` | `{}` | 已经最大化则 `Restore`，否则 `Maximize` |
+| `window:show` | `{}` | `Show` |
+| `window:hide` | `{}` | `Hide` |
+| `window:center` | `{}` | 用当前尺寸，在当前显示器上居中 |
+| `window:set_title` | `{title}` | `SetTitle`。`title` 必须出现，可以是空字符串。正文是 UTF-8，最长 256 字节，不能含有小于 `0x20` 的字节 |
+| `window:set_always_on_top` | `{alwaysOnTop}` | 布尔。`true` 时窗口保持在前面 |
+| `window:set_fullscreen` | `{fullscreen}` | 布尔 |
+| `window:set_size` | `{width,height}` | `SetSize`。宽和高是 1 到 16384 的整数。位置保持不变 |
+| `window:is_minimized` | `{}` | 布尔 |
+| `window:is_maximized` | `{}` | 布尔 |
+| `window:is_fullscreen` | `{}` | 布尔 |
+| `window:is_always_on_top` | `{}` | 布尔 |
+| `window:is_visible` | `{}` | 布尔。对窗口来说，真表示用户此刻能看见它 |
+
+多出来的字段、缺了必填字段、或者尺寸不是这个范围内的整数，是 `window.invalid`。这个 label 没有 Views 窗口，或界面线程两秒内没有回答，是 `window.unavailable`。capability 里没有对应命令名时是 `acl.denied`，发生在插件之前。
+
+这些调用在带 CEF 的构建里投到界面线程。动词编号、标题和尺寸规则在 `cef/shim/xgoef_window_op.h`，这份头文件不依赖 CEF。这台环境没有启动 CEF，所以没有看见窗口真的最大化或隐藏。
+
+启用方式和 hello 的 *window* 按钮见 [plugins.md](plugins.md)。
+
 ## 主题、装饰与透明
 
 每个窗口可以写这三项。省略时分别是有装饰、跟随系统、不透明。

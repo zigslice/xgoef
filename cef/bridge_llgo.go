@@ -201,6 +201,25 @@ func (b *NativeBridge) MoveWindow(label string, x, y int) error {
 	return nil
 }
 
+func (b *NativeBridge) WindowOp(label string, op, argA, argB int, text string) error {
+	rc := xgoefWindowOp(c.AllocaCStr(label), c.Int(op), c.Int(argA), c.Int(argB), c.AllocaCStr(text))
+	if rc == -2 {
+		return ErrWindowRejected
+	}
+	if rc != 0 {
+		return fmt.Errorf("cef: window op %q failed", label)
+	}
+	return nil
+}
+
+func (b *NativeBridge) WindowQuery(label string, query int) (bool, error) {
+	rc := xgoefWindowQuery(c.AllocaCStr(label), c.Int(query))
+	if rc < 0 {
+		return false, fmt.Errorf("cef: window query %q failed", label)
+	}
+	return rc != 0, nil
+}
+
 func (b *NativeBridge) Print(windowLabel string) error {
 	if rc := xgoefWindowPrint(c.AllocaCStr(windowLabel)); rc != 0 {
 		return fmt.Errorf("cef: print %q failed", windowLabel)
@@ -382,6 +401,12 @@ func xgoefDisplaysFree(text *c.Char)
 
 //go:linkname xgoefWindowMove C.xgoef_window_move
 func xgoefWindowMove(label *c.Char, x, y c.Int) c.Int
+
+//go:linkname xgoefWindowOp C.xgoef_window_op
+func xgoefWindowOp(label *c.Char, op, a, b c.Int, text *c.Char) c.Int
+
+//go:linkname xgoefWindowQuery C.xgoef_window_query
+func xgoefWindowQuery(label *c.Char, query c.Int) c.Int
 
 //go:linkname xgoefWindowPrint C.xgoef_window_print
 func xgoefWindowPrint(label *c.Char) c.Int

@@ -72,6 +72,13 @@ int xgoef_window_create(const char* label,
                         const char* chrome);
 int xgoef_window_close(const char* label);
 int xgoef_window_focus(const char* label);
+/* Verb for the Views window bound to |label|. Codes are xgoef::kWindowOp*.
+ * Returns 0, -1 when that label has no Views window or the UI thread does
+ * not answer, or -2 when the verb, title, or size is rejected. */
+int xgoef_window_op(const char* label, int op, int a, int b, const char* text);
+/* 1, 0, or -1 when that label has no Views window or the UI thread does
+ * not answer. Query codes are xgoef::kWindowQuery*. */
+int xgoef_window_query(const char* label, int query);
 
 /* Monitor table for |window_label|. The text is xgoef::FormatDisplayTable.
  * NULL when CEF does not answer. Caller frees with xgoef_displays_free. */

@@ -92,6 +92,25 @@ var builtinPlugins = map[string][]Command{
 	"log": {
 		{Name: "log:write", Args: []Arg{{Name: "level", Type: "string", Optional: true}, {Name: "message", Type: "string"}}, Result: "null"},
 	},
+	"window": {
+		{Name: "window:minimize", Result: "null"},
+		{Name: "window:maximize", Result: "null"},
+		{Name: "window:unminimize", Result: "null"},
+		{Name: "window:unmaximize", Result: "null"},
+		{Name: "window:toggle_maximize", Result: "null"},
+		{Name: "window:show", Result: "null"},
+		{Name: "window:hide", Result: "null"},
+		{Name: "window:center", Result: "null"},
+		{Name: "window:set_title", Args: []Arg{{Name: "title", Type: "string"}}, Result: "null"},
+		{Name: "window:set_always_on_top", Args: []Arg{{Name: "alwaysOnTop", Type: "boolean"}}, Result: "null"},
+		{Name: "window:set_fullscreen", Args: []Arg{{Name: "fullscreen", Type: "boolean"}}, Result: "null"},
+		{Name: "window:set_size", Args: []Arg{{Name: "width", Type: "number"}, {Name: "height", Type: "number"}}, Result: "null"},
+		{Name: "window:is_minimized", Result: "boolean"},
+		{Name: "window:is_maximized", Result: "boolean"},
+		{Name: "window:is_fullscreen", Result: "boolean"},
+		{Name: "window:is_always_on_top", Result: "boolean"},
+		{Name: "window:is_visible", Result: "boolean"},
+	},
 }
 
 // displayType is one monitor. DIP fields match window-state; pixel fields are physical.
@@ -109,4 +128,4 @@ var deepLinkCommand = Command{
 }
 
 // helperNS is the plugins.* object in xgoef.js.
-var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "deeplink"}
+var helperNS = []string{"fs", "os", "shell", "clipboard", "dialog", "updater", "process", "notification", "global-shortcut", "monitor", "webview", "eval", "autostart", "log", "window", "deeplink"}

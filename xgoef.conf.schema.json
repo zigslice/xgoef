@@ -172,7 +172,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval, autostart, log).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval, autostart, log, window).",
       "items": { "type": "string" }
     },
     "plugin": {

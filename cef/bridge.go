@@ -57,6 +57,14 @@ type Bridge interface {
 	// MoveWindow moves a Views window's origin to DIP x, y.
 	MoveWindow(label string, x, y int) error
 
+	// WindowOp runs one Views window verb. op, a, and b are the codes in
+	// this package. text is the title for set-title and empty otherwise.
+	// A rejected verb, title, or size is ErrWindowRejected.
+	WindowOp(label string, op, argA, argB int, text string) error
+	// WindowQuery reads one Views window flag. query is a WindowQuery* code.
+	// The bool is true when the native result is 1.
+	WindowQuery(label string, query int) (bool, error)
+
 	// Print opens the system print dialog for a window label.
 	Print(windowLabel string) error
 	// OpenDevTools opens developer tools. Already open is success.
