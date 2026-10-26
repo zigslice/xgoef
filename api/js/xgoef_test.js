@@ -217,6 +217,26 @@ async function main() {
     assert.deepEqual(posted[1].args, {});
     assert.equal(posted[1].args.args, undefined);
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const log = sandbox.__XGOEF__.plugins.log;
+    log.trace("t");
+    log.debug("d");
+    log.info("i");
+    log.warn("w");
+    log.error("e");
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      ["log:write", "log:write", "log:write", "log:write", "log:write"]
+    );
+    assert.deepEqual(posted[2].args, { level: "info", message: "i" });
+    assert.equal(posted[2].args.path, undefined);
+    assert.equal(posted[2].args.crash, undefined);
+    assert.deepEqual(posted.map((msg) => msg.args.level), ["trace", "debug", "info", "warn", "error"]);
+  }
 }
 
 main().catch((err) => {

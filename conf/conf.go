@@ -12,6 +12,7 @@ import (
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/deeplink"
 	"github.com/zigslice/xgoef/eval"
+	"github.com/zigslice/xgoef/log"
 )
 
 // File is the on-disk xgoef.conf.json shape (Tauri-like).
@@ -41,6 +42,13 @@ type PluginSection struct {
 	WebView        WebViewConfig      `json:"webview"`
 	Eval           EvalConfig         `json:"eval"`
 	Autostart      AutostartConfig    `json:"autostart"`
+	Log            LogConfig          `json:"log"`
+}
+
+// LogConfig is the minimum page level written by log:write.
+// Empty means info. Crash records are not filtered by this level.
+type LogConfig struct {
+	Level string `json:"level"`
 }
 
 // AutostartConfig is the launch line written into the user autostart entry.
@@ -306,6 +314,9 @@ func Load(path string) (File, error) {
 		return f, fmt.Errorf("conf: %w", err)
 	}
 	if err := autostart.ValidateArgs(f.Plugin.Autostart.Args); err != nil {
+		return f, fmt.Errorf("conf: %w", err)
+	}
+	if err := log.ValidateLevel(f.Plugin.Log.Level); err != nil {
 		return f, fmt.Errorf("conf: %w", err)
 	}
 	if err := validShellCommand(f.Build.BeforeDevCommand); err != nil {

@@ -153,7 +153,7 @@
     },
     "plugins": {
       "type": "array",
-      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval, autostart).",
+      "description": "Builtin plugin ids to load (fs, os, shell, clipboard, dialog, updater, process, notification, global-shortcut, monitor, webview, eval, autostart, log).",
       "items": { "type": "string" }
     },
     "plugin": {
@@ -237,6 +237,17 @@
               "type": "array",
               "maxItems": 8,
               "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+            }
+          }
+        },
+        "log": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Minimum level written by log:write. Omitted means info. The page cannot choose the directory or record a crash.",
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": ["trace", "debug", "info", "warn", "error"]
             }
           }
         },

@@ -39,6 +39,7 @@
 | `conf/` | `xgoef.conf.json` 解析 |
 | `deeplink/` | 自定义 URL scheme 的参数接收入口和当前用户 XDG 关联 |
 | `autostart/` | 当前用户开机自启的 XDG desktop 项 |
+| `log/` | 页面日志和最近一次宿主崩溃记录 |
 | `bundle/` | deb、msi、dmg、AppImage；不做系统安装包签名 |
 | `api/js/` | 注入或随资源分发的前端桥 |
 | `cmd/xgoef/` | `create` / `dev` / `build`（分期目录并链接 CEF 宿主） |
@@ -104,6 +105,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 `app.deepLink.schemes` 把自定义 URL 交给这个进程，并写成当前用户的 XDG scheme 关联。详见 [docs/deeplink.md](docs/deeplink.md)。
 
 `autostart:enable` 把当前用户的 XDG autostart 项交给这个应用。页面只负责开关，启动参数写在 `plugin.autostart.args`。详见 [docs/autostart.md](docs/autostart.md)。
+
+`log:write` 把一行日志写进当前用户的状态目录。宿主 panic 另记最近一次崩溃。页面不能选择路径。详见 [docs/log.md](docs/log.md)。
 
 `xgoef create --template` 可以写出静态页、Vite 或 Vite + React。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
 

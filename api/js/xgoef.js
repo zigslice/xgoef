@@ -337,6 +337,30 @@
           return global.__XGOEF__.invoke("autostart:is_enabled", {});
         },
       },
+      log: {
+        write: function (level, message) {
+          var args = { message: message };
+          if (level) {
+            args.level = level;
+          }
+          return global.__XGOEF__.invoke("log:write", args);
+        },
+        trace: function (message) {
+          return global.__XGOEF__.invoke("log:write", { level: "trace", message: message });
+        },
+        debug: function (message) {
+          return global.__XGOEF__.invoke("log:write", { level: "debug", message: message });
+        },
+        info: function (message) {
+          return global.__XGOEF__.invoke("log:write", { level: "info", message: message });
+        },
+        warn: function (message) {
+          return global.__XGOEF__.invoke("log:write", { level: "warn", message: message });
+        },
+        error: function (message) {
+          return global.__XGOEF__.invoke("log:write", { level: "error", message: message });
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});

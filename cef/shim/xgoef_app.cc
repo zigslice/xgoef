@@ -10,6 +10,7 @@
 #include "include/wrapper/cef_helpers.h"
 
 #include "xgoef_bridge.h"
+#include "xgoef_crash.h"
 #include "xgoef_handler.h"
 #include "xgoef_menu_views.h"
 #include "xgoef_window.h"
@@ -137,6 +138,25 @@ void App::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) {
       "xgoef", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_SECURE |
                    CEF_SCHEME_OPTION_CORS_ENABLED |
                    CEF_SCHEME_OPTION_FETCH_ENABLED);
+}
+
+void App::OnBeforeCommandLineProcessing(
+    const CefString& process_type,
+    CefRefPtr<CefCommandLine> command_line) {
+  if (!command_line) {
+    return;
+  }
+  const CrashSwitches plan = CrashSwitchesFor(
+      process_type.ToString(),
+      command_line->GetSwitchValue(kCrashDumpsSwitch).ToString(),
+      command_line->HasSwitch(kCrashDumpsDirSwitch),
+      command_line->HasSwitch(kEnableCrashReporterSwitch));
+  if (plan.append_dir) {
+    command_line->AppendSwitchWithValue(kCrashDumpsDirSwitch, CefString(plan.dir));
+  }
+  if (plan.append_enable) {
+    command_line->AppendSwitch(kEnableCrashReporterSwitch);
+  }
 }
 
 void App::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) {
