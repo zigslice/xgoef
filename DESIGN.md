@@ -114,7 +114,7 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `http` / `https` 窗口地址只允许 `build.devUrl` 的来源和 `app.remote.urls`。页面不能改这张名单。详见 [docs/asset.md](docs/asset.md)。
 
-`xgoef create --template` 可以写出静态页、Vite 或 Vite + React。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
+`xgoef create --template` 可以写出静态页、Vite、Vite + React、Vite + Vue 或 Vite + Svelte。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
 
 `xgoef build` 在有 `version` 时把分期目录打成 deb、msi、dmg 和 AppImage。详见 [docs/bundle.md](docs/bundle.md)。
 

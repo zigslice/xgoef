@@ -1,22 +1,26 @@
 # 前端模板
 
-`xgoef create <name>` 默认写出静态页，模板名是 `html`。另外两个模板把页面交给 Vite，生产构建仍落到 `web/`，由 `xgoef://app/` 提供。
+`xgoef create <name>` 默认写出静态页，模板名是 `html`。另外四套模板把页面交给 Vite，生产构建仍落到 `web/`，由 `xgoef://app/` 提供。
 
 ```bash
 xgoef create myapp
 xgoef create myapp --template vite
 xgoef create myapp --template react
+xgoef create myapp --template vue
+xgoef create myapp --template svelte
 ```
 
-`--template` 可以写在名字前面。可选值是 `html`、`vite`、`react`。
+`--template` 可以写在名字前面。可选值是 `html`、`vite`、`react`、`vue`、`svelte`。
 
 | 模板 | 页面 | 开发时窗口地址 | 构建产物 |
 | --- | --- | --- | --- |
 | `html` | `web/index.html` | `xgoef://app/index.html` | 就是这份 `web/` |
 | `vite` | Vite 的 `index.html` 和 `src/main.js` | `http://127.0.0.1:5173` | `web/` |
 | `react` | Vite + React，入口是 `src/main.jsx` | `http://127.0.0.1:5173` | `web/` |
+| `vue` | Vite + Vue，入口是 `src/main.js`，页面是 `src/App.vue` | `http://127.0.0.1:5173` | `web/` |
+| `svelte` | Vite + Svelte，入口是 `src/main.js`，页面是 `src/App.svelte` | `http://127.0.0.1:5173` | `web/` |
 
-`vite` 和 `react` 的 `build.devUrl` 是 `http://127.0.0.1:5173`。`beforeDevCommand` 是 `npm run dev`，`beforeBuildCommand` 是 `npm run build`。Vite 把 `base` 设为 `./`，`outDir` 设为 `web`，这样打包后的资源地址在 `xgoef://app/` 下仍能对上。端口写死在 `vite.config.js` 和 `devUrl` 里，要改就两处一起改。
+`vite`、`react`、`vue` 和 `svelte` 的 `build.devUrl` 是 `http://127.0.0.1:5173`。`beforeDevCommand` 是 `npm run dev`，`beforeBuildCommand` 是 `npm run build`。Vite 把 `base` 设为 `./`，`outDir` 设为 `web`，这样打包后的资源地址在 `xgoef://app/` 下仍能对上。端口写死在 `vite.config.js` 和 `devUrl` 里，要改就两处一起改。
 
 `xgoef dev` 先跑 `beforeDevCommand`。`devUrl` 是 `http` 或 `https` 时，等到这个地址能连上再拉起宿主，然后把第一个窗口的 URL 改成它。宿主退出或收到中断信号时，这条命令也会停。`xgoef dev` 不跑 `beforeBuildCommand`。
 

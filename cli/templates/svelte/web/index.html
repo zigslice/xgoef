@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>__NAME__</title>
+  </head>
+  <body>
+    <h1>__NAME__</h1>
+    <p>Run npm install, then xgoef dev. This page is replaced by vite build.</p>
+    <button id="btn" type="button">invoke greet</button>
+    <div id="out">waiting for host</div>
+    <script>
+      const out = document.getElementById("out");
+      document.getElementById("btn").onclick = async () => {
+        try {
+          out.textContent = String(await window.__XGOEF__.invoke("greet", { name: "__NAME__" }));
+        } catch (err) {
+          const code = err && err.code ? err.code + ": " : "";
+          const message = err && err.message ? err.message : String(err);
+          out.textContent = code + message;
+        }
+      };
+    </script>
+  </body>
+</html>

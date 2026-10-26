@@ -64,13 +64,13 @@ func usage(w io.Writer) {
 
 Usage:
   xgoef info
-  xgoef create <name> [--template html|vite|react]
+  xgoef create <name> [--template html|vite|react|vue|svelte]
   xgoef dev  [--app dir] [--out dir] [--assets-only]
   xgoef build [--app dir] [--out dir] [--assets-only]
 
 create writes main.xgo, xgoef.conf.json, the frontend, a copy of xgoef.js,
-and xgoef.d.ts. html is a static page in web/. vite and react are Vite
-projects that build into web/ and open http://127.0.0.1:5173 in dev.
+and xgoef.d.ts. html is a static page in web/. vite, react, vue, and svelte
+are Vite projects that build into web/ and open http://127.0.0.1:5173 in dev.
 build runs build.beforeBuildCommand before it stages the frontend.
 dev runs build.beforeDevCommand and, when devUrl is an http(s) URL, waits
 until that address accepts connections. dev rewrites the first window URL
@@ -162,11 +162,11 @@ func parseCreateArgs(args []string) (name, template string, err error) {
 	return name, template, nil
 }
 
-const templateList = "html, vite, react"
+const templateList = "html, vite, react, vue, svelte"
 
 func knownTemplate(name string) bool {
 	switch name {
-	case "html", "vite", "react":
+	case "html", "vite", "react", "vue", "svelte":
 		return true
 	default:
 		return false
