@@ -178,6 +178,21 @@ async function main() {
 
   {
     const sandbox = load();
+    let seen = 0;
+    const bridge = sandbox.__XGOEF__;
+    const dispatch = sandbox.__xgoefDispatch;
+    bridge.listen("tick", function () {
+      seen += 1;
+    });
+    vm.runInContext(source, sandbox);
+    assert.strictEqual(sandbox.__XGOEF__, bridge);
+    assert.strictEqual(sandbox.__xgoefDispatch, dispatch);
+    sandbox.__xgoefDispatch({ type: "event", event: "tick", payload: 1 });
+    assert.equal(seen, 1);
+  }
+
+  {
+    const sandbox = load();
     const posted = [];
     sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
     sandbox.__XGOEF__.plugins.eval.run("mark");

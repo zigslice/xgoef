@@ -99,7 +99,7 @@ func TestCreateAndBuild(t *testing.T) {
 	}
 }
 
-func TestBuildRewritesHelloScript(t *testing.T) {
+func TestBuildStagesHelloBridge(t *testing.T) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -113,11 +113,11 @@ func TestBuildRewritesHelloScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(html), `src="xgoef.js"`) {
-		t.Fatalf("script src not rewritten:\n%s", html)
+	if strings.Contains(string(html), `src="xgoef.js"`) || strings.Contains(string(html), "api/js/xgoef.js") {
+		t.Fatalf("hello still loads the bridge by tag:\n%s", html)
 	}
-	if strings.Contains(string(html), "../../../api/js/xgoef.js") {
-		t.Fatal("old script src remains")
+	if !strings.Contains(string(html), "__XGOEF__") {
+		t.Fatal("hello page no longer calls the bridge")
 	}
 	if _, err := os.Stat(filepath.Join(out, "web", "xgoef.js")); err != nil {
 		t.Fatal(err)

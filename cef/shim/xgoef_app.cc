@@ -9,6 +9,7 @@
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include "xgoef_bridge.h"
 #include "xgoef_handler.h"
 #include "xgoef_menu_views.h"
 #include "xgoef_window.h"
@@ -136,6 +137,23 @@ void App::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) {
       "xgoef", CEF_SCHEME_OPTION_STANDARD | CEF_SCHEME_OPTION_SECURE |
                    CEF_SCHEME_OPTION_CORS_ENABLED |
                    CEF_SCHEME_OPTION_FETCH_ENABLED);
+}
+
+void App::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) {
+  if (!command_line) {
+    return;
+  }
+  CefRefPtr<CefCommandLine> browser = CefCommandLine::GetGlobalCommandLine();
+  if (!browser) {
+    return;
+  }
+  const std::string root = browser->GetSwitchValue(kAssetRootSwitch).ToString();
+  if (!root.empty() && !command_line->HasSwitch(kAssetRootSwitch)) {
+    command_line->AppendSwitchWithValue(kAssetRootSwitch, CefString(root));
+  }
+  if (browser->HasSwitch(kNoBridgeSwitch) && !command_line->HasSwitch(kNoBridgeSwitch)) {
+    command_line->AppendSwitch(kNoBridgeSwitch);
+  }
 }
 
 void App::OnContextInitialized() {

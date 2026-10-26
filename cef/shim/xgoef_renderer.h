@@ -6,7 +6,7 @@
 
 namespace xgoef {
 
-// Renderer-side MessageRouter — injects window.cefQuery.
+// Renderer-side MessageRouter — injects window.cefQuery, then xgoef.js.
 class RendererHandler : public CefRenderProcessHandler {
  public:
   RendererHandler() = default;

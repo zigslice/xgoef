@@ -573,6 +573,9 @@ func (a *App) buildArgs(url string) []string {
 	if a.assets != nil && a.assets.Dir() != "" {
 		args = append(args, "--xgoef-asset-root="+a.assets.Dir())
 	}
+	if !a.Config.App.InjectBridge() {
+		args = append(args, "--xgoef-no-bridge")
+	}
 	// LLGo (and Go) hosts are poor CEF GPU/renderer subprocesses.
 	// Prefer a native helper via SubprocessPath; these flags keep the
 	// browser process alive when the helper still cannot use GPU.

@@ -107,13 +107,17 @@ type Build struct {
 
 // AppSection holds window definitions plus the app menu and tray menu.
 // WindowState nil means remembered geometry is on.
+// WithGlobalXgoef nil means the renderer installs window.__XGOEF__
+// before page scripts. False passes --xgoef-no-bridge. This is the
+// withGlobalTauri equivalent; the default here is on.
 type AppSection struct {
-	Windows        []Window        `json:"windows"`
-	Menu           []MenuItem      `json:"menu,omitempty"`
-	Tray           *TrayConfig     `json:"tray,omitempty"`
-	WindowState    *bool           `json:"windowState,omitempty"`
-	SingleInstance *bool           `json:"singleInstance,omitempty"`
-	DeepLink       *DeepLinkConfig `json:"deepLink,omitempty"`
+	Windows         []Window        `json:"windows"`
+	Menu            []MenuItem      `json:"menu,omitempty"`
+	Tray            *TrayConfig     `json:"tray,omitempty"`
+	WindowState     *bool           `json:"windowState,omitempty"`
+	SingleInstance  *bool           `json:"singleInstance,omitempty"`
+	DeepLink        *DeepLinkConfig `json:"deepLink,omitempty"`
+	WithGlobalXgoef *bool           `json:"withGlobalXgoef,omitempty"`
 }
 
 // DeepLinkConfig lists custom URL schemes this application accepts.
@@ -153,6 +157,11 @@ func (f File) WantSingleInstance() (bool, error) {
 // RememberWindows reports whether places are saved under .xgoef/window-state.json.
 func (a AppSection) RememberWindows() bool {
 	return a.WindowState == nil || *a.WindowState
+}
+
+// InjectBridge reports whether OnContextCreated should eval xgoef.js.
+func (a AppSection) InjectBridge() bool {
+	return a.WithGlobalXgoef == nil || *a.WithGlobalXgoef
 }
 
 // MenuItem is one menu or tray row. ID is required except on separators.

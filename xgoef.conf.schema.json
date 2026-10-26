@@ -85,6 +85,11 @@
           "default": true,
           "description": "When identifier is set, a second launch focuses the first process. Set false to allow more than one."
         },
+        "withGlobalXgoef": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true (the default), the renderer evals web/xgoef.js in OnContextCreated so window.__XGOEF__ exists before page scripts. Set false to require a script tag. This is the withGlobalTauri equivalent."
+        },
         "deepLink": {
           "type": "object",
           "additionalProperties": false,

@@ -49,8 +49,8 @@ cd build/hello
 
 | 层 | 行为 |
 | --- | --- |
-| 前端 | `xgoef.js` 用 `window.cefQuery` 发送 JSON invoke |
-| 渲染进程 | shim MessageRouter 注入 `cefQuery` |
+| 前端 | 渲染进程在页面脚本之前装上 `__XGOEF__`；`xgoef.js` 用 `window.cefQuery` 发送 JSON invoke |
+| 渲染进程 | shim MessageRouter 注入 `cefQuery`，再执行前端根里的 `xgoef.js` |
 | 浏览器进程 | OnQuery → Go `runtime` → `acl.Guard` → `ipc.Router` → Success JSON |
 | 配置 | `capabilities[]` + `windows[].label`（见 `xgoef.conf.schema.json`） |
 

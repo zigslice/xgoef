@@ -2,7 +2,7 @@
 
 `xgoef build` 和 `xgoef dev` 根据 `xgoef.conf.json` 写出 `web/xgoef.d.ts`，同一份也放在 `api/js/xgoef.d.ts`。`xgoef create` 在新项目里写一份。热重载重新复制前端之后会再写一次。
 
-文件声明 `window.__XGOEF__`。`invoke` 的命令名、参数和返回值来自配置里的 `commands`，加上已启用插件的内置命令。`menu:popup`、`tray:popup`、`tray:click` 总会出现，因为宿主会注册它们。配置了 `app.deepLink.schemes` 时带上 `deeplink:get_current`。`plugins` 里只列出 `xgoef.js` 已经有的方法，并且只保留这次启用的插件。
+文件声明 `window.__XGOEF__`。渲染进程会在页面脚本之前装上这个全局，见 [ipc.md](ipc.md)。`invoke` 的命令名、参数和返回值来自配置里的 `commands`，加上已启用插件的内置命令。`menu:popup`、`tray:popup`、`tray:click` 总会出现，因为宿主会注册它们。配置了 `app.deepLink.schemes` 时带上 `deeplink:get_current`。`plugins` 里只列出 `xgoef.js` 已经有的方法，并且只保留这次启用的插件。
 
 ```json
 "commands": [

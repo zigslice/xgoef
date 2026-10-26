@@ -23,13 +23,13 @@ xgoef://app/css/app.css
 
 ## 前端桥
 
-`xgoef://app/` 的根就是 `web/`。`xgoef.js` 必须放在这个目录里，页面写：
+`xgoef://app/` 的根就是 `web/`。渲染进程在上下文创建时读取这个根目录里的 `xgoef.js`，装上 `window.__XGOEF__`。页面不必再写：
 
 ```html
 <script src="xgoef.js"></script>
 ```
 
-`../api/js/xgoef.js` 会走出根，scheme 不会读。`xgoef build` 和 `scripts/build-xgoef-hello.sh` 会把桥复制到 `web/xgoef.js`。
+写了也无妨：脚本发现全局已经存在就返回。`../api/js/xgoef.js` 会走出根，scheme 不会读，渲染进程也不从那里读。`xgoef build` 和 `xgoef dev` 会把桥复制到前端根的 `xgoef.js`。关掉自动注入见 [ipc.md](ipc.md)。
 
 ## 嵌入与签名
 

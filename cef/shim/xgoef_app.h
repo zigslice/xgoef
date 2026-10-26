@@ -20,6 +20,7 @@ class App : public CefApp, public CefBrowserProcessHandler {
 
   void OnRegisterCustomSchemes(
       CefRawPtr<CefSchemeRegistrar> registrar) override;
+  void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
   void OnContextInitialized() override;
   CefRefPtr<CefClient> GetDefaultClient() override;
 

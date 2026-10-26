@@ -26,6 +26,7 @@ set(XGOEF_CEF_SRCS
   xgoef_handler.cc
   xgoef_handler_linux.cc
   xgoef_renderer.cc
+  xgoef_bridge.cc
   xgoef_ipc.cc
   xgoef_window.cc
   xgoef_window_chrome.cc

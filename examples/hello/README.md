@@ -1,6 +1,6 @@
 # hello
 
-最小 **XGo** xgoef 应用：`main.xgo` + 配置 + `greet` 命令。页面地址是 `xgoef://app/index.html`（只读 `web/`）。
+最小 **XGo** xgoef 应用：`main.xgo` + 配置 + `greet` 命令。页面地址是 `xgoef://app/index.html`（只读 `web/`）。页面不写 `<script src="xgoef.js">`；渲染进程在上下文创建时从 `web/xgoef.js` 注入 `window.__XGOEF__`。
 
 页上还可以 *read note*、*os platform*、*clipboard*、*channel*、*menu* / *tray*、*wait*、*exit* / *relaunch*、*notify*、*shortcut*，以及 *monitors*、*print*、*devtools*、*injected*、*eval*。*wait* 在宿主上等 1.5 秒，页面可以用 *cancel wait* 取消，或在 2 秒时收到超时。*exit* 结束这个进程，*relaunch* 用同一个宿主再起一次。*notify* 先请求通知权限，再让桌面弹出一条标题为 xgoef 的通知。*shortcut* 注册 `Control+Shift+X`，按下或松开时事件行会更新。*monitors* 打印显示器数量和当前窗口的 scale。*print* 打开系统打印对话框。*devtools* 在打开和关闭开发者工具之间切换；hello 把 `plugin.webview.devtools` 设为 true。*injected* 读取启动时注入到主框架的标记。*eval* 按配置里的名字 `mark` 运行脚本，页面不提交脚本正文。菜单项里的命令仍走 capabilities。窗口的位置和大小会记在应用目录的 `.xgoef/window-state.json`。配置里的 identifier 使第二次启动交给已经打开的进程。`xgoef-hello://` 会交给这个进程。配置里有 `version` 时，`xgoef build` 在发行目录的 `bundle/` 写下 deb、msi、dmg 和 AppImage。`xgoef dev` 会拉起宿主，并在 `web/` 变化后刷新页面。`xgoef build` 和 `xgoef dev` 在发行目录写下 `web/xgoef.d.ts`。失败的 invoke 在页面上是 `XgoefError`，带稳定的 `code`。说明见 [docs/plugins.md](../../docs/plugins.md)、[docs/channels.md](../../docs/channels.md)、[docs/menu.md](../../docs/menu.md)、[docs/window.md](../../docs/window.md)、[docs/instance.md](../../docs/instance.md)、[docs/deeplink.md](../../docs/deeplink.md)、[docs/bundle.md](../../docs/bundle.md)、[docs/dev.md](../../docs/dev.md)、[docs/ipc.md](../../docs/ipc.md) 和 [docs/binding.md](../../docs/binding.md)。
 
