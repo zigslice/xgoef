@@ -200,6 +200,23 @@ async function main() {
     assert.deepEqual(posted[0].args, { name: "mark" });
     assert.equal(posted[0].args.script, undefined);
   }
+
+  {
+    const sandbox = load();
+    const posted = [];
+    sandbox.__xgoefPost = (body) => posted.push(JSON.parse(body));
+    const auto = sandbox.__XGOEF__.plugins.autostart;
+    auto.isEnabled();
+    auto.enable();
+    auto.disable();
+    assert.deepEqual(
+      posted.map((msg) => msg.cmd),
+      ["autostart:is_enabled", "autostart:enable", "autostart:disable"]
+    );
+    assert.deepEqual(posted[0].args, {});
+    assert.deepEqual(posted[1].args, {});
+    assert.equal(posted[1].args.args, undefined);
+  }
 }
 
 main().catch((err) => {

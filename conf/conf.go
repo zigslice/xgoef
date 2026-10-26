@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/zigslice/xgoef/acl"
+	"github.com/zigslice/xgoef/autostart"
 	"github.com/zigslice/xgoef/binding"
 	"github.com/zigslice/xgoef/cef"
 	"github.com/zigslice/xgoef/deeplink"
@@ -39,6 +40,13 @@ type PluginSection struct {
 	GlobalShortcut ShortcutConfig     `json:"global-shortcut"`
 	WebView        WebViewConfig      `json:"webview"`
 	Eval           EvalConfig         `json:"eval"`
+	Autostart      AutostartConfig    `json:"autostart"`
+}
+
+// AutostartConfig is the launch line written into the user autostart entry.
+// The page cannot choose the executable or these arguments.
+type AutostartConfig struct {
+	Args []string `json:"args"`
 }
 
 // EvalConfig is the set of named scripts the page may ask to run.
@@ -290,6 +298,9 @@ func Load(path string) (File, error) {
 		}
 	}
 	if err := eval.ValidateNamed(f.Plugin.Eval.Scripts); err != nil {
+		return f, fmt.Errorf("conf: %w", err)
+	}
+	if err := autostart.ValidateArgs(f.Plugin.Autostart.Args); err != nil {
 		return f, fmt.Errorf("conf: %w", err)
 	}
 	return f, nil

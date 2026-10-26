@@ -84,7 +84,7 @@ cd build/hello
 
 ## 插件与 CLI
 
-`plugins: ["fs", "os"]` 会在 `App.Run` 里装上带范围的文件命令和平台命令。范围、权限和前端 `__XGOEF__.plugins` 见 [plugins.md](plugins.md)。
+`plugins: ["fs", "os"]` 会在 `App.Run` 里装上带范围的文件命令和平台命令。范围、权限和前端 `__XGOEF__.plugins` 见 [plugins.md](plugins.md)。开机自启是插件 `autostart`，页面开关当前用户的 XDG autostart 项，见 [autostart.md](autostart.md)。
 
 ```bash
 xgoef create myapp

@@ -326,6 +326,17 @@
           return global.__XGOEF__.invoke("eval:run", { name: name });
         },
       },
+      autostart: {
+        enable: function () {
+          return global.__XGOEF__.invoke("autostart:enable", {});
+        },
+        disable: function () {
+          return global.__XGOEF__.invoke("autostart:disable", {});
+        },
+        isEnabled: function () {
+          return global.__XGOEF__.invoke("autostart:is_enabled", {});
+        },
+      },
       deeplink: {
         getCurrent: function () {
           return global.__XGOEF__.invoke("deeplink:get_current", {});

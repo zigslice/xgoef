@@ -103,6 +103,10 @@ return nil, ipc.Fail("greet.empty", "name is empty")
 | `eval.invalid` | `eval:run` 没有合法的 `name`，或脚本正文被宿主拒绝 |
 | `eval.denied` | 参数里除了名字还有别的字段，名字没有登记，或窗口已经离开钉住的源站。这种失败不会执行脚本 |
 | `eval.unavailable` | 这个 label 没有浏览器，或执行调用没有完成 |
+| `autostart.invalid` | 开机自启命令带了参数，启动参数不合法，或可执行文件不是绝对路径 |
+| `autostart.unavailable` | 当前系统没有用户级 autostart 目录，或配置的目录不是绝对路径 |
+| `autostart.denied` | 目标是符号链接、目录，或路径离开了 autostart 目录 |
+| `autostart.write` | 写入或删除开机启动项失败 |
 | `command.failed` | 没有自己记号的 handler 错误 |
 
 ## 自动注入
