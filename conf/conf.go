@@ -126,11 +126,21 @@ type Build struct {
 	BeforeBuildCommand string `json:"beforeBuildCommand,omitempty"`
 }
 
+// CSPMaxBytes is the longest Content-Security-Policy accepted from config.
+const CSPMaxBytes = 2048
+
+// DefaultCSP is the policy sent on xgoef://app/ responses when app.csp is
+// omitted. Inline scripts and styles stay allowed because the html template
+// and examples/hello put script in the page. A tighter policy means moving
+// those scripts into files.
+const DefaultCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'"
+
 // AppSection holds window definitions plus the app menu and tray menu.
 // WindowState nil means remembered geometry is on.
 // WithGlobalXgoef nil means the renderer installs window.__XGOEF__
 // before page scripts. False passes --xgoef-no-bridge. This is the
 // withGlobalTauri equivalent; the default here is on.
+// CSP nil uses DefaultCSP. An empty string disables the asset-response header.
 type AppSection struct {
 	Windows         []Window        `json:"windows"`
 	Menu            []MenuItem      `json:"menu,omitempty"`
@@ -139,6 +149,20 @@ type AppSection struct {
 	SingleInstance  *bool           `json:"singleInstance,omitempty"`
 	DeepLink        *DeepLinkConfig `json:"deepLink,omitempty"`
 	WithGlobalXgoef *bool           `json:"withGlobalXgoef,omitempty"`
+	CSP             *string         `json:"csp,omitempty"`
+}
+
+// ContentSecurityPolicy is the header value for xgoef://app/ responses.
+// A nil field uses DefaultCSP. An empty string disables the header.
+// The page cannot choose this value. devUrl responses are not rewritten.
+func (a AppSection) ContentSecurityPolicy() (policy string, enabled bool) {
+	if a.CSP == nil {
+		return DefaultCSP, true
+	}
+	if *a.CSP == "" {
+		return "", false
+	}
+	return *a.CSP, true
 }
 
 // DeepLinkConfig lists custom URL schemes this application accepts.
@@ -325,7 +349,25 @@ func Load(path string) (File, error) {
 	if err := validShellCommand(f.Build.BeforeBuildCommand); err != nil {
 		return f, fmt.Errorf("conf: beforeBuildCommand: %w", err)
 	}
+	if err := validCSP(f.App.CSP); err != nil {
+		return f, fmt.Errorf("conf: %w", err)
+	}
 	return f, nil
+}
+
+func validCSP(policy *string) error {
+	if policy == nil || *policy == "" {
+		return nil
+	}
+	if len(*policy) > CSPMaxBytes {
+		return fmt.Errorf("csp is too long")
+	}
+	for _, r := range *policy {
+		if r < 0x20 {
+			return fmt.Errorf("csp is invalid")
+		}
+	}
+	return nil
 }
 
 func validShellCommand(command string) error {

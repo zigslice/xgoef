@@ -281,6 +281,74 @@ func TestLoadRejectsLogLevel(t *testing.T) {
 	}
 }
 
+func TestLoadCSP(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "csp.json")
+	write := func(body string) {
+		t.Helper()
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write(`{"productName":"t"}`)
+	f, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	policy, enabled := f.App.ContentSecurityPolicy()
+	if !enabled || policy != DefaultCSP || len(DefaultCSP) > CSPMaxBytes {
+		t.Fatalf("%q %v", policy, enabled)
+	}
+	for _, r := range DefaultCSP {
+		if r < 0x20 {
+			t.Fatalf("default has control %#U", r)
+		}
+	}
+	write(`{"productName":"t","app":{"csp":null}}`)
+	f, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	policy, enabled = f.App.ContentSecurityPolicy()
+	if !enabled || policy != DefaultCSP || f.App.CSP != nil {
+		t.Fatalf("null %#v %q %v", f.App.CSP, policy, enabled)
+	}
+	write(`{"productName":"t","app":{"csp":""}}`)
+	f, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	policy, enabled = f.App.ContentSecurityPolicy()
+	if enabled || policy != "" {
+		t.Fatalf("empty %q %v", policy, enabled)
+	}
+	write(`{"productName":"t","app":{"csp":"default-src 'none'"}}`)
+	f, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	policy, enabled = f.App.ContentSecurityPolicy()
+	if !enabled || policy != "default-src 'none'" {
+		t.Fatalf("custom %q %v", policy, enabled)
+	}
+	write(`{"productName":"t","app":{"csp":"` + strings.Repeat("a", CSPMaxBytes) + `"}}`)
+	if _, err := Load(path); err != nil {
+		t.Fatal(err)
+	}
+	write(`{"productName":"t","app":{"csp":"` + strings.Repeat("a", CSPMaxBytes+1) + `"}}`)
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "csp is too long") {
+		t.Fatal(err)
+	}
+	write("{\"productName\":\"t\",\"app\":{\"csp\":\"default-src 'self'\\n\"}}")
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "csp is invalid") {
+		t.Fatal(err)
+	}
+	write(`{"productName":"t","app":{"csp":"default-src\t'self'"}}`)
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "csp is invalid") {
+		t.Fatal(err)
+	}
+}
+
 func TestLoadRejectsShellCommand(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")

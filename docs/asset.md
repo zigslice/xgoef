@@ -21,6 +21,22 @@ xgoef://app/css/app.css
 
 宿主在启动参数里带上 `--xgoef-asset-root=<绝对路径>`。CEF 浏览器进程用它注册 scheme handler；`xgoef-helper` 只登记同名 scheme，保证渲染进程认这个 origin。
 
+## Content-Security-Policy
+
+`xgoef://app/` 的每个成功响应带 `Content-Security-Policy`。省略 `app.csp` 时用这条默认策略：
+
+```text
+default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'
+```
+
+默认允许页内脚本和样式，因为 `html` 模板和 `examples/hello` 把脚本写在页面里。要把策略收紧，需要把脚本挪到独立文件，再去掉 `'unsafe-inline'`。
+
+`app.csp` 写成空字符串时不发送这个头。写成其它字符串时，该字符串就是策略：最长 2048 字节，不能含有控制字符。页面不能改这条策略。宿主启动参数是 `--xgoef-csp=<策略>` 或 `--xgoef-no-csp`。
+
+`build.devUrl` 打开的是开发服务器。那些响应仍用服务器自己的头。
+
+策略和启动参数有测试。头是在资源工厂里附上的。这台环境没有安装 CEF，没有在真实响应里看到这个头。
+
 ## 前端桥
 
 `xgoef://app/` 的根就是 `web/`。渲染进程在上下文创建时读取这个根目录里的 `xgoef.js`，装上 `window.__XGOEF__`。页面不必再写：
@@ -46,5 +62,7 @@ xgoef://app/css/app.css
 | `asset.Root` | Go 侧映射和拒绝规则（单测） |
 | `asset.PackDir` / `AppendSeal` | 把前端签进宿主尾部；`xgoef.assets` 是同一份封包 |
 | `runtime.App.NavigationURL` | 启动 URL / `CreateWindow` |
-| `cef/shim/xgoef_asset.cc` | CEF `CefSchemeHandlerFactory` |
+| `conf.DefaultCSP` / `app.csp` | `xgoef://app/` 响应的 Content-Security-Policy；空字符串不发送 |
+| `cef/shim/xgoef_asset.cc` | CEF `CefSchemeHandlerFactory`，成功响应可带策略头 |
+| `cef/shim/xgoef_csp.h` | 校验 `--xgoef-csp` / `--xgoef-no-csp`（不链接 CEF，可单独编译） |
 | `cef/shim/xgoef_asset_path.cc` | 与 Go 对齐的路径规则（不链接 CEF，可单独编译） |

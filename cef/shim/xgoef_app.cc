@@ -11,12 +11,13 @@
 
 #include "xgoef_bridge.h"
 #include "xgoef_crash.h"
+#include "xgoef_csp.h"
 #include "xgoef_handler.h"
 #include "xgoef_menu_views.h"
 #include "xgoef_window.h"
 
 namespace xgoef {
-void RegisterAssetScheme(const std::string& root);
+void RegisterAssetScheme(const std::string& root, bool csp_disabled, const std::string& csp);
 }
 
 namespace xgoef {
@@ -185,7 +186,8 @@ void App::OnContextInitialized() {
   std::string asset_root =
       command_line->GetSwitchValue("xgoef-asset-root").ToString();
   if (!asset_root.empty()) {
-    RegisterAssetScheme(asset_root);
+    RegisterAssetScheme(asset_root, command_line->HasSwitch(kNoCSPSwitch),
+                        command_line->GetSwitchValue(kCSPSwitch).ToString());
   }
 
   cef_runtime_style_t runtime_style = CEF_RUNTIME_STYLE_DEFAULT;

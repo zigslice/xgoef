@@ -35,7 +35,7 @@
 | `ipc/` | Command 注册与调用、Event 总线 |
 | `plugin/` | 插件契约（命令 + permission） |
 | `plugins/fs` `plugins/os` `plugins/shell` `plugins/clipboard` `plugins/dialog` `plugins/process` `plugins/notification` `plugins/globalshortcut` | 内置插件 |
-| `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径 |
+| `asset/` | `xgoef://app/` → 已签名的前端或 `frontendDist`，拒绝根外路径；响应可带 CSP |
 | `conf/` | `xgoef.conf.json` 解析 |
 | `deeplink/` | 自定义 URL scheme 的参数接收入口和当前用户 XDG 关联 |
 | `autostart/` | 当前用户开机自启的 XDG desktop 项 |
@@ -109,6 +109,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 `log:write` 把一行日志写进当前用户的状态目录。宿主 panic 另记最近一次崩溃。页面不能选择路径。详见 [docs/log.md](docs/log.md)。
 
 `App.OnLifecycle` 在消息循环前后收到 `ready` 和 `exit`，并在主框架加载结束时收到 `page-load`。页面不能发送这些事件。详见 [docs/lifecycle.md](docs/lifecycle.md)。
+
+`xgoef://app/` 的响应带 `Content-Security-Policy`。省略 `app.csp` 时用默认策略，空字符串则不发送。开发服务器的响应仍用它自己的头。详见 [docs/asset.md](docs/asset.md)。
 
 `xgoef create --template` 可以写出静态页、Vite 或 Vite + React。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
 
