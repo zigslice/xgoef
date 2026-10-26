@@ -110,6 +110,18 @@ var builtinPlugins = map[string][]Command{
 		{Name: "window:is_fullscreen", Result: "boolean"},
 		{Name: "window:is_always_on_top", Result: "boolean"},
 		{Name: "window:is_visible", Result: "boolean"},
+		{Name: "window:set_resizable", Args: []Arg{{Name: "resizable", Type: "boolean"}}, Result: "null"},
+		{Name: "window:is_resizable", Result: "boolean"},
+		{Name: "window:set_minimizable", Args: []Arg{{Name: "minimizable", Type: "boolean"}}, Result: "null"},
+		{Name: "window:is_minimizable", Result: "boolean"},
+		{Name: "window:set_maximizable", Args: []Arg{{Name: "maximizable", Type: "boolean"}}, Result: "null"},
+		{Name: "window:is_maximizable", Result: "boolean"},
+		{Name: "window:set_closable", Args: []Arg{{Name: "closable", Type: "boolean"}}, Result: "null"},
+		{Name: "window:is_closable", Result: "boolean"},
+		{Name: "window:set_min_size", Args: []Arg{{Name: "width", Type: "number"}, {Name: "height", Type: "number"}}, Result: "null"},
+		{Name: "window:set_max_size", Args: []Arg{{Name: "width", Type: "number"}, {Name: "height", Type: "number"}}, Result: "null"},
+		{Name: "window:min_size", Result: "{ width: number; height: number } | null"},
+		{Name: "window:max_size", Result: "{ width: number; height: number } | null"},
 	},
 }
 

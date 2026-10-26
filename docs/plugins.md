@@ -38,9 +38,9 @@ type Plugin interface {
 | `eval` | `eval:run` | 与命令名相同 |
 | `autostart` | `autostart:enable` `autostart:disable` `autostart:is_enabled` | 与命令名相同 |
 | `log` | `log:write` | 与命令名相同 |
-| `window` | `window:minimize` `window:maximize` `window:unminimize` `window:unmaximize` `window:toggle_maximize` `window:show` `window:hide` `window:center` `window:set_title` `window:set_always_on_top` `window:set_fullscreen` `window:set_size` `window:is_minimized` `window:is_maximized` `window:is_fullscreen` `window:is_always_on_top` `window:is_visible` | 与命令名相同 |
+| `window` | `window:minimize` `window:maximize` `window:unminimize` `window:unmaximize` `window:toggle_maximize` `window:show` `window:hide` `window:center` `window:set_title` `window:set_always_on_top` `window:set_fullscreen` `window:set_size` `window:is_minimized` `window:is_maximized` `window:is_fullscreen` `window:is_always_on_top` `window:is_visible` `window:set_resizable` `window:is_resizable` `window:set_minimizable` `window:is_minimizable` `window:set_maximizable` `window:is_maximizable` `window:set_closable` `window:is_closable` `window:set_min_size` `window:set_max_size` `window:min_size` `window:max_size` | 与命令名相同 |
 
-前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`、`plugins.log.trace(message)` / `debug` / `info` / `warn` / `error`、`plugins.window.minimize()` / `toggleMaximize()` / `setTitle(title)` / `setSize(width, height)` / `isMaximized()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
+前端：`__XGOEF__.plugins.fs.readText(path)`、`__XGOEF__.plugins.os.platform()`、`plugins.shell.open`、`plugins.clipboard.readText` / `writeText`、`plugins.dialog.open` / `save`、`plugins.updater.check` / `install`、`plugins.process.exit(code)` / `relaunch()`、`plugins.notification.requestPermission()` / `show(title)`、`plugins["global-shortcut"].register(shortcut)`、`plugins.monitor.list()` / `scale()` / `move(x, y)`、`plugins.webview.print()` / `openDevTools()` / `closeDevTools()` / `isDevToolsOpen()`、`plugins.eval.run(name)`、`plugins.autostart.enable()` / `disable()` / `isEnabled()`、`plugins.log.trace(message)` / `debug` / `info` / `warn` / `error`、`plugins.window.minimize()` / `toggleMaximize()` / `setTitle(title)` / `setSize(width, height)` / `isMaximized()` / `setResizable(resizable)` / `setMinSize(width, height)` / `minSize()`。启用的插件会写进 `web/xgoef.d.ts`，见 [binding.md](binding.md)。
 
 文本读写上限 1 MiB。
 
@@ -152,6 +152,8 @@ Linux 上日志在 `$XDG_STATE_HOME/xgoef/xgoef-<identifier>.log`，没有这个
 `window` 的命令作用在发出调用的那一扇 Views 窗口上。页面不能在参数里指定另一个 label。最小化、最大化、还原、显示、隐藏、居中、标题、置顶、全屏、尺寸和对应的查询都在这里。把窗口左上角移走用 `monitor:move`。
 
 `set_title` 的 `title` 可以是空字符串，必须是 UTF-8，最长 256 字节，不能含有小于 `0x20` 的字节。`set_size` 的宽和高是 1 到 16384 的整数。多出来的字段是 `window.invalid`。没有 Views 窗口时是 `window.unavailable`，`--use-native` 就是这种情况。细节见 [window.md](window.md)。hello 的 *window* 按钮在最大化和还原之间切换，并显示当前是不是最大化。
+
+`set_resizable`、`set_minimizable`、`set_maximizable`、`set_closable` 各带一个布尔。对应的 `is_*` 返回布尔。`set_min_size` 和 `set_max_size` 用 `{width,height}`，`0,0` 取消这一侧的限制。`min_size` 和 `max_size` 在没设时返回 `null`。下限不能大于上限。配置里的同名窗口字段会在创建前写进 shim。hello 的 *limits* 按钮把最小尺寸设成 320×240 并读回来。
 
 ## 应用侧还要做的
 

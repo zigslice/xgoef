@@ -225,6 +225,24 @@ async function main() {
     assert.deepEqual(posted[9].args, { alwaysOnTop: true });
     assert.deepEqual(posted[10].args, { fullscreen: false });
     assert.deepEqual(posted[11].args, { width: 800, height: 600 });
+    win.setResizable(false);
+    win.isResizable();
+    win.setMinimizable(true);
+    win.isMinimizable();
+    win.setMaximizable(false);
+    win.isMaximizable();
+    win.setClosable(true);
+    win.isClosable();
+    win.setMinSize(320, 240);
+    win.setMaxSize(0, 0);
+    win.minSize();
+    win.maxSize();
+    assert.deepEqual(posted[17].cmd, "window:set_resizable");
+    assert.deepEqual(posted[17].args, { resizable: false });
+    assert.deepEqual(posted[25].args, { width: 320, height: 240 });
+    assert.deepEqual(posted[26].args, { width: 0, height: 0 });
+    assert.deepEqual(posted[27].cmd, "window:min_size");
+    assert.deepEqual(posted[28].cmd, "window:max_size");
   }
 
   {

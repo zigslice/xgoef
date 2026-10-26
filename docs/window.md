@@ -69,6 +69,25 @@ Capabilities should list each label that may invoke commands.
 
 启用方式和 hello 的 *window* 按钮见 [plugins.md](plugins.md)。
 
+## 缩放和关闭
+
+每个窗口还可以限制能不能缩放、最小化、最大化、关闭，以及最小和最大尺寸。配置写在 `app.windows[]` 上，省略时四项都允许，没有最小或最大尺寸。页面用 `window` 插件改当前这扇 Views 窗口。空的窗口 label 按 `main`。
+
+| 字段 / 命令 | 含义 |
+| --- | --- |
+| `resizable` / `window:set_resizable` `{resizable}` | 能不能拖边改大小。`window:is_resizable` 返回布尔 |
+| `minimizable` / `window:set_minimizable` `{minimizable}` | 能不能最小化 |
+| `maximizable` / `window:set_maximizable` `{maximizable}` | 能不能最大化 |
+| `closable` / `window:set_closable` `{closable}` | 能不能关闭。关掉之后，标题栏关闭和 `Close` 都会停在委托里，不会先去关浏览器 |
+| `minWidth` `minHeight` / `window:set_min_size` `{width,height}` | 最小尺寸，DIP。两边一起写。`0,0` 表示不设下限。`window:min_size` 在没设时返回 `null` |
+| `maxWidth` `maxHeight` / `window:set_max_size` `{width,height}` | 最大尺寸。规则和最小尺寸一样。设了的下限不能大于设了的上限 |
+
+第一扇窗口把这八项编成 `--xgoef-limits=可缩放,可最小化,可最大化,可关闭,最小宽,最小高,最大宽,最大高`，例如 `0,1,1,1,320,240,0,0`。再 `CreateWindow` 时，宿主在创建前把同一段文本交给 shim。`cef/shim/xgoef_window_limits.cc` 按同一规则解析，且不依赖 CEF 头文件。Views 委托在每次被问到时读这份表。
+
+宽或高单独出现、超出 1 到 16384、或者下限大于上限，配置加载失败，页面调用是 `window.invalid`。多出来的字段也是 `window.invalid`。`--use-native` 没有 Views 委托，启动开关被忽略，页面命令是 `window.unavailable`。
+
+这台环境没有启动 CEF，所以没有看见窗口真的拒绝缩放或关闭。
+
 ## 主题、装饰与透明
 
 每个窗口可以写这三项。省略时分别是有装饰、跟随系统、不透明。

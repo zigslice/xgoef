@@ -220,6 +220,36 @@ func (b *NativeBridge) WindowQuery(label string, query int) (bool, error) {
 	return rc != 0, nil
 }
 
+func (b *NativeBridge) SetWindowLimits(label, encoded string) error {
+	rc := xgoefWindowLimitsSeed(c.AllocaCStr(label), c.AllocaCStr(encoded))
+	if rc != 0 {
+		return fmt.Errorf("cef: window limits %q rejected", label)
+	}
+	return nil
+}
+
+func (b *NativeBridge) WindowLimit(label string, field, argA, argB int) error {
+	rc := xgoefWindowLimit(c.AllocaCStr(label), c.Int(field), c.Int(argA), c.Int(argB))
+	if rc == -2 {
+		return ErrWindowRejected
+	}
+	if rc != 0 {
+		return fmt.Errorf("cef: window limit %q failed", label)
+	}
+	return nil
+}
+
+func (b *NativeBridge) WindowLimitQuery(label string, field int) (int, int, error) {
+	rc := int(xgoefWindowLimitGet(c.AllocaCStr(label), c.Int(field)))
+	if rc == -2 {
+		return 0, 0, ErrWindowRejected
+	}
+	if rc < 0 {
+		return 0, 0, fmt.Errorf("cef: window limit %q failed", label)
+	}
+	return rc >> 16, rc & 0xffff, nil
+}
+
 func (b *NativeBridge) Print(windowLabel string) error {
 	if rc := xgoefWindowPrint(c.AllocaCStr(windowLabel)); rc != 0 {
 		return fmt.Errorf("cef: print %q failed", windowLabel)
@@ -407,6 +437,15 @@ func xgoefWindowOp(label *c.Char, op, a, b c.Int, text *c.Char) c.Int
 
 //go:linkname xgoefWindowQuery C.xgoef_window_query
 func xgoefWindowQuery(label *c.Char, query c.Int) c.Int
+
+//go:linkname xgoefWindowLimitsSeed C.xgoef_window_limits_seed
+func xgoefWindowLimitsSeed(label, text *c.Char) c.Int
+
+//go:linkname xgoefWindowLimit C.xgoef_window_limit
+func xgoefWindowLimit(label *c.Char, field, a, b c.Int) c.Int
+
+//go:linkname xgoefWindowLimitGet C.xgoef_window_limit_get
+func xgoefWindowLimitGet(label *c.Char, field c.Int) c.Int
 
 //go:linkname xgoefWindowPrint C.xgoef_window_print
 func xgoefWindowPrint(label *c.Char) c.Int

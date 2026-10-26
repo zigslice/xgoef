@@ -30,6 +30,8 @@ set(XGOEF_CEF_SRCS
   xgoef_ipc.cc
   xgoef_window.cc
   xgoef_window_op.cc
+  xgoef_window_limits.cc
+  xgoef_window_limits_ui.cc
   xgoef_window_chrome.cc
   xgoef_window_state.cc
   xgoef_lifecycle.cc

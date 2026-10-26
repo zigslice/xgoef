@@ -18,6 +18,10 @@ type WindowSpec struct {
 	// that is still on this window's URL origin. The page cannot set them.
 	// Empty leaves scripts already registered for the label unchanged.
 	InitScripts []string
+	// Limits is used when HasLimits is true. Otherwise the window keeps the default,
+	// which allows resize, minimize, maximize, and close.
+	Limits    WindowLimits
+	HasLimits bool
 }
 
 // Bridge wires the C MessageRouter shim to Go IPC and window control.
@@ -64,6 +68,16 @@ type Bridge interface {
 	// WindowQuery reads one Views window flag. query is a WindowQuery* code.
 	// The bool is true when the native result is 1.
 	WindowQuery(label string, query int) (bool, error)
+
+	// SetWindowLimits stores resize limits for a label before that window exists.
+	// encoded is WindowLimits.Encode. An empty label is main.
+	SetWindowLimits(label, encoded string) error
+	// WindowLimit changes one live Views window limit. field is a WindowLimit* code.
+	// A rejected field or size is ErrWindowRejected.
+	WindowLimit(label string, field, a, b int) error
+	// WindowLimitQuery reads one live limit. For a flag, a is 0 or 1 and b is 0.
+	// For a size, a and b are the width and height. 0,0 means that bound is unset.
+	WindowLimitQuery(label string, field int) (a, b int, err error)
 
 	// Print opens the system print dialog for a window label.
 	Print(windowLabel string) error

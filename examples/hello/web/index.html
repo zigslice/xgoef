@@ -91,6 +91,7 @@
         <button id="btn-autostart" class="secondary" type="button">autostart</button>
         <button id="btn-log" class="secondary" type="button">log</button>
         <button id="btn-window" class="secondary" type="button">window</button>
+        <button id="btn-limits" class="secondary" type="button">limits</button>
       </div>
       <div id="out">waiting for host</div>
       <div id="evt">event: —</div>
@@ -294,6 +295,16 @@
           await win.toggleMaximize();
           const on = await win.isMaximized();
           out.textContent = on ? "maximized" : "restored";
+        } catch (e) {
+          show(e);
+        }
+      };
+      document.getElementById("btn-limits").onclick = async () => {
+        try {
+          const win = window.__XGOEF__.plugins.window;
+          await win.setMinSize(320, 240);
+          const size = await win.minSize();
+          out.textContent = "min " + size.width + "x" + size.height;
         } catch (e) {
           show(e);
         }

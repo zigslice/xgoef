@@ -55,7 +55,7 @@ func TestLoadHelloConfig(t *testing.T) {
 	if !foundAuto || !foundLog || !foundWindow {
 		t.Fatalf("plugins %v", f.Plugins)
 	}
-	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled", "log:write", "window:toggle_maximize", "window:is_maximized"} {
+	for _, perm := range []string{"autostart:enable", "autostart:disable", "autostart:is_enabled", "log:write", "window:toggle_maximize", "window:is_maximized", "window:set_min_size", "window:min_size"} {
 		ok := false
 		for _, c := range f.Capabilities {
 			for _, p := range c.Permissions {
@@ -406,6 +406,40 @@ func TestLoadRejectsShellCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "beforeBuildCommand") {
+		t.Fatal(err)
+	}
+}
+
+func TestLoadWindowLimits(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "ok.json")
+	body := `{
+	  "productName":"t",
+	  "app":{"windows":[{"title":"t","width":800,"height":600,"resizable":false,"minWidth":320,"minHeight":240}]}
+	}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lim, err := f.App.Windows[0].Limits()
+	if err != nil || lim.Resizable || !lim.Closable || lim.MinWidth != 320 || lim.MaxWidth != 0 {
+		t.Fatalf("%+v %v", lim, err)
+	}
+	enc, err := lim.Encode()
+	if err != nil || enc != "0,1,1,1,320,240,0,0" {
+		t.Fatalf("%q %v", enc, err)
+	}
+	bad := `{
+	  "productName":"t",
+	  "app":{"windows":[{"title":"t","width":800,"height":600,"minWidth":800,"minHeight":600,"maxWidth":320,"maxHeight":240}]}
+	}`
+	if err := os.WriteFile(path, []byte(bad), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil || !strings.Contains(err.Error(), "min above max") {
 		t.Fatal(err)
 	}
 }

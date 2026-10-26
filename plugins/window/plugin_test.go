@@ -34,7 +34,7 @@ func setup(t *testing.T, c *call) *ipc.Router {
 		c.query = query
 		c.sawQuery = true
 		return c.answer, c.fail
-	})
+	}, nil, nil)
 	r := ipc.NewRouter()
 	if err := p.Setup(host{r}); err != nil {
 		t.Fatal(err)
@@ -141,7 +141,7 @@ func TestInvalid(t *testing.T) {
 }
 
 func TestUnavailableAndRejected(t *testing.T) {
-	p := New(nil, nil)
+	p := New(nil, nil, nil, nil)
 	r := ipc.NewRouter()
 	if err := p.Setup(host{r}); err != nil {
 		t.Fatal(err)
@@ -150,6 +150,12 @@ func TestUnavailableAndRejected(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := r.Invoke("window:is_minimized", []byte(`{}`)); ipc.CodeOf(err) != "window.unavailable" {
+		t.Fatal(err)
+	}
+	if _, err := r.Invoke("window:set_resizable", []byte(`{"resizable":false}`)); ipc.CodeOf(err) != "window.unavailable" {
+		t.Fatal(err)
+	}
+	if _, err := r.Invoke("window:min_size", []byte(`{}`)); ipc.CodeOf(err) != "window.unavailable" {
 		t.Fatal(err)
 	}
 	c := &call{fail: cef.ErrWindowRejected}
@@ -162,6 +168,82 @@ func TestUnavailableAndRejected(t *testing.T) {
 	}
 	c.fail = errors.New("cef: no window")
 	if _, err := r.Invoke("window:hide", []byte(`{}`)); ipc.CodeOf(err) != "window.unavailable" || !strings.Contains(err.Error(), "no window") {
+		t.Fatal(err)
+	}
+}
+
+func TestLimits(t *testing.T) {
+	type row struct {
+		field, a, b int
+	}
+	var got row
+	maxW, maxH := 0, 0
+	minW, minH := 0, 0
+	flags := map[int]int{
+		cef.WindowLimitResizable:   1,
+		cef.WindowLimitMinimizable: 1,
+		cef.WindowLimitMaximizable: 1,
+		cef.WindowLimitClosable:    1,
+	}
+	p := New(nil, nil, func(window string, field, a, b int) error {
+		if window != "main" {
+			t.Fatalf("window %q", window)
+		}
+		got = row{field, a, b}
+		switch field {
+		case cef.WindowLimitMinSize:
+			minW, minH = a, b
+		case cef.WindowLimitMaxSize:
+			maxW, maxH = a, b
+		default:
+			flags[field] = a
+		}
+		return nil
+	}, func(window string, field int) (int, int, error) {
+		if window != "aux" && window != "main" {
+			t.Fatalf("window %q", window)
+		}
+		switch field {
+		case cef.WindowLimitMinSize:
+			return minW, minH, nil
+		case cef.WindowLimitMaxSize:
+			return maxW, maxH, nil
+		default:
+			return flags[field], 0, nil
+		}
+	})
+	r := ipc.NewRouter()
+	if err := p.Setup(host{r}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.InvokeFrom("", "window:set_resizable", []byte(`{"resizable":false}`)); err != nil || got.field != cef.WindowLimitResizable || got.a != 0 {
+		t.Fatalf("%v %+v", err, got)
+	}
+	body, err := r.InvokeFrom("aux", "window:is_closable", []byte(`{}`))
+	if err != nil || string(body) != "true" {
+		t.Fatalf("%s %v", body, err)
+	}
+	if _, err := r.Invoke("window:set_min_size", []byte(`{"width":320,"height":240}`)); err != nil || minW != 320 || minH != 240 {
+		t.Fatal(err)
+	}
+	body, err = r.Invoke("window:min_size", []byte(`{}`))
+	if err != nil || string(body) != `{"width":320,"height":240}` {
+		t.Fatalf("%s %v", body, err)
+	}
+	body, err = r.Invoke("window:max_size", nil)
+	if err != nil || string(body) != "null" {
+		t.Fatalf("%s %v", body, err)
+	}
+	if _, err := r.Invoke("window:set_max_size", []byte(`{"width":100,"height":100}`)); ipc.CodeOf(err) != "window.invalid" {
+		t.Fatal(err)
+	}
+	if _, err := r.Invoke("window:set_min_size", []byte(`{"width":0,"height":10}`)); ipc.CodeOf(err) != "window.invalid" {
+		t.Fatal(err)
+	}
+	if _, err := r.Invoke("window:set_closable", []byte(`{"closable":false,"extra":1}`)); ipc.CodeOf(err) != "window.invalid" {
+		t.Fatal(err)
+	}
+	if _, err := r.Invoke("window:set_min_size", []byte(`{"width":0,"height":0}`)); err != nil || minW != 0 || minH != 0 {
 		t.Fatal(err)
 	}
 }

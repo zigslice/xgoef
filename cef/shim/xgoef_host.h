@@ -79,6 +79,16 @@ int xgoef_window_op(const char* label, int op, int a, int b, const char* text);
 /* 1, 0, or -1 when that label has no Views window or the UI thread does
  * not answer. Query codes are xgoef::kWindowQuery*. */
 int xgoef_window_query(const char* label, int query);
+/* Store resize limits before the window exists. |text| is the eight-field
+ * form from cef.WindowLimits.Encode. Returns 0, or -2 when rejected. */
+int xgoef_window_limits_seed(const char* label, const char* text);
+/* Change one limit field on a live Views window. Field codes are
+ * xgoef::kWindowLimit*. Returns 0, -1 when that label has no Views window,
+ * or -2 when the field or size is rejected. */
+int xgoef_window_limit(const char* label, int field, int a, int b);
+/* (a << 16) | b on success. -1 when that label has no Views window.
+ * -2 when the field is unknown. */
+int xgoef_window_limit_get(const char* label, int field);
 
 /* Monitor table for |window_label|. The text is xgoef::FormatDisplayTable.
  * NULL when CEF does not answer. Caller frees with xgoef_displays_free. */
