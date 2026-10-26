@@ -108,6 +108,8 @@ await window.__XGOEF__.invoke("progress", { channel: ch })
 
 `log:write` 把一行日志写进当前用户的状态目录。宿主 panic 另记最近一次崩溃。页面不能选择路径。详见 [docs/log.md](docs/log.md)。
 
+`App.OnLifecycle` 在消息循环前后收到 `ready` 和 `exit`，并在主框架加载结束时收到 `page-load`。页面不能发送这些事件。详见 [docs/lifecycle.md](docs/lifecycle.md)。
+
 `xgoef create --template` 可以写出静态页、Vite 或 Vite + React。生产构建进入 `web/`，开发时打开 `build.devUrl`。详见 [docs/templates.md](docs/templates.md)。
 
 `xgoef build` 在有 `version` 时把分期目录打成 deb、msi、dmg 和 AppImage。详见 [docs/bundle.md](docs/bundle.md)。

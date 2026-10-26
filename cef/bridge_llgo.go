@@ -253,6 +253,26 @@ func (b *NativeBridge) Eval(label, allowedURL, source string) error {
 	}
 }
 
+func (b *NativeBridge) SetPageLoad(fn func(label, url string)) {
+	pageLoadNote = fn
+	if fn == nil {
+		xgoefPageLoadSet(nil)
+		return
+	}
+	xgoefPageLoadSet(nativePageLoad)
+}
+
+var pageLoadNote func(label, url string)
+
+//llgo:cdecl
+func nativePageLoad(label, url *c.Char) {
+	fn := pageLoadNote
+	if fn == nil {
+		return
+	}
+	fn(goStr(label), goStr(url))
+}
+
 func (b *NativeBridge) SetWindowStateNote(fn func(label string, x, y, width, height int, maximized bool)) {
 	windowStateNote = fn
 	if fn == nil {
@@ -347,6 +367,12 @@ func xgoefWindowStateSet(encoded *c.Char)
 
 //go:linkname xgoefWindowStateSetNote C.xgoef_window_state_set_note
 func xgoefWindowStateSetNote(fn windowStateFn)
+
+//llgo:cdecl
+type pageLoadFn func(label, url *c.Char)
+
+//go:linkname xgoefPageLoadSet C.xgoef_page_load_set
+func xgoefPageLoadSet(fn pageLoadFn)
 
 //go:linkname xgoefDisplays C.xgoef_displays
 func xgoefDisplays(windowLabel *c.Char) *c.Char

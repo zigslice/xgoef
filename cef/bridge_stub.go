@@ -31,6 +31,7 @@ type NativeBridge struct {
 	evalLabel   string
 	evalAllowed string
 	evalSource  string
+	onLoad      func(label, url string)
 }
 
 // NewNativeBridge returns a stub bridge when not building with LLGo.
@@ -184,4 +185,15 @@ func (b *NativeBridge) Eval(label, allowedURL, source string) error {
 // LastEval is the most recent Eval argument.
 func (b *NativeBridge) LastEval() (label, allowed, source string, ok bool) {
 	return b.evalLabel, b.evalAllowed, b.evalSource, b.evalSet
+}
+
+func (b *NativeBridge) SetPageLoad(fn func(label, url string)) { b.onLoad = fn }
+
+// NotePageLoad delivers one load the way OnLoadEnd does after the policy accepts it.
+// Tests use it. A nil callback does nothing.
+func (b *NativeBridge) NotePageLoad(label, url string) {
+	if b == nil || b.onLoad == nil {
+		return
+	}
+	b.onLoad(label, url)
 }
